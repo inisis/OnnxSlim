@@ -1,7 +1,7 @@
 from typing import Union
 
 import onnx
-from loguru import logger
+from onnxslim.utils.utils import logger
 
 
 def slim(

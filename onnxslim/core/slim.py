@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import tempfile
@@ -12,15 +11,12 @@ import onnxslim.onnx_graphsurgeon as gs
 from onnxslim.onnx_graphsurgeon.ir.tensor import Constant
 from onnxslim.onnx_graphsurgeon.logger.logger import G_LOGGER
 
-logging.basicConfig(level=logging.ERROR)
-
-from loguru import logger
-
 from ..utils.utils import (
     dump_model_info_to_disk,
     gen_onnxruntime_input_data,
     onnxruntime_inference,
     print_model_info_as_table,
+    logger
 )
 
 from .optimizer import delete_node, optimize_model

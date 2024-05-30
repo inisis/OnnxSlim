@@ -8,6 +8,23 @@ from ..utils.font import GREEN, WHITE
 from ..utils.tabulate import SEPARATING_LINE, tabulate
 
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+
+# Create a logger
+logger = logging.getLogger("ONNXSlim")
+
+
 def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
     if isinstance(size, int):
         size = (size,)

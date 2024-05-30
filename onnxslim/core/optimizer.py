@@ -6,7 +6,7 @@ from typing import List, Union
 import numpy as np
 
 import onnx
-from loguru import logger
+from onnxslim.utils.utils import logger
 
 import onnxslim.onnx_graphsurgeon as gs
 from onnxslim.onnx_graphsurgeon.exporters.onnx_exporter import dtype_to_onnx

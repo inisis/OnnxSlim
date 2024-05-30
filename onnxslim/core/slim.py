@@ -1,3 +1,5 @@
+import logging
+
 import os
 import sys
 import tempfile
@@ -31,13 +33,20 @@ AUTO_MERGE = (
 
 
 def init_logging(verbose=False):
-    logger.remove()
+    # Remove all handlers associated with the root logger object.
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
     if verbose:  # DEBUG
-        logger.add(sys.stderr, level=G_LOGGER.DEBUG)
-        G_LOGGER.severity = G_LOGGER.DEBUG
-    else:  # INFO
-        logger.add(sys.stderr, level=G_LOGGER.ERROR)
-        G_LOGGER.severity = G_LOGGER.ERROR
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                            handlers=[logging.StreamHandler(sys.stderr)])
+        G_LOGGER.severity = logging.DEBUG
+    else:  # ERROR
+        logging.basicConfig(level=logging.ERROR,
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                            handlers=[logging.StreamHandler(sys.stderr)])
+        G_LOGGER.severity = logging.ERROR
 
     G_LOGGER.colors = False
 

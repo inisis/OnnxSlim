@@ -1,24 +1,18 @@
+import logging
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-
 import onnx
 
 from ..utils.font import GREEN, WHITE
 from ..utils.tabulate import SEPARATING_LINE, tabulate
 
-
-import logging
-
 # Configure logging
 logging.basicConfig(
     level=logging.ERROR,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.FileHandler("app.log"),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
 )
 
 # Create a logger
@@ -96,10 +90,7 @@ def gen_onnxruntime_input_data(
         if "data" in info:
             input_data_dict[name] = info["data"]
         else:
-            shapes = [
-                shape if (shape != -1 and not isinstance(shape, str)) else 1
-                for shape in info["shape"]
-            ]
+            shapes = [shape if (shape != -1 and not isinstance(shape, str)) else 1 for shape in info["shape"]]
             shapes = shapes if shapes else [1]
             dtype = info["dtype"]
 
@@ -112,14 +103,10 @@ def gen_onnxruntime_input_data(
     return input_data_dict
 
 
-def onnxruntime_inference(
-    model: onnx.ModelProto, input_data: dict
-) -> Dict[str, np.array]:
+def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str, np.array]:
     import onnxruntime as rt
 
-    sess = rt.InferenceSession(
-        model.SerializeToString(), providers=["CPUExecutionProvider"]
-    )
+    sess = rt.InferenceSession(model.SerializeToString(), providers=["CPUExecutionProvider"])
     onnx_output = sess.run(None, input_data)
 
     output_names = [output.name for output in sess.get_outputs()]
@@ -128,12 +115,8 @@ def onnxruntime_inference(
     return onnx_output
 
 
-def print_model_info_as_table(
-    model_name: str, model_info_list: List[Dict], elapsed_time: float = 0.0
-):
-    assert (
-        len(model_info_list) > 0
-    ), "model_info_list must contain more than one model info"
+def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elapsed_time: float = 0.0):
+    assert len(model_info_list) > 0, "model_info_list must contain more than one model info"
 
     final_op_info = []
     if len(model_info_list) == 1:
@@ -142,15 +125,11 @@ def print_model_info_as_table(
         final_op_info.append(["Op Set ", model_info_list[0]["op_set"]])
     else:
         final_op_info.append(
-            ["Model Name", model_name, "Op Set: " + model_info_list[0]["op_set"]]
-            + [""] * (len(model_info_list) - 2)
+            ["Model Name", model_name, "Op Set: " + model_info_list[0]["op_set"]] + [""] * (len(model_info_list) - 2)
         )
     final_op_info.append([SEPARATING_LINE])
 
-    final_op_info.append(
-        ["Model Info", "Original Model"]
-        + ["Slimmed Model"] * (len(model_info_list) - 1)
-    )
+    final_op_info.append(["Model Info", "Original Model"] + ["Slimmed Model"] * (len(model_info_list) - 1))
     final_op_info.append([SEPARATING_LINE] * (len(model_info_list) + 1))
 
     all_inputs = list(model_info_list[0]["op_input_info"].keys())
@@ -164,11 +143,7 @@ def print_model_info_as_table(
             input_info_list.append(inputs_shape)
         final_op_info.append(input_info_list)
 
-    all_outputs = set(
-        op_type
-        for model_info in model_info_list
-        for op_type in model_info.get("op_output_info", {})
-    )
+    all_outputs = set(op_type for model_info in model_info_list for op_type in model_info.get("op_output_info", {}))
 
     for outputs in all_outputs:
         output_info_list = [
@@ -181,11 +156,7 @@ def print_model_info_as_table(
 
     final_op_info.append([SEPARATING_LINE] * (len(model_info_list) + 1))
 
-    all_ops = set(
-        op_type
-        for model_info in model_info_list
-        for op_type in model_info.get("op_type_counts", {})
-    )
+    all_ops = set(op_type for model_info in model_info_list for op_type in model_info.get("op_type_counts", {}))
     sorted_ops = list(all_ops)
     sorted_ops.sort()
     for op in sorted_ops:
@@ -200,10 +171,7 @@ def print_model_info_as_table(
 
         final_op_info.append(op_info_list)
     final_op_info.append([SEPARATING_LINE] * (len(model_info_list) + 1))
-    final_op_info.append(
-        ["Model Size"]
-        + [format_bytes(model_info["model_size"]) for model_info in model_info_list]
-    )
+    final_op_info.append(["Model Size"] + [format_bytes(model_info["model_size"]) for model_info in model_info_list])
     final_op_info.append([SEPARATING_LINE] * (len(model_info_list) + 1))
     final_op_info.append(["Elapsed Time"] + [f"{elapsed_time:.2f} s"])
     lines = tabulate(
@@ -214,11 +182,7 @@ def print_model_info_as_table(
     ).split("\n")
 
     time_row = lines[-2].split("|")
-    time_row[-3] = (
-        time_row[-2][: len(time_row[-2]) // 2 + 1]
-        + time_row[-3]
-        + time_row[-2][len(time_row[-2]) // 2 :]
-    )
+    time_row[-3] = time_row[-2][: len(time_row[-2]) // 2 + 1] + time_row[-3] + time_row[-2][len(time_row[-2]) // 2 :]
     time_row.pop(-2)
     lines[-2] = "|".join(time_row)
     output = "\n".join([line if line != "| \x01 |" else lines[0] for line in lines])

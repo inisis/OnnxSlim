@@ -1,11 +1,13 @@
 # Input Shape Modification
 
 ## Introduction
+
 OnnxSlim includes an exploration of essential input shape modification techniques for ONNX models.
 
 This concise guide unveils techniques for seamlessly adjusting input tensor dimensions, ensuring optimal compatibility and performance within the dynamic landscape of neural network architectures.
 
 ## Running the example
+
 Change the input model by running:
 
 ```bash

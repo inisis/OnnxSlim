@@ -24,11 +24,7 @@ def get_attribute(node, attr_name, default_value=None):
 
 
 def get_dim_from_proto(dim):
-    return (
-        getattr(dim, dim.WhichOneof("value"))
-        if type(dim.WhichOneof("value")) is str
-        else None
-    )  # noqa: E721
+    return getattr(dim, dim.WhichOneof("value")) if type(dim.WhichOneof("value")) is str else None  # noqa: E721
 
 
 def is_sequence(type_proto):
@@ -72,16 +68,11 @@ def make_named_value_info(name):
 
 
 def get_shape_from_sympy_shape(sympy_shape):
-    return [
-        None if i is None else (int(i) if is_literal(i) else str(i))
-        for i in sympy_shape
-    ]
+    return [None if i is None else (int(i) if is_literal(i) else str(i)) for i in sympy_shape]
 
 
 def is_literal(dim):
-    return type(dim) in [int, np.int64, np.int32, sympy.Integer] or (
-        hasattr(dim, "is_number") and dim.is_number
-    )
+    return type(dim) in [int, np.int64, np.int32, sympy.Integer] or (hasattr(dim, "is_number") and dim.is_number)
 
 
 def handle_negative_axis(axis, rank):
@@ -263,12 +254,7 @@ class SymbolicShapeInference:
         self.prefix_ = prefix
 
     def _add_suggested_merge(self, symbols, apply=False):
-        assert all(
-            [
-                (type(s) == str and s in self.symbolic_dims_) or is_literal(s)
-                for s in symbols
-            ]
-        )  # noqa: E721
+        assert all([(type(s) == str and s in self.symbolic_dims_) or is_literal(s) for s in symbols])  # noqa: E721
         symbols = set(symbols)
         for k, v in self.suggested_merge_.items():
             if k in symbols:
@@ -294,11 +280,7 @@ class SymbolicShapeInference:
         # when nothing to map to, use the shorter one
         if map_to is None:
             if self.verbose_ > 0:
-                logger.warning(
-                    "Potential unsafe merge between symbolic expressions: ({})".format(
-                        ",".join(symbols)
-                    )
-                )
+                logger.warning("Potential unsafe merge between symbolic expressions: ({})".format(",".join(symbols)))
             symbols_list = list(symbols)
             lens = [len(s) for s in symbols_list]
             map_to = symbols_list[lens.index(min(lens))]
@@ -319,9 +301,7 @@ class SymbolicShapeInference:
     def _apply_suggested_merge(self, graph_input_only=False):
         if not self.suggested_merge_:
             return
-        for i in list(self.out_mp_.graph.input) + (
-            [] if graph_input_only else list(self.out_mp_.graph.value_info)
-        ):
+        for i in list(self.out_mp_.graph.input) + ([] if graph_input_only else list(self.out_mp_.graph.value_info)):
             for d in i.type.tensor_type.shape.dim:
                 if d.dim_param in self.suggested_merge_:
                     v = self.suggested_merge_[d.dim_param]
@@ -348,9 +328,7 @@ class SymbolicShapeInference:
             if self.auto_merge_:
                 unique_dims = list(set(dims))
                 is_int = [is_literal(d) for d in unique_dims]
-                assert (
-                    sum(is_int) <= 1
-                )  # if there are more than 1 unique ints, something is wrong
+                assert sum(is_int) <= 1  # if there are more than 1 unique ints, something is wrong
                 if sum(is_int) == 1:
                     int_dim = is_int.index(1)
                     if self.verbose_ > 0:
@@ -364,17 +342,13 @@ class SymbolicShapeInference:
                     return unique_dims[int_dim]
                 else:
                     if self.verbose_ > 0:
-                        logger.debug(
-                            f"dim {unique_dims[1:]} has been merged with dim {unique_dims[0]}"
-                        )
+                        logger.debug(f"dim {unique_dims[1:]} has been merged with dim {unique_dims[0]}")
                     return dims[0]
             else:
                 return None
         if all([d == dims[0] for d in dims]):
             return dims[0]
-        merged = [
-            self.suggested_merge_[d] if d in self.suggested_merge_ else d for d in dims
-        ]
+        merged = [self.suggested_merge_[d] if d in self.suggested_merge_ else d for d in dims]
         if all([d == merged[0] for d in merged]):
             assert merged[0] in self.symbolic_dims_
             return merged[0]
@@ -403,12 +377,7 @@ class SymbolicShapeInference:
                     if self.auto_merge_:
                         self._add_suggested_merge([dim1, dim2], apply=True)
                     else:
-                        logger.warning(
-                            "unsupported broadcast between "
-                            + str(dim1)
-                            + " "
-                            + str(dim2)
-                        )
+                        logger.warning("unsupported broadcast between " + str(dim1) + " " + str(dim2))
             new_shape = [new_dim, *new_shape]
         return new_shape
 
@@ -452,11 +421,7 @@ class SymbolicShapeInference:
     def _get_value(self, node, idx):
         name = node.input[idx]
         assert name in self.sympy_data_ or name in self.initializers_
-        return (
-            self.sympy_data_[name]
-            if name in self.sympy_data_
-            else numpy_helper.to_array(self.initializers_[name])
-        )
+        return self.sympy_data_[name] if name in self.sympy_data_ else numpy_helper.to_array(self.initializers_[name])
 
     def _try_get_value(self, node, idx):
         if idx >= len(node.input):
@@ -473,9 +438,7 @@ class SymbolicShapeInference:
                 if str_dim in self.suggested_merge_:
                     if is_literal(self.suggested_merge_[str_dim]):
                         continue  # no need to create dim for literals
-                    new_sympy_shape[i] = self.symbolic_dims_[
-                        self.suggested_merge_[str_dim]
-                    ]
+                    new_sympy_shape[i] = self.symbolic_dims_[self.suggested_merge_[str_dim]]
                 else:
                     # add new_dim if it's a computational expression
                     if str(new_dim) not in self.symbolic_dims_:
@@ -545,23 +508,11 @@ class SymbolicShapeInference:
                 if node.output[0] in self.known_vi_:
                     vi = self.known_vi_[node.output[0]]
                     out_rank = len(get_shape_from_type_proto(vi.type))
-                    in_shapes = [
-                        self._get_shape(node, i) for i in range(len(node.input))
-                    ]
+                    in_shapes = [self._get_shape(node, i) for i in range(len(node.input))]
                     for d in range(
-                        out_rank
-                        - (
-                            2
-                            if node.op_type
-                            in ["MatMul", "MatMulInteger", "MatMulInteger16"]
-                            else 0
-                        )
+                        out_rank - (2 if node.op_type in ["MatMul", "MatMulInteger", "MatMulInteger16"] else 0)
                     ):
-                        in_dims = [
-                            s[len(s) - out_rank + d]
-                            for s in in_shapes
-                            if len(s) + d >= out_rank
-                        ]
+                        in_dims = [s[len(s) - out_rank + d] for s in in_shapes if len(s) + d >= out_rank]
                         if len(in_dims) > 1:
                             self._check_merged_dims(in_dims, allow_broadcast=True)
 
@@ -587,36 +538,22 @@ class SymbolicShapeInference:
                     vi.name = o
                 self.known_vi_[o] = vi
 
-    def _onnx_infer_subgraph(
-        self, node, subgraph, use_node_input=True, inc_subgraph_id=True
-    ):
+    def _onnx_infer_subgraph(self, node, subgraph, use_node_input=True, inc_subgraph_id=True):
         if self.verbose_ > 2:
-            logger.debug(
-                f"Inferencing subgraph of node {node.name} with output({node.output[0]}...): {node.op_type}"
-            )
+            logger.debug(f"Inferencing subgraph of node {node.name} with output({node.output[0]}...): {node.op_type}")
         # node inputs are not passed directly to the subgraph
         # it's up to the node dispatcher to prepare subgraph input
         # for example, with Scan/Loop, subgraph input shape would be trimmed from node input shape
         # besides, inputs in subgraph could shadow implicit inputs
-        subgraph_inputs = {
-            i.name for i in list(subgraph.initializer) + list(subgraph.input)
-        }
-        subgraph_implicit_input = {
-            name for name in self.known_vi_ if name not in subgraph_inputs
-        }
+        subgraph_inputs = {i.name for i in list(subgraph.initializer) + list(subgraph.input)}
+        subgraph_implicit_input = {name for name in self.known_vi_ if name not in subgraph_inputs}
         tmp_graph = helper.make_graph(
             list(subgraph.node),
             "tmp",
             list(subgraph.input) + [self.known_vi_[i] for i in subgraph_implicit_input],
             [make_named_value_info(i.name) for i in subgraph.output],
         )
-        tmp_graph.initializer.extend(
-            [
-                i
-                for i in self.out_mp_.graph.initializer
-                if i.name in subgraph_implicit_input
-            ]
-        )
+        tmp_graph.initializer.extend([i for i in self.out_mp_.graph.initializer if i.name in subgraph_implicit_input])
         tmp_graph.initializer.extend(subgraph.initializer)
         self.tmp_mp_.graph.CopyFrom(tmp_graph)
 
@@ -638,9 +575,7 @@ class SymbolicShapeInference:
         if use_node_input:
             # if subgraph uses node input, it needs to update to merged dims
             subgraph.ClearField("input")
-            subgraph.input.extend(
-                symbolic_shape_inference.out_mp_.graph.input[: len(node.input)]
-            )
+            subgraph.input.extend(symbolic_shape_inference.out_mp_.graph.input[: len(node.input)])
         subgraph.ClearField("output")
         subgraph.output.extend(symbolic_shape_inference.out_mp_.graph.output)
         subgraph.ClearField("value_info")
@@ -648,10 +583,7 @@ class SymbolicShapeInference:
         subgraph.ClearField("node")
         subgraph.node.extend(symbolic_shape_inference.out_mp_.graph.node)
         # for new symbolic dims from subgraph output, add to main graph symbolic dims
-        subgraph_shapes = [
-            get_shape_from_value_info(o)
-            for o in symbolic_shape_inference.out_mp_.graph.output
-        ]
+        subgraph_shapes = [get_shape_from_value_info(o) for o in symbolic_shape_inference.out_mp_.graph.output]
         subgraph_new_symbolic_dims = {
             d
             for s in subgraph_shapes
@@ -707,12 +639,10 @@ class SymbolicShapeInference:
         assert len(node.output) == 1
 
         # Before mul & div operations
-        # cast inputs into interger might lose decimal part and reduce precision
+        # cast inputs into integer might lose decimal part and reduce precision
         # keep them as float, finish the operation, then cast the result into integer
         if node.op_type in ["Mul", "Div"]:
-            values = self._get_int_or_float_values(
-                node, broadcast=True, allow_float_values=True
-            )
+            values = self._get_int_or_float_values(node, broadcast=True, allow_float_values=True)
         else:
             values = self._get_int_or_float_values(node, broadcast=True)
 
@@ -764,9 +694,7 @@ class SymbolicShapeInference:
         )
 
     def _new_symbolic_shape(self, rank, node, out_idx=0):
-        return [
-            self._new_symbolic_dim_from_output(node, out_idx, i) for i in range(rank)
-        ]
+        return [self._new_symbolic_dim_from_output(node, out_idx, i) for i in range(rank)]
 
     def _compute_conv_pool_shape(self, node, channels_last=False):
         sympy_shape = self._get_sympy_shape(node, 0)
@@ -783,9 +711,7 @@ class SymbolicShapeInference:
         assert len(sympy_shape) == rank + 2
 
         # only need to symbolic shape inference if input has symbolic dims in spatial axes
-        spatial_shape = (
-            sympy_shape[-rank - 1 : -1] if channels_last else sympy_shape[-rank:]
-        )
+        spatial_shape = sympy_shape[-rank - 1 : -1] if channels_last else sympy_shape[-rank:]
         is_symbolic_dims = [not is_literal(i) for i in spatial_shape]
 
         if not any(is_symbolic_dims):
@@ -793,34 +719,26 @@ class SymbolicShapeInference:
             if len(shape) > 0:
                 assert len(sympy_shape) == len(shape)
                 if channels_last:
-                    sympy_shape[-rank - 1 : -1] = [
-                        sympy.Integer(d) for d in shape[-rank - 1 : -1]
-                    ]
+                    sympy_shape[-rank - 1 : -1] = [sympy.Integer(d) for d in shape[-rank - 1 : -1]]
                 else:
                     sympy_shape[-rank:] = [sympy.Integer(d) for d in shape[-rank:]]
                 return sympy_shape
 
         dilations = get_attribute(node, "dilations", [1] * rank)
         strides = get_attribute(node, "strides", [1] * rank)
-        effective_kernel_shape = [
-            (k - 1) * d + 1 for k, d in zip(kernel_shape, dilations)
-        ]
+        effective_kernel_shape = [(k - 1) * d + 1 for k, d in zip(kernel_shape, dilations)]
         pads = get_attribute(node, "pads")
         if pads is None:
             pads = [0] * (2 * rank)
             auto_pad = get_attribute(node, "auto_pad", b"NOTSET").decode("utf-8")
             if auto_pad != "VALID" and auto_pad != "NOTSET":
                 try:
-                    residual = [
-                        sympy.Mod(d, s) for d, s in zip(sympy_shape[-rank:], strides)
-                    ]
+                    residual = [sympy.Mod(d, s) for d, s in zip(sympy_shape[-rank:], strides)]
                     total_pads = [
                         max(0, (k - s) if r == 0 else (k - r))
                         for k, s, r in zip(effective_kernel_shape, strides, residual)
                     ]
-                except (
-                    TypeError
-                ):  # sympy may throw TypeError: cannot determine truth value of Relational
+                except TypeError:  # sympy may throw TypeError: cannot determine truth value of Relational
                     total_pads = [
                         max(0, (k - s)) for k, s in zip(effective_kernel_shape, strides)
                     ]  # assuming no residual if sympy throws error
@@ -842,12 +760,8 @@ class SymbolicShapeInference:
                     (effective_input_size - effective_kernel_shape[i]) / strides[i]
                 )
             else:
-                strided_kernel_positions = (
-                    effective_input_size - effective_kernel_shape[i]
-                ) // strides[i]
-            sympy_shape[-rank + i + (-1 if channels_last else 0)] = (
-                strided_kernel_positions + 1
-            )
+                strided_kernel_positions = (effective_input_size - effective_kernel_shape[i]) // strides[i]
+            sympy_shape[-rank + i + (-1 if channels_last else 0)] = strided_kernel_positions + 1
         return sympy_shape
 
     def _check_merged_dims(self, dims, allow_broadcast=True):
@@ -889,23 +803,15 @@ class SymbolicShapeInference:
             # infer output_dtype from input type when not specified
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, new_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, new_shape))
 
     def _fuse_tensor_type(self, node, out_idx, dst_type, src_type):
-        """
-        update dst_tensor_type to be compatible with src_tensor_type when dimension mismatches
-        """
+        """Update dst_tensor_type to be compatible with src_tensor_type when dimension mismatches."""
         dst_tensor_type = (
-            dst_type.sequence_type.elem_type.tensor_type
-            if is_sequence(dst_type)
-            else dst_type.tensor_type
+            dst_type.sequence_type.elem_type.tensor_type if is_sequence(dst_type) else dst_type.tensor_type
         )
         src_tensor_type = (
-            src_type.sequence_type.elem_type.tensor_type
-            if is_sequence(src_type)
-            else src_type.tensor_type
+            src_type.sequence_type.elem_type.tensor_type if is_sequence(src_type) else src_type.tensor_type
         )
         if dst_tensor_type.elem_type != src_tensor_type.elem_type:
             node_id = node.name if node.name else node.op_type
@@ -915,17 +821,13 @@ class SymbolicShapeInference:
                 f"{onnx.onnx_pb.TensorProto.DataType.Name(src_tensor_type.elem_type)}"
             )
         if dst_tensor_type.HasField("shape"):
-            for di, ds in enumerate(
-                zip(dst_tensor_type.shape.dim, src_tensor_type.shape.dim)
-            ):
+            for di, ds in enumerate(zip(dst_tensor_type.shape.dim, src_tensor_type.shape.dim)):
                 if ds[0] != ds[1]:
                     # create a new symbolic dimension for node/out_idx/mismatch dim id in dst_tensor_type for tensor_type
                     # for sequence_type, clear the dimension
                     new_dim = onnx.TensorShapeProto.Dimension()
                     if not is_sequence(dst_type):
-                        new_dim.dim_param = str(
-                            self._new_symbolic_dim_from_output(node, out_idx, di)
-                        )
+                        new_dim.dim_param = str(self._new_symbolic_dim_from_output(node, out_idx, di))
                     dst_tensor_type.shape.dim[di].CopyFrom(new_dim)
         else:
             dst_tensor_type.CopyFrom(src_tensor_type)
@@ -955,24 +857,14 @@ class SymbolicShapeInference:
             "Max": lambda l: (
                 l[1]  # noqa: E741
                 if is_literal(l[0]) and int(l[0]) < -self.int_max_
-                else (
-                    l[0]
-                    if is_literal(l[1]) and int(l[1]) < -self.int_max_
-                    else sympy.Max(l[0], l[1])
-                )
+                else (l[0] if is_literal(l[1]) and int(l[1]) < -self.int_max_ else sympy.Max(l[0], l[1]))
             ),
             "Min": lambda l: (
                 l[1]  # noqa: E741
                 if is_literal(l[0]) and int(l[0]) > self.int_max_
-                else (
-                    l[0]
-                    if is_literal(l[1]) and int(l[1]) > self.int_max_
-                    else sympy.Min(l[0], l[1])
-                )
+                else (l[0] if is_literal(l[1]) and int(l[1]) > self.int_max_ else sympy.Min(l[0], l[1]))
             ),
-            "Mul": lambda l: (
-                int(l[0] * l[1]) if isinstance(l[0] * l[1], float) else l[0] * l[1]
-            ),  # noqa: E741
+            "Mul": lambda l: (int(l[0] * l[1]) if isinstance(l[0] * l[1], float) else l[0] * l[1]),  # noqa: E741
             "Sub": lambda l: l[0] - l[1],  # noqa: E741
             "Where": lambda l: l[1] if l[0] else l[2],  # noqa: E741
             "Neg": lambda l: -l[0],  # noqa: E741
@@ -990,11 +882,7 @@ class SymbolicShapeInference:
         else:
             output_type = onnx.TensorProto.STRING
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], output_type, self._get_shape(node, 0)
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_type, self._get_shape(node, 0)))
 
     def _infer_Compress(self, node):  # noqa: N802
         input_shape = self._get_shape(node, 0)
@@ -1040,11 +928,7 @@ class SymbolicShapeInference:
         for d in range(len(sympy_shape)):
             if d == axis:
                 continue
-            dims = [
-                self._get_shape(node, i_idx)[d]
-                for i_idx in range(len(node.input))
-                if self._get_shape(node, i_idx)
-            ]
+            dims = [self._get_shape(node, i_idx)[d] for i_idx in range(len(node.input)) if self._get_shape(node, i_idx)]
             if all([d == dims[0] for d in dims]):
                 continue
             merged = self._merge_symbols(dims)
@@ -1064,9 +948,7 @@ class SymbolicShapeInference:
     def _infer_ConcatFromSequence(self, node):  # noqa: N802
         seq_shape = self._get_shape(node, 0)
         new_axis = 1 if get_attribute(node, "new_axis") else 0
-        axis = handle_negative_axis(
-            get_attribute(node, "axis"), len(seq_shape) + new_axis
-        )
+        axis = handle_negative_axis(get_attribute(node, "axis"), len(seq_shape) + new_axis)
         concat_dim = str(self._new_symbolic_dim_from_output(node, 0, axis))
         new_shape = seq_shape
         if new_axis:
@@ -1077,9 +959,7 @@ class SymbolicShapeInference:
         vi.CopyFrom(
             helper.make_tensor_value_info(
                 node.output[0],
-                self.known_vi_[
-                    node.input[0]
-                ].type.sequence_type.elem_type.tensor_type.elem_type,
+                self.known_vi_[node.input[0]].type.sequence_type.elem_type.tensor_type.elem_type,
                 new_shape,
             )
         )
@@ -1096,9 +976,7 @@ class SymbolicShapeInference:
                 sympy_shape = [sympy_shape]
             self._update_computed_dims(sympy_shape)
             # update sympy data if output type is int, and shape is known
-            if vi.type.tensor_type.elem_type == onnx.TensorProto.INT64 and all(
-                [is_literal(x) for x in sympy_shape]
-            ):
+            if vi.type.tensor_type.elem_type == onnx.TensorProto.INT64 and all([is_literal(x) for x in sympy_shape]):
                 self.sympy_data_[node.output[0]] = np.ones(
                     [int(x) for x in sympy_shape], dtype=np.int64
                 ) * numpy_helper.to_array(get_attribute(node, "value", 0))
@@ -1147,9 +1025,7 @@ class SymbolicShapeInference:
         output_shape = self._get_shape(node, 0)
 
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, output_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_QuantizeLinear(self, node):  # noqa: N802
         # Get the output data type from the zero-point input (index 2, optional).
@@ -1162,9 +1038,7 @@ class SymbolicShapeInference:
         output_shape = self._get_shape(node, 0)
 
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, output_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_Einsum(self, node):  # noqa: N802
         # ref:https://github.com/onnx/onnx/blob/623dfaa0151b2e4ce49779c3ec31cbd78c592b80/onnx/defs/math/defs.cc#L3275
@@ -1226,9 +1100,7 @@ class SymbolicShapeInference:
 
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, new_sympy_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, new_sympy_shape))
 
     def _infer_Expand(self, node):  # noqa: N802
         expand_to_shape = as_list(self._try_get_value(node, 1), keep_none=True)
@@ -1236,9 +1108,7 @@ class SymbolicShapeInference:
             # new_shape's dim can come from shape value
             self._update_computed_dims(expand_to_shape)
             shape = self._get_shape(node, 0)
-            new_shape = self._broadcast_shapes(
-                shape, get_shape_from_sympy_shape(expand_to_shape)
-            )
+            new_shape = self._broadcast_shapes(shape, get_shape_from_sympy_shape(expand_to_shape))
             vi = self.known_vi_[node.output[0]]
             vi.CopyFrom(
                 helper.make_tensor_value_info(
@@ -1261,11 +1131,7 @@ class SymbolicShapeInference:
             )
         )
         # for 1D input, do some sympy compute
-        if (
-            node.input[0] in self.sympy_data_
-            and len(data_shape) == 1
-            and get_attribute(node, "axis", 0) == 0
-        ):
+        if node.input[0] in self.sympy_data_ and len(data_shape) == 1 and get_attribute(node, "axis", 0) == 0:
             idx = self._try_get_value(node, 1)
             if idx is not None:
                 data = self.sympy_data_[node.input[0]]
@@ -1320,32 +1186,24 @@ class SymbolicShapeInference:
                 subgraphs[0].CopyFrom(subgraphs[1])
 
         for i_sub, subgraph in enumerate(subgraphs):
-            subgraph_infer = self._onnx_infer_subgraph(
-                node, subgraph, use_node_input=False
-            )
+            subgraph_infer = self._onnx_infer_subgraph(node, subgraph, use_node_input=False)
             for i_out in range(len(node.output)):
                 vi = self.known_vi_[node.output[i_out]]
                 if i_sub == 0:
                     vi.CopyFrom(subgraph.output[i_out])
                     vi.name = node.output[i_out]
                 else:
-                    self._fuse_tensor_type(
-                        node, i_out, vi.type, subgraph.output[i_out].type
-                    )
+                    self._fuse_tensor_type(node, i_out, vi.type, subgraph.output[i_out].type)
 
                 # pass on sympy data from subgraph, if cond is constant
                 if cond is not None and i_sub == (0 if as_scalar(cond) > 0 else 1):
                     if subgraph.output[i_out].name in subgraph_infer.sympy_data_:
-                        self.sympy_data_[vi.name] = subgraph_infer.sympy_data_[
-                            subgraph.output[i_out].name
-                        ]
+                        self.sympy_data_[vi.name] = subgraph_infer.sympy_data_[subgraph.output[i_out].name]
 
     def _infer_Loop(self, node):  # noqa: N802
         subgraph = get_attribute(node, "body")
         assert len(subgraph.input) == len(node.input)
-        num_loop_carried = (
-            len(node.input) - 2
-        )  # minus the length and initial loop condition
+        num_loop_carried = len(node.input) - 2  # minus the length and initial loop condition
         # when sequence_type is used as loop carried input
         # needs to run subgraph infer twice if the tensor shape in sequence contains None
         for i, si in enumerate(subgraph.input):
@@ -1367,9 +1225,7 @@ class SymbolicShapeInference:
                     # copy shape from output to input
                     # note that loop input is [loop_len, cond, input_0, input_1, ...]
                     # while loop output is [cond, output_0, output_1, ...]
-                    subgraph.input[i_out + 1].type.sequence_type.elem_type.CopyFrom(
-                        so.type.sequence_type.elem_type
-                    )
+                    subgraph.input[i_out + 1].type.sequence_type.elem_type.CopyFrom(so.type.sequence_type.elem_type)
                     need_second_infer = True
             else:
                 si = subgraph.input[i_out + 1]
@@ -1377,9 +1233,7 @@ class SymbolicShapeInference:
                 for di, dims in enumerate(zip(si_shape, so_shape)):
                     if dims[0] != dims[1]:
                         new_dim = onnx.TensorShapeProto.Dimension()
-                        new_dim.dim_param = str(
-                            self._new_symbolic_dim_from_output(node, i_out, di)
-                        )
+                        new_dim.dim_param = str(self._new_symbolic_dim_from_output(node, i_out, di))
                         si.type.tensor_type.shape.dim[di].CopyFrom(new_dim)
                         so.type.tensor_type.shape.dim[di].CopyFrom(new_dim)
                         need_second_infer = True
@@ -1397,13 +1251,9 @@ class SymbolicShapeInference:
         loop_iter_dim = str(self._new_symbolic_dim_from_output(node))
         for i in range(len(node.output)):
             vi = self.known_vi_[node.output[i]]
-            vi.CopyFrom(
-                subgraph.output[i + 1]
-            )  # first subgraph output is condition, not in node output
+            vi.CopyFrom(subgraph.output[i + 1])  # first subgraph output is condition, not in node output
             if i >= num_loop_carried:
-                assert not is_sequence(
-                    vi.type
-                )  # TODO: handle loop accumulation in sequence_type
+                assert not is_sequence(vi.type)  # TODO: handle loop accumulation in sequence_type
                 subgraph_vi_dim = subgraph.output[i + 1].type.tensor_type.shape.dim
                 vi.type.tensor_type.shape.ClearField("dim")
                 vi_dim = vi.type.tensor_type.shape.dim
@@ -1420,22 +1270,14 @@ class SymbolicShapeInference:
     def _infer_NonMaxSuppression(self, node):  # noqa: N802
         selected = str(self._new_symbolic_dim_from_output(node))
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], onnx.TensorProto.INT64, [selected, 3]
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], onnx.TensorProto.INT64, [selected, 3]))
 
     def _infer_NonZero(self, node):  # noqa: N802
         input_rank = self._get_shape_rank(node, 0)
         # create a new symbolic dimension for NonZero output
         nz_len = str(self._new_symbolic_dim_from_output(node, 0, 1))
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], vi.type.tensor_type.elem_type, [input_rank, nz_len]
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], vi.type.tensor_type.elem_type, [input_rank, nz_len]))
 
     def _infer_OneHot(self, node):  # noqa: N802
         sympy_shape = self._get_sympy_shape(node, 0)
@@ -1444,13 +1286,7 @@ class SymbolicShapeInference:
         axis = handle_negative_axis(axis, len(sympy_shape) + 1)
         new_shape = get_shape_from_sympy_shape(
             sympy_shape[:axis]
-            + [
-                (
-                    self._new_symbolic_dim_from_output(node)
-                    if not is_literal(depth)
-                    else depth
-                )
-            ]
+            + [(self._new_symbolic_dim_from_output(node) if not is_literal(depth) else depth)]
             + sympy_shape[axis:]
         )
         vi = self.known_vi_[node.output[0]]
@@ -1474,8 +1310,7 @@ class SymbolicShapeInference:
         if pads is not None:
             assert len(pads) == 2 * rank
             new_sympy_shape = [
-                d + pad_up + pad_down
-                for d, pad_up, pad_down in zip(sympy_shape, pads[:rank], pads[rank:])
+                d + pad_up + pad_down for d, pad_up, pad_down in zip(sympy_shape, pads[:rank], pads[rank:])
             ]
             self._update_computed_dims(new_sympy_shape)
         else:
@@ -1485,9 +1320,7 @@ class SymbolicShapeInference:
 
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], output_tp, get_shape_from_sympy_shape(new_sympy_shape)
-            )
+            helper.make_tensor_value_info(node.output[0], output_tp, get_shape_from_sympy_shape(new_sympy_shape))
         )
 
     def _infer_Pool(self, node):  # noqa: N802
@@ -1511,11 +1344,7 @@ class SymbolicShapeInference:
         new_shape = self._broadcast_shapes(shape0, shape1)
         t0 = self.known_vi_[node.input[0]]
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], t0.type.tensor_type.elem_type, new_shape
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], t0.type.tensor_type.elem_type, new_shape))
 
     def _infer_aten_diagonal(self, node):
         sympy_shape = self._get_sympy_shape(node, 0)
@@ -1557,11 +1386,7 @@ class SymbolicShapeInference:
         assert rank in [1, 2]
         num_samples = self._try_get_value(node, 1)
         di = rank - 1
-        last_dim = (
-            num_samples
-            if num_samples
-            else str(self._new_symbolic_dim_from_output(node, 0, di))
-        )
+        last_dim = num_samples if num_samples else str(self._new_symbolic_dim_from_output(node, 0, di))
         output_shape = sympy_shape[:-1] + [last_dim]
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(
@@ -1575,24 +1400,14 @@ class SymbolicShapeInference:
     def _infer_aten_pool2d(self, node):
         sympy_shape = self._get_sympy_shape(node, 0)
         assert len(sympy_shape) == 4
-        sympy_shape[-2:] = [
-            self._new_symbolic_dim_from_output(node, 0, i) for i in [2, 3]
-        ]
+        sympy_shape[-2:] = [self._new_symbolic_dim_from_output(node, 0, i) for i in [2, 3]]
         self._update_computed_dims(sympy_shape)
         for i, o in enumerate(node.output):
             if not o:
                 continue
             vi = self.known_vi_[o]
-            elem_type = (
-                onnx.TensorProto.INT64
-                if i == 1
-                else self.known_vi_[node.input[0]].type.tensor_type.elem_type
-            )
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    o, elem_type, get_shape_from_sympy_shape(sympy_shape)
-                )
-            )
+            elem_type = onnx.TensorProto.INT64 if i == 1 else self.known_vi_[node.input[0]].type.tensor_type.elem_type
+            vi.CopyFrom(helper.make_tensor_value_info(o, elem_type, get_shape_from_sympy_shape(sympy_shape)))
 
     def _infer_aten_minmax(self, node):
         vi = self.known_vi_[node.output[0]]
@@ -1611,9 +1426,7 @@ class SymbolicShapeInference:
             dim = self._try_get_value(node, 1)
             if dim is None:
                 rank = self._get_shape_rank(node, 0)
-                output_shape = self._new_symbolic_shape(
-                    rank if keepdim else rank - 1, node
-                )
+                output_shape = self._new_symbolic_shape(rank if keepdim else rank - 1, node)
             else:
                 shape = self._get_sympy_shape(node, 0)
                 dim = handle_negative_axis(dim, len(shape))
@@ -1631,11 +1444,7 @@ class SymbolicShapeInference:
                 )
             )
             vi1 = self.known_vi_[node.output[1]]
-            vi1.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[1], onnx.TensorProto.INT64, output_shape
-                )
-            )
+            vi1.CopyFrom(helper.make_tensor_value_info(node.output[1], onnx.TensorProto.INT64, output_shape))
 
     def _infer_aten_unfold(self, node):
         sympy_shape = self._get_sympy_shape(node, 0)
@@ -1678,27 +1487,17 @@ class SymbolicShapeInference:
                         del sympy_shape[dim]
                 else:
                     rank = len(sympy_shape)
-                    sympy_shape = self._new_symbolic_shape(
-                        rank if keepdim else rank - 1, node
-                    )
+                    sympy_shape = self._new_symbolic_shape(rank if keepdim else rank - 1, node)
                 self._update_computed_dims(sympy_shape)
                 new_shape = get_shape_from_sympy_shape(sympy_shape)
         if node.output[0] and new_shape is not None:
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[0], onnx.TensorProto.INT64, new_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], onnx.TensorProto.INT64, new_shape))
 
     def _infer_aten_group_norm(self, node):
         self._propagate_shape_and_type(node)
         input_shape = self._get_shape(node, 0)
-        N = (
-            input_shape[0]
-            if input_shape is not None and len(input_shape) != 0
-            else None
-        )  # noqa: N806
+        N = input_shape[0] if input_shape is not None and len(input_shape) != 0 else None  # noqa: N806
         group = self._try_get_value(node, 6)
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         for i in [1, 2]:
@@ -1709,11 +1508,7 @@ class SymbolicShapeInference:
                         node.output[i],
                         output_dtype,
                         [
-                            (
-                                N
-                                if N is not None
-                                else str(self._new_symbolic_dim_from_output(node, i, 0))
-                            ),
+                            (N if N is not None else str(self._new_symbolic_dim_from_output(node, i, 0))),
                             (
                                 as_scalar(group)
                                 if group is not None
@@ -1730,22 +1525,14 @@ class SymbolicShapeInference:
             new_shape = input_shape[:2]
             output_size = self._try_get_value(node, 1)
             if output_size is not None:
-                new_shape += [
-                    dim_size.item() if type(dim_size) == np.int64 else dim_size
-                    for dim_size in output_size
-                ]
+                new_shape += [dim_size.item() if type(dim_size) == np.int64 else dim_size for dim_size in output_size]
             else:
                 rank = len(input_shape)
-                new_shape += [
-                    str(self._new_symbolic_dim_from_output(node, 0, i))
-                    for i in range(2, rank)
-                ]
+                new_shape += [str(self._new_symbolic_dim_from_output(node, 0, i)) for i in range(2, rank)]
         if node.output[0] and new_shape is not None:
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(node.output[0], output_dtype, new_shape)
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, new_shape))
 
     def _infer_BatchNormalization(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -1787,11 +1574,7 @@ class SymbolicShapeInference:
                     helper.make_tensor_value_info(
                         node.output[0],
                         self.known_vi_[node.input[0]].type.tensor_type.elem_type,
-                        get_shape_from_sympy_shape(
-                            self._new_symbolic_shape(
-                                self._get_shape_rank(node, 0), node
-                            )
-                        ),
+                        get_shape_from_sympy_shape(self._new_symbolic_shape(self._get_shape_rank(node, 0), node)),
                     )
                 )
             else:
@@ -1831,9 +1614,7 @@ class SymbolicShapeInference:
 
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, new_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, new_shape))
 
     def _infer_Reshape(self, node):  # noqa: N802
         shape_value = self._try_get_value(node, 1)
@@ -1847,9 +1628,7 @@ class SymbolicShapeInference:
                 helper.make_tensor_value_info(
                     node.output[0],
                     vi.type.tensor_type.elem_type,
-                    get_shape_from_sympy_shape(
-                        self._new_symbolic_shape(shape_rank, node)
-                    ),
+                    get_shape_from_sympy_shape(self._new_symbolic_shape(shape_rank, node)),
                 )
             )
         else:
@@ -1895,10 +1674,7 @@ class SymbolicShapeInference:
         if get_opset(self.out_mp_) <= 10:
             scales = self._try_get_value(node, 1)
             if scales is not None:
-                new_sympy_shape = [
-                    sympy.simplify(sympy.floor(d * s))
-                    for d, s in zip(input_sympy_shape, scales)
-                ]
+                new_sympy_shape = [sympy.simplify(sympy.floor(d * s)) for d, s in zip(input_sympy_shape, scales)]
                 self._update_computed_dims(new_sympy_shape)
                 vi.CopyFrom(
                     helper.make_tensor_value_info(
@@ -1916,10 +1692,7 @@ class SymbolicShapeInference:
                 self._update_computed_dims(new_sympy_shape)
             elif scales is not None:
                 rank = len(scales)
-                if (
-                    get_attribute(node, "coordinate_transformation_mode")
-                    == "tf_crop_and_resize"
-                ):
+                if get_attribute(node, "coordinate_transformation_mode") == "tf_crop_and_resize":
                     assert len(roi) == 2 * rank
                     roi_start = list(roi)[:rank]
                     roi_end = list(roi)[rank:]
@@ -1929,15 +1702,11 @@ class SymbolicShapeInference:
                 scales = list(scales)
                 new_sympy_shape = [
                     sympy.simplify(sympy.floor(d * (end - start) * scale))
-                    for d, start, end, scale in zip(
-                        input_sympy_shape, roi_start, roi_end, scales
-                    )
+                    for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
                 ]
                 self._update_computed_dims(new_sympy_shape)
             else:
-                new_sympy_shape = self._new_symbolic_shape(
-                    self._get_shape_rank(node, 0), node
-                )
+                new_sympy_shape = self._new_symbolic_shape(self._get_shape_rank(node, 0), node)
 
             vi.CopyFrom(
                 helper.make_tensor_value_info(
@@ -1965,31 +1734,19 @@ class SymbolicShapeInference:
             si.CopyFrom(self.known_vi_[node.input[i]])
             if i >= num_scan_states:
                 scan_input_dim = si.type.tensor_type.shape.dim
-                scan_input_dim.remove(
-                    scan_input_dim[scan_input_axes[i - num_scan_states]]
-                )
+                scan_input_dim.remove(scan_input_dim[scan_input_axes[i - num_scan_states]])
             si.name = subgraph_name
         self._onnx_infer_subgraph(node, subgraph)
         num_scan_outputs = len(node.output) - num_scan_states
-        scan_output_axes = get_attribute(
-            node, "scan_output_axes", [0] * num_scan_outputs
-        )
-        scan_input_dim = get_shape_from_type_proto(self.known_vi_[node.input[-1]].type)[
-            scan_input_axes[-1]
-        ]
+        scan_output_axes = get_attribute(node, "scan_output_axes", [0] * num_scan_outputs)
+        scan_input_dim = get_shape_from_type_proto(self.known_vi_[node.input[-1]].type)[scan_input_axes[-1]]
         for i, o in enumerate(node.output):
             vi = self.known_vi_[o]
             if i >= num_scan_states:
                 shape = get_shape_from_type_proto(subgraph.output[i].type)
-                new_dim = handle_negative_axis(
-                    scan_output_axes[i - num_scan_states], len(shape) + 1
-                )
+                new_dim = handle_negative_axis(scan_output_axes[i - num_scan_states], len(shape) + 1)
                 shape = shape[:new_dim] + [scan_input_dim] + shape[new_dim:]
-                vi.CopyFrom(
-                    helper.make_tensor_value_info(
-                        o, subgraph.output[i].type.tensor_type.elem_type, shape
-                    )
-                )
+                vi.CopyFrom(helper.make_tensor_value_info(o, subgraph.output[i].type.tensor_type.elem_type, shape))
             else:
                 vi.CopyFrom(subgraph.output[i])
             vi.name = o
@@ -2045,14 +1802,8 @@ class SymbolicShapeInference:
         #
         # If the number of `min(...)` subexpressions is not exactly one, this function just returns `[expr]`.
         def flatten_min(expr):
-            assert isinstance(
-                expr, sympy.Add
-            ), f"Expected a sum of two arguments, got {expr}"
-            min_positions = [
-                idx
-                for idx in range(len(expr.args))
-                if isinstance(expr.args[idx], sympy.Min)
-            ]
+            assert isinstance(expr, sympy.Add), f"Expected a sum of two arguments, got {expr}"
+            min_positions = [idx for idx in range(len(expr.args)) if isinstance(expr.args[idx], sympy.Min)]
             if len(min_positions) == 1:
                 min_pos = min_positions[0]
 
@@ -2097,7 +1848,7 @@ class SymbolicShapeInference:
                 return all(bool(d >= 0) for d in flatten_min(y - x))
 
         def handle_negative_index(index, bound):
-            """normalizes a negative index to be in [0, bound)"""
+            """Normalizes a negative index to be in [0, bound)"""
             try:
                 if not less_equal(0, index):
                     if is_literal(index) and index <= -self.int_max_:
@@ -2162,18 +1913,14 @@ class SymbolicShapeInference:
                             if not less_equal(e, new_sympy_shape[i]):
                                 e = new_sympy_shape[i]  # noqa: PLW2901
                         except Exception:
-                            logger.warning(
-                                f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal"
-                            )
+                            logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
                             e = new_sympy_shape[i]  # noqa: PLW2901
 
                 s = handle_negative_index(s, new_sympy_shape[i])  # noqa: PLW2901
                 if is_literal(new_sympy_shape[i]) and is_literal(s):
                     s = max(0, min(s, new_sympy_shape[i]))  # noqa: PLW2901
 
-                new_sympy_shape[i] = sympy.simplify(
-                    (e - s + t + (-1 if t > 0 else 1)) // t
-                )
+                new_sympy_shape[i] = sympy.simplify((e - s + t + (-1 if t > 0 else 1)) // t)
 
             self._update_computed_dims(new_sympy_shape)
 
@@ -2201,9 +1948,7 @@ class SymbolicShapeInference:
             if type(input_sympy_data) == list or (  # noqa: E721
                 type(input_sympy_data) == np.array and len(input_sympy_data.shape) == 1
             ):
-                self.sympy_data_[node.output[0]] = input_sympy_data[
-                    starts[0] : ends[0] : steps[0]
-                ]
+                self.sympy_data_[node.output[0]] = input_sympy_data[starts[0] : ends[0] : steps[0]]
 
     def _infer_SoftmaxCrossEntropyLoss(self, node):  # noqa: N802
         vi = self.known_vi_[node.output[0]]
@@ -2224,9 +1969,7 @@ class SymbolicShapeInference:
 
     def _infer_Split_Common(self, node, make_value_info_func):  # noqa: N802
         input_sympy_shape = self._get_sympy_shape(node, 0)
-        axis = handle_negative_axis(
-            get_attribute(node, "axis", 0), len(input_sympy_shape)
-        )
+        axis = handle_negative_axis(get_attribute(node, "axis", 0), len(input_sympy_shape))
         op_set = get_opset(self.out_mp_)
 
         # Depending on op-version 'split' are provided as attribute or via 2nd input
@@ -2250,11 +1993,7 @@ class SymbolicShapeInference:
                 make_value_info_func(
                     node.output[i_o],
                     self.known_vi_[node.input[0]].type.tensor_type.elem_type,
-                    get_shape_from_sympy_shape(
-                        input_sympy_shape[:axis]
-                        + [split[i_o]]
-                        + input_sympy_shape[axis + 1 :]
-                    ),
+                    get_shape_from_sympy_shape(input_sympy_shape[:axis] + [split[i_o]] + input_sympy_shape[axis + 1 :]),
                 )
             )
             self.known_vi_[vi.name] = vi
@@ -2283,9 +2022,7 @@ class SymbolicShapeInference:
             # For symbolic dimensions we guess they are !=1.
             output_shape = [s for s in input_shape if s != 1]
             if self.verbose_ > 0:
-                symbolic_dimensions = [
-                    s for s in input_shape if type(s) != int
-                ]  # noqa: E721
+                symbolic_dimensions = [s for s in input_shape if type(s) != int]  # noqa: E721
                 if len(symbolic_dimensions) > 0:
                     logger.debug(
                         f"Symbolic dimensions in input shape of op: '{node.op_type}' node: '{node.name}'. "
@@ -2298,9 +2035,7 @@ class SymbolicShapeInference:
                 if i not in axes:
                     output_shape.append(input_shape[i])
                 else:
-                    assert (
-                        input_shape[i] == 1 or type(input_shape[i]) != int
-                    )  # noqa: E721
+                    assert input_shape[i] == 1 or type(input_shape[i]) != int  # noqa: E721
                     if self.verbose_ > 0 and type(input_shape[i]) != int:  # noqa: E721
                         logger.debug(
                             f"Symbolic dimensions in input shape of op: '{node.op_type}' node: '{node.name}'. "
@@ -2327,9 +2062,7 @@ class SymbolicShapeInference:
                 new_sympy_shape.append(new_dim)
             self._update_computed_dims(new_sympy_shape)
         else:
-            new_sympy_shape = self._new_symbolic_shape(
-                self._get_shape_rank(node, 0), node
-            )
+            new_sympy_shape = self._new_symbolic_shape(self._get_shape_rank(node, 0), node)
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(
             helper.make_tensor_value_info(
@@ -2366,11 +2099,7 @@ class SymbolicShapeInference:
 
         for i_o in range(len(node.output)):
             vi = self.known_vi_[node.output[i_o]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[i_o], vi.type.tensor_type.elem_type, new_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[i_o], vi.type.tensor_type.elem_type, new_shape))
 
     def _infer_Transpose(self, node):  # noqa: N802
         if node.input[0] in self.sympy_data_:
@@ -2378,11 +2107,7 @@ class SymbolicShapeInference:
             perm = get_attribute(node, "perm", reversed(list(range(len(data_shape)))))
             input_data = self.sympy_data_[node.input[0]]
             self.sympy_data_[node.output[0]] = (
-                np.transpose(
-                    np.array(input_data).reshape(*data_shape), axes=tuple(perm)
-                )
-                .flatten()
-                .tolist()
+                np.transpose(np.array(input_data).reshape(*data_shape), axes=tuple(perm)).flatten().tolist()
             )
 
     def _infer_Unsqueeze(self, node):  # noqa: N802
@@ -2430,9 +2155,7 @@ class SymbolicShapeInference:
         assert map_key_type is not None
         new_vi = onnx.ValueInfoProto()
         new_vi.name = node.output[0]
-        new_vi.type.sequence_type.elem_type.map_type.value_type.tensor_type.elem_type = (
-            onnx.TensorProto.FLOAT
-        )
+        new_vi.type.sequence_type.elem_type.map_type.value_type.tensor_type.elem_type = onnx.TensorProto.FLOAT
         new_vi.type.sequence_type.elem_type.map_type.key_type = map_key_type
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(new_vi)
@@ -2443,9 +2166,7 @@ class SymbolicShapeInference:
         shape_bias = self._try_get_shape(node, 2)
         if shape_bias is not None:
             assert len(shape_bias) == 1
-        tripled_hidden_size = (
-            shape_bias[0] if shape_bias is not None else shape_weights[1]
-        )
+        tripled_hidden_size = shape_bias[0] if shape_bias is not None else shape_weights[1]
         if shape and len(shape) == 3:
             qkv_hidden_sizes_attr = get_attribute(node, "qkv_hidden_sizes")
             if qkv_hidden_sizes_attr is not None:
@@ -2455,9 +2176,7 @@ class SymbolicShapeInference:
                 shape[2] = int(tripled_hidden_size / 3)
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(node.output[0], output_dtype, shape)
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, shape))
 
             if len(node.output) > 1:
                 # input shape: (batch_size, sequence_length, hidden_size)
@@ -2465,31 +2184,19 @@ class SymbolicShapeInference:
                 # mask shape: (batch_size, total_sequence_length) or (batch_size, sequence_length, total_sequence_length) or (batch_size, 1, max_seq_len, max_seq_len)
                 # present shape: (2, batch_size, num_heads, total_sequence_length, head_size), where total_sequence_length=sequence_length+past_sequence_length
                 input_shape = self._get_shape(node, 0)
-                past_shape = (
-                    self._get_shape(node, 4)
-                    if len(node.input) > 4 and node.input[4]
-                    else []
-                )
-                mask_shape = (
-                    self._get_shape(node, 3)
-                    if len(node.input) > 3 and node.input[3]
-                    else []
-                )
+                past_shape = self._get_shape(node, 4) if len(node.input) > 4 and node.input[4] else []
+                mask_shape = self._get_shape(node, 3) if len(node.input) > 3 and node.input[3] else []
 
                 if past_shape and len(past_shape) == 5:
                     if mask_shape and len(mask_shape) in [2, 3]:
                         past_shape[3] = mask_shape[-1]
                     elif input_shape and len(input_shape) == 3:
-                        if isinstance(input_shape[1], int) and isinstance(
-                            past_shape[3], int
-                        ):
+                        if isinstance(input_shape[1], int) and isinstance(past_shape[3], int):
                             past_shape[3] = input_shape[1] + past_shape[3]
                         else:
                             past_shape[3] = f"{past_shape[3]}+{input_shape[1]}"
                     vi = self.known_vi_[node.output[1]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(vi.name, output_dtype, past_shape)
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, past_shape))
                 # No past input but present output still exists
                 else:
                     num_heads = get_attribute(node, "num_heads")
@@ -2502,11 +2209,7 @@ class SymbolicShapeInference:
                         head_size,
                     ]
                     vi = self.known_vi_[node.output[1]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(
-                            vi.name, output_dtype, present_shape
-                        )
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, present_shape))
 
     def _infer_GatedRelativePositionBias(self, node):  # noqa: N802
         # When padding is removed:
@@ -2538,9 +2241,7 @@ class SymbolicShapeInference:
 
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, output_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_PackedAttention(self, node):  # noqa: N802
         shape = self._get_shape(node, 0)
@@ -2548,9 +2249,7 @@ class SymbolicShapeInference:
         shape_bias = self._try_get_shape(node, 2)
         if shape_bias is not None:
             assert len(shape_bias) == 1
-        tripled_hidden_size = (
-            shape_bias[0] if shape_bias is not None else shape_weights[1]
-        )
+        tripled_hidden_size = shape_bias[0] if shape_bias is not None else shape_weights[1]
         if shape and len(shape) == 2:
             qkv_hidden_sizes_attr = get_attribute(node, "qkv_hidden_sizes")
             if qkv_hidden_sizes_attr is not None:
@@ -2560,9 +2259,7 @@ class SymbolicShapeInference:
                 shape[1] = int(tripled_hidden_size / 3)
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(node.output[0], output_dtype, shape)
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, shape))
 
     def _infer_PackedMultiHeadAttention(self, node):  # noqa: N802
         shape_value = self._try_get_shape(node, 2)
@@ -2575,51 +2272,32 @@ class SymbolicShapeInference:
 
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], output_dtype, output_shape)
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_RemovePadding(self, node):  # noqa: N802
         shape = self._get_shape(node, 0)
         if shape and len(shape) == 3:
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[0], output_dtype, ["token_count", shape[2]]
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, ["token_count", shape[2]]))
 
             vi_token_offset = self.known_vi_[node.output[1]]
             vi_token_offset.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[1], onnx.TensorProto.INT32, [shape[0], shape[1]]
-                )
+                helper.make_tensor_value_info(node.output[1], onnx.TensorProto.INT32, [shape[0], shape[1]])
             )
 
             vi_cumulated_seq_len = self.known_vi_[node.output[2]]
             vi_cumulated_seq_len.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[2], onnx.TensorProto.INT32, ["batch_size + 1"]
-                )
+                helper.make_tensor_value_info(node.output[2], onnx.TensorProto.INT32, ["batch_size + 1"])
             )
 
             vi_max_seq_len = self.known_vi_[node.output[3]]
-            vi_max_seq_len.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[3], onnx.TensorProto.INT32, [1]
-                )
-            )
+            vi_max_seq_len.CopyFrom(helper.make_tensor_value_info(node.output[3], onnx.TensorProto.INT32, [1]))
 
     def _infer_RestorePadding(self, node):  # noqa: N802
         shape_input = self._get_shape(node, 0)
         shape_token_offset = self._get_shape(node, 1)
-        if (
-            shape_input
-            and len(shape_input) == 2
-            and shape_token_offset
-            and len(shape_token_offset) == 2
-        ):
+        if shape_input and len(shape_input) == 2 and shape_token_offset and len(shape_token_offset) == 2:
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             vi = self.known_vi_[node.output[0]]
 
@@ -2628,11 +2306,7 @@ class SymbolicShapeInference:
                 shape_token_offset[1],
                 shape_input[1],
             ]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[0], output_dtype, output_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_BiasGelu(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -2668,11 +2342,7 @@ class SymbolicShapeInference:
 
                 output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
                 vi = self.known_vi_[node.output[0]]
-                vi.CopyFrom(
-                    helper.make_tensor_value_info(
-                        node.output[0], output_dtype, output_shape
-                    )
-                )
+                vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
             elif len(query_shape) == 5:
                 if isinstance(query_shape[2], int) and isinstance(query_shape[4], int):
@@ -2692,11 +2362,7 @@ class SymbolicShapeInference:
 
                 output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
                 vi = self.known_vi_[node.output[0]]
-                vi.CopyFrom(
-                    helper.make_tensor_value_info(
-                        node.output[0], output_dtype, output_shape
-                    )
-                )
+                vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
             if len(node.output) > 1:
                 batch_size = query_shape[0]
@@ -2715,14 +2381,10 @@ class SymbolicShapeInference:
                 past_shape = self._try_get_shape(node, 6)
 
                 if past_shape is not None:
-                    if isinstance(past_shape[2], int) and isinstance(
-                        total_sequence_length, int
-                    ):
+                    if isinstance(past_shape[2], int) and isinstance(total_sequence_length, int):
                         total_sequence_length = past_shape[2] + total_sequence_length
                     else:
-                        total_sequence_length = (
-                            f"{past_shape[2]}+{total_sequence_length}"
-                        )
+                        total_sequence_length = f"{past_shape[2]}+{total_sequence_length}"
 
                 present_shape = [
                     batch_size,
@@ -2734,17 +2396,9 @@ class SymbolicShapeInference:
                 assert output_dtype is not None
                 if len(node.output) > 2 and node.output[1] and node.output[2]:
                     vi = self.known_vi_[node.output[1]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(
-                            vi.name, output_dtype, present_shape
-                        )
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, present_shape))
                     vi = self.known_vi_[node.output[2]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(
-                            vi.name, output_dtype, present_shape
-                        )
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, present_shape))
 
     def _infer_DecoderMaskedMultiHeadAttention(self, node):  # noqa: N802
         # Output 0 has shape (batch_size, 1, v_hidden_size)
@@ -2758,23 +2412,15 @@ class SymbolicShapeInference:
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
             assert output_dtype is not None
             vi = self.known_vi_[node.output[0]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[0], output_dtype, output_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
             if len(node.output) > 2 and node.output[1] and node.output[2]:
                 past_shape = self._try_get_shape(node, 5)
                 if past_shape is not None:
                     vi = self.known_vi_[node.output[1]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(vi.name, output_dtype, past_shape)
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, past_shape))
                     vi = self.known_vi_[node.output[2]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(vi.name, output_dtype, past_shape)
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, past_shape))
 
     def _infer_FastGelu(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -2803,24 +2449,13 @@ class SymbolicShapeInference:
                 axis = handle_negative_axis(axis, rank)
                 mean_shape = x_shape[:axis] + [1 for _ in range(rank - axis)]
                 mean_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
-                if (
-                    mean_dtype == onnx.TensorProto.FLOAT16
-                    or mean_dtype == onnx.TensorProto.BFLOAT16
-                ):
+                if mean_dtype == onnx.TensorProto.FLOAT16 or mean_dtype == onnx.TensorProto.BFLOAT16:
                     mean_dtype = onnx.TensorProto.FLOAT
                 vi = self.known_vi_[node.output[1]]
-                vi.CopyFrom(
-                    helper.make_tensor_value_info(
-                        node.output[1], mean_dtype, mean_shape
-                    )
-                )
+                vi.CopyFrom(helper.make_tensor_value_info(node.output[1], mean_dtype, mean_shape))
                 if len(node.output) > 2:
                     vi = self.known_vi_[node.output[2]]
-                    vi.CopyFrom(
-                        helper.make_tensor_value_info(
-                            node.output[2], mean_dtype, mean_shape
-                        )
-                    )
+                    vi.CopyFrom(helper.make_tensor_value_info(node.output[2], mean_dtype, mean_shape))
 
     def _infer_LongformerAttention(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -2833,30 +2468,18 @@ class SymbolicShapeInference:
 
         word_embedding_dtype = self.known_vi_[node.input[2]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[0], word_embedding_dtype, output_shape
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], word_embedding_dtype, output_shape))
 
         if len(node.output) > 1 and node.output[1]:
             mask_index_shape = [input_ids_shape[0]]
             vi = self.known_vi_[node.output[1]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[1], onnx.TensorProto.INT32, mask_index_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[1], onnx.TensorProto.INT32, mask_index_shape))
 
         if len(node.output) > 2:
             # Optional output of add before layer normalization is done
             # shape is same as the output
             vi = self.known_vi_[node.output[2]]
-            vi.CopyFrom(
-                helper.make_tensor_value_info(
-                    node.output[2], word_embedding_dtype, output_shape
-                )
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(node.output[2], word_embedding_dtype, output_shape))
 
     def _infer_SkipLayerNormalization(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -2882,9 +2505,7 @@ class SymbolicShapeInference:
             output_shape[2] = int(bias_shape[0] / 2)
             vi = self.known_vi_[node.output[0]]
             output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
-            vi.CopyFrom(
-                helper.make_tensor_value_info(vi.name, output_dtype, output_shape)
-            )
+            vi.CopyFrom(helper.make_tensor_value_info(vi.name, output_dtype, output_shape))
 
     def _infer_BiasAdd(self, node):  # noqa: N802
         self._propagate_shape_and_type(node)
@@ -2895,26 +2516,18 @@ class SymbolicShapeInference:
         elif len(node.output) == 2:
             # Extraneous constant nodes outputted by RotaryEmbedding function made with `export_modules_as_functions`
             self._propagate_shape_and_type(node, input_index=1, output_index=0)
-            self._propagate_shape_and_type(
-                node, input_index=0, output_index=1
-            )  # true output
+            self._propagate_shape_and_type(node, input_index=0, output_index=1)  # true output
         elif len(node.output) == 3:
             # Extraneous constant nodes outputted by RotaryEmbedding function made with `export_modules_as_functions`
             self._propagate_shape_and_type(node, input_index=1, output_index=0)
             self._propagate_shape_and_type(node, input_index=1, output_index=1)
-            self._propagate_shape_and_type(
-                node, input_index=0, output_index=2
-            )  # true output
+            self._propagate_shape_and_type(node, input_index=0, output_index=2)  # true output
 
     def _infer_PythonOp(self, node):  # noqa: N802
         output_tensor_types = get_attribute(node, "output_tensor_types")
-        assert (
-            output_tensor_types
-        ), f"PythonOp '{node.name}' has no output_tensor_types attribute."
+        assert output_tensor_types, f"PythonOp '{node.name}' has no output_tensor_types attribute."
         output_tensor_ranks = get_attribute(node, "output_tensor_ranks")
-        assert (
-            output_tensor_ranks
-        ), f"PythonOp '{node.name}' has no output_tensor_ranks attribute."
+        assert output_tensor_ranks, f"PythonOp '{node.name}' has no output_tensor_ranks attribute."
 
         from onnxruntime.capi._pybind_state import get_shape_inference_function
 
@@ -2924,9 +2537,7 @@ class SymbolicShapeInference:
         # Set the context output separately.
         # The first output is torch.autograd.Function''s context.
         vi = self.known_vi_[node.output[0]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(node.output[0], onnx.TensorProto.INT64, [])
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[0], onnx.TensorProto.INT64, []))
 
         if shape_inferer is not None:
             input_shapes = []
@@ -2934,13 +2545,9 @@ class SymbolicShapeInference:
             for input_index in range(len(node.input)):
                 shape = self._get_shape(node, input_index)
                 input_shapes.append(shape)
-                input_dtype = self.known_vi_[
-                    node.input[input_index]
-                ].type.tensor_type.elem_type
+                input_dtype = self.known_vi_[node.input[input_index]].type.tensor_type.elem_type
                 input_dtypes.append(input_dtype)
-            output_shapes, output_dtypes = shape_inferer(
-                node, input_shapes, input_dtypes
-            )
+            output_shapes, output_dtypes = shape_inferer(node, input_shapes, input_dtypes)
             assert len(output_shapes) == len(output_dtypes) == (len(node.output) - 1), (
                 f"PythonOp '{func_name}' returned {len(output_shapes)} shapes and {len(output_dtypes)} dtypes, "
                 f"but expected {len(node.output) - 1} outputs."
@@ -2949,9 +2556,7 @@ class SymbolicShapeInference:
                 output_index = i + 1
                 vi = self.known_vi_[node.output[output_index]]
                 vi.CopyFrom(
-                    helper.make_tensor_value_info(
-                        node.output[output_index], output_dtypes[i], output_shapes[i]
-                    )
+                    helper.make_tensor_value_info(node.output[output_index], output_dtypes[i], output_shapes[i])
                 )
         else:
             # General shape inference for PythonOp.
@@ -2962,22 +2567,14 @@ class SymbolicShapeInference:
                 vi = self.known_vi_[node.output[i + 1]]
                 sympy_shape = self._new_symbolic_shape(output_tensor_ranks[i], node)
                 shape = get_shape_from_sympy_shape(sympy_shape)
-                value_info = helper.make_tensor_value_info(
-                    node.output[i + 1], output_tensor_types[i], shape
-                )
+                value_info = helper.make_tensor_value_info(node.output[i + 1], output_tensor_types[i], shape)
                 vi.CopyFrom(value_info)
 
     def _propagate_shape_and_type(self, node, input_index=0, output_index=0):
         shape = self._get_shape(node, input_index)
-        output_dtype = self.known_vi_[
-            node.input[input_index]
-        ].type.tensor_type.elem_type
+        output_dtype = self.known_vi_[node.input[input_index]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[output_index]]
-        vi.CopyFrom(
-            helper.make_tensor_value_info(
-                node.output[output_index], output_dtype, shape
-            )
-        )
+        vi.CopyFrom(helper.make_tensor_value_info(node.output[output_index], output_dtype, shape))
 
     def _is_none_dim(self, dim_value):
         if type(dim_value) != str:  # noqa: E721
@@ -3012,13 +2609,9 @@ class SymbolicShapeInference:
             for i_dim, dim in enumerate(input_shape):
                 if dim is None:
                     # some models use None for symbolic dim in input, replace it with a string
-                    input_dims[i_dim].dim_param = str(
-                        self._new_symbolic_dim(i.name, i_dim)
-                    )
+                    input_dims[i_dim].dim_param = str(self._new_symbolic_dim(i.name, i_dim))
 
-            self.input_symbols_.update(
-                [d for d in input_shape if type(d) == str]
-            )  # noqa: E721
+            self.input_symbols_.update([d for d in input_shape if type(d) == str])  # noqa: E721
 
         for s in self.input_symbols_:
             if s in self.suggested_merge_:
@@ -3035,11 +2628,9 @@ class SymbolicShapeInference:
         self.tmp_mp_.CopyFrom(self.out_mp_)
         self.tmp_mp_.graph.ClearField("initializer")
 
-        # compute prerequesite for node for topological sort
+        # compute prerequisite for node for topological sort
         # node with subgraphs may have dependency on implicit inputs, which will affect topological sort
-        prereq_for_node = (
-            {}
-        )  # map from node to all its inputs, including implicit ones in subgraph
+        prereq_for_node = {}  # map from node to all its inputs, including implicit ones in subgraph
 
         def get_prereq(node):
             names = {i for i in node.input if i}
@@ -3057,13 +2648,7 @@ class SymbolicShapeInference:
                 for n in g.node:
                     g_outputs_and_initializers.update(n.output)
                 for n in g.node:
-                    g_prereq.update(
-                        [
-                            i
-                            for i in get_prereq(n)
-                            if i not in g_outputs_and_initializers
-                        ]
-                    )
+                    g_prereq.update([i for i in get_prereq(n) if i not in g_outputs_and_initializers])
                 names.update(g_prereq)
                 # remove subgraph inputs from g_prereq since those are local-only
                 for i in g.input:
@@ -3076,26 +2661,16 @@ class SymbolicShapeInference:
 
         # topological sort nodes, note there might be dead nodes so we check if all graph outputs are reached to terminate
         sorted_nodes = []
-        sorted_known_vi = {
-            i.name
-            for i in list(self.out_mp_.graph.input)
-            + list(self.out_mp_.graph.initializer)
-        }
+        sorted_known_vi = {i.name for i in list(self.out_mp_.graph.input) + list(self.out_mp_.graph.initializer)}
         if any([o.name in sorted_known_vi for o in self.out_mp_.graph.output]):
             # Loop/Scan will have some graph output in graph inputs, so don't do topological sort
             sorted_nodes = self.out_mp_.graph.node
         else:
-            while not all(
-                [o.name in sorted_known_vi for o in self.out_mp_.graph.output]
-            ):
+            while not all([o.name in sorted_known_vi for o in self.out_mp_.graph.output]):
                 old_sorted_nodes_len = len(sorted_nodes)
                 for node in self.out_mp_.graph.node:
                     if (node.output[0] not in sorted_known_vi) and all(
-                        [
-                            i in sorted_known_vi
-                            for i in prereq_for_node[node.output[0]]
-                            if i
-                        ]
+                        [i in sorted_known_vi for i in prereq_for_node[node.output[0]] if i]
                     ):
                         sorted_known_vi.update(node.output)
                         sorted_nodes.append(node)
@@ -3121,11 +2696,7 @@ class SymbolicShapeInference:
                 for attr in node.attribute:
                     # TODO: Is overload_name needed?
                     if attr.name == "operator":
-                        aten_op_name = (
-                            attr.s.decode("utf-8")
-                            if isinstance(attr.s, bytes)
-                            else attr.s
-                        )
+                        aten_op_name = attr.s.decode("utf-8") if isinstance(attr.s, bytes) else attr.s
                         if aten_op_name in self.aten_op_dispatcher_:
                             known_aten_op = True
                             self.aten_op_dispatcher_[aten_op_name](node)
@@ -3135,9 +2706,7 @@ class SymbolicShapeInference:
                 logger.debug(node.op_type + ": " + node.name)
                 for i, name in enumerate(node.input):
                     logger.debug(
-                        "  Input {}: {} {}".format(
-                            i, name, "initializer" if name in self.initializers_ else ""
-                        )
+                        "  Input {}: {} {}".format(i, name, "initializer" if name in self.initializers_ else "")
                     )
 
             # onnx automatically merge dims with value, i.e. Mul(['aaa', 'bbb'], [1000, 1]) -> [1000, 'bbb']
@@ -3156,20 +2725,8 @@ class SymbolicShapeInference:
                 vi = self.known_vi_[node.output[0]]
                 out_rank = len(get_shape_from_type_proto(vi.type))
                 in_shapes = [self._get_shape(node, i) for i in range(len(node.input))]
-                for d in range(
-                    out_rank
-                    - (
-                        2
-                        if node.op_type
-                        in ["MatMul", "MatMulInteger", "MatMulInteger16"]
-                        else 0
-                    )
-                ):
-                    in_dims = [
-                        s[len(s) - out_rank + d]
-                        for s in in_shapes
-                        if len(s) + d >= out_rank
-                    ]
+                for d in range(out_rank - (2 if node.op_type in ["MatMul", "MatMulInteger", "MatMulInteger16"] else 0)):
+                    in_dims = [s[len(s) - out_rank + d] for s in in_shapes if len(s) + d >= out_rank]
                     if len(in_dims) > 1:
                         self._check_merged_dims(in_dims, allow_broadcast=True)
 
@@ -3180,8 +2737,7 @@ class SymbolicShapeInference:
                 # the RotaryEmbedding op created during export can be replaced by the RotaryEmbedding
                 # contrib op
                 if (
-                    node.op_type == "SkipLayerNormalization"
-                    or node.op_type == "SkipSimplifiedLayerNormalization"
+                    node.op_type == "SkipLayerNormalization" or node.op_type == "SkipSimplifiedLayerNormalization"
                 ) and i_o in [1, 2]:
                     continue
                 if node.op_type == "RotaryEmbedding" and len(node.output) > 1:
@@ -3197,9 +2753,7 @@ class SymbolicShapeInference:
                 if out_type_kind not in ["tensor_type", "sparse_tensor_type", None]:
                     if self.verbose_ > 2:
                         if out_type_kind == "sequence_type":
-                            seq_cls_type = out_type.sequence_type.elem_type.WhichOneof(
-                                "value"
-                            )
+                            seq_cls_type = out_type.sequence_type.elem_type.WhichOneof("value")
                             if seq_cls_type == "tensor_type":
                                 logger.debug(
                                     "  {}: sequence of {} {}".format(
@@ -3211,38 +2765,27 @@ class SymbolicShapeInference:
                                     )
                                 )
                             else:
-                                logger.debug(
-                                    f"  {node.output[i_o]}: sequence of {seq_cls_type}"
-                                )
+                                logger.debug(f"  {node.output[i_o]}: sequence of {seq_cls_type}")
                         else:
                             logger.debug(f"  {node.output[i_o]}: {out_type_kind}")
                     continue
 
                 out_shape = get_shape_from_value_info(vi)
-                out_type_undefined = (
-                    out_type.tensor_type.elem_type == onnx.TensorProto.UNDEFINED
-                )
+                out_type_undefined = out_type.tensor_type.elem_type == onnx.TensorProto.UNDEFINED
                 if self.verbose_ > 2:
                     logger.debug(
                         "  {}: {} {}".format(
                             node.output[i_o],
                             str(out_shape),
-                            onnx.TensorProto.DataType.Name(
-                                vi.type.tensor_type.elem_type
-                            ),
+                            onnx.TensorProto.DataType.Name(vi.type.tensor_type.elem_type),
                         )
                     )
                     if node.output[i_o] in self.sympy_data_:
-                        logger.debug(
-                            "  Sympy Data: " + str(self.sympy_data_[node.output[i_o]])
-                        )
+                        logger.debug("  Sympy Data: " + str(self.sympy_data_[node.output[i_o]]))
 
                 # onnx >= 1.11.0, use unk__#index instead of None when the shape dim is uncertain
                 if (
-                    out_shape is not None
-                    and (
-                        None in out_shape or self._is_shape_contains_none_dim(out_shape)
-                    )
+                    out_shape is not None and (None in out_shape or self._is_shape_contains_none_dim(out_shape))
                 ) or out_type_undefined:
                     if self.auto_merge_:
                         if node.op_type in [
@@ -3264,36 +2807,21 @@ class SymbolicShapeInference:
                             "Min",
                             "Max",
                         ]:
-                            shapes = [
-                                self._get_shape(node, i) for i in range(len(node.input))
-                            ]
+                            shapes = [self._get_shape(node, i) for i in range(len(node.input))]
                             if node.op_type in [
                                 "MatMul",
                                 "MatMulInteger",
                                 "MatMulInteger16",
                             ]:
-                                if (
-                                    None in out_shape
-                                    or self._is_shape_contains_none_dim(out_shape)
-                                ):
+                                if None in out_shape or self._is_shape_contains_none_dim(out_shape):
                                     if None in out_shape:
                                         idx = out_shape.index(None)
                                     else:
-                                        idx = out_shape.index(
-                                            self._is_shape_contains_none_dim(out_shape)
-                                        )
-                                    dim_idx = [
-                                        len(s) - len(out_shape) + idx for s in shapes
-                                    ]
+                                        idx = out_shape.index(self._is_shape_contains_none_dim(out_shape))
+                                    dim_idx = [len(s) - len(out_shape) + idx for s in shapes]
                                     # only support auto merge for MatMul for dim < rank-2 when rank > 2
-                                    assert (
-                                        len(shapes[0]) > 2
-                                        and dim_idx[0] < len(shapes[0]) - 2
-                                    )
-                                    assert (
-                                        len(shapes[1]) > 2
-                                        and dim_idx[1] < len(shapes[1]) - 2
-                                    )
+                                    assert len(shapes[0]) > 2 and dim_idx[0] < len(shapes[0]) - 2
+                                    assert len(shapes[1]) > 2 and dim_idx[1] < len(shapes[1]) - 2
                         elif node.op_type == "Expand":
                             # auto merge for cases like Expand([min(batch, 1), min(seq, 512)], [batch, seq])
                             shapes = [
@@ -3305,15 +2833,11 @@ class SymbolicShapeInference:
 
                         if shapes:
                             for idx in range(len(out_shape)):
-                                if out_shape[idx] is not None and not self._is_none_dim(
-                                    out_shape[idx]
-                                ):
+                                if out_shape[idx] is not None and not self._is_none_dim(out_shape[idx]):
                                     continue
                                 # note that the broadcasting rule aligns from right to left
                                 # if a tensor has a lower rank (dim_idx[idx] < 0), it would automatically broadcast and need no merge
-                                dim_idx = [
-                                    len(s) - len(out_shape) + idx for s in shapes
-                                ]
+                                dim_idx = [len(s) - len(out_shape) + idx for s in shapes]
                                 if len(dim_idx) > 0:
                                     self._add_suggested_merge(
                                         [
@@ -3329,22 +2853,12 @@ class SymbolicShapeInference:
                         self.run_ = False
 
                     # create new dynamic dims for ops not handled by symbolic shape inference
-                    if (
-                        self.run_ is False
-                        and node.op_type not in self.dispatcher_
-                        and not known_aten_op
-                    ):
-                        is_unknown_op = out_type_undefined and (
-                            out_shape is None or len(out_shape) == 0
-                        )
+                    if self.run_ is False and node.op_type not in self.dispatcher_ and not known_aten_op:
+                        is_unknown_op = out_type_undefined and (out_shape is None or len(out_shape) == 0)
                         if is_unknown_op:
                             # unknown op to ONNX, maybe from higher opset or other domain
                             # only guess the output rank from input 0 when using guess_output_rank option
-                            out_rank = (
-                                self._get_shape_rank(node, 0)
-                                if self.guess_output_rank_
-                                else -1
-                            )
+                            out_rank = self._get_shape_rank(node, 0) if self.guess_output_rank_ else -1
                         else:
                             # valid ONNX op, but not handled by symbolic shape inference, just assign dynamic shape
                             out_rank = len(out_shape)
@@ -3353,9 +2867,7 @@ class SymbolicShapeInference:
                             new_shape = self._new_symbolic_shape(out_rank, node, i_o)
                             if out_type_undefined:
                                 # guess output data type from input vi if not defined
-                                out_dtype = self.known_vi_[
-                                    node.input[0]
-                                ].type.tensor_type.elem_type
+                                out_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
                             else:
                                 # otherwise, use original data type
                                 out_dtype = vi.type.tensor_type.elem_type
@@ -3386,12 +2898,7 @@ class SymbolicShapeInference:
                             continue  # continue the inference after guess, no need to stop as no merge is needed
 
                     if self.verbose_ > 0 or not self.auto_merge_ or out_type_undefined:
-                        logger.debug(
-                            "Stopping at incomplete shape inference at "
-                            + node.op_type
-                            + ": "
-                            + node.name
-                        )
+                        logger.debug("Stopping at incomplete shape inference at " + node.op_type + ": " + node.name)
                         logger.debug("node inputs:")
                         for i in node.input:
                             if i in self.known_vi_:
@@ -3417,16 +2924,12 @@ class SymbolicShapeInference:
                 output.CopyFrom(self.known_vi_[output.name])
 
     @staticmethod
-    def infer_shapes(
-        in_mp, int_max=2**31 - 1, auto_merge=False, guess_output_rank=False, verbose=0
-    ):
+    def infer_shapes(in_mp, int_max=2**31 - 1, auto_merge=False, guess_output_rank=False, verbose=0):
         onnx_opset = get_opset(in_mp)
         if (not onnx_opset) or onnx_opset < 7:
             logger.warning("Only support models of onnx opset 7 and above.")
             return None
-        symbolic_shape_inference = SymbolicShapeInference(
-            int_max, auto_merge, guess_output_rank, verbose
-        )
+        symbolic_shape_inference = SymbolicShapeInference(int_max, auto_merge, guess_output_rank, verbose)
         all_shapes_inferred = False
         symbolic_shape_inference._preprocess(in_mp)
         while symbolic_shape_inference.run_:

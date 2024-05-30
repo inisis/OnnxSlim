@@ -17,6 +17,4 @@
 
 
 class OnnxGraphSurgeonException(Exception):
-    """
-    An exception raised by ONNX-GraphSurgeon.
-    """
+    """An exception raised by ONNX-GraphSurgeon."""

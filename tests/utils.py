@@ -8,7 +8,6 @@ import sys
 import tempfile
 import warnings
 import zipfile
-
 from urllib.error import HTTPError
 from urllib.parse import urlparse  # noqa: F401
 from urllib.request import Request, urlopen
@@ -46,9 +45,7 @@ except ImportError:
                 if self.total is None:
                     sys.stderr.write("\r{0:.1f} bytes".format(self.n))
                 else:
-                    sys.stderr.write(
-                        "\r{0:.1f}%".format(100 * self.n / float(self.total))
-                    )
+                    sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
                 sys.stderr.flush()
 
             def close(self):
@@ -98,9 +95,7 @@ def _remove_if_exists(path):
 
 
 def _git_archive_link(repo_owner, repo_name, branch):
-    return "https://github.com/{}/{}/archive/{}.zip".format(
-        repo_owner, repo_name, branch
-    )
+    return "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
 
 
 def _load_attr_from_module(module, func_name):
@@ -236,9 +231,7 @@ def _check_dependencies(m):
     if dependencies is not None:
         missing_deps = [pkg for pkg in dependencies if not _check_module_exists(pkg)]
         if len(missing_deps):
-            raise RuntimeError(
-                "Missing dependencies: {}".format(", ".join(missing_deps))
-            )
+            raise RuntimeError("Missing dependencies: {}".format(", ".join(missing_deps)))
 
 
 def _load_entry_from_hubconf(m, model):
@@ -306,9 +299,7 @@ def list(github, force_reload=False, skip_validation=False):
     Example:
         >>> entrypoints = torch.hub.list('pytorch/vision', force_reload=True)
     """
-    repo_dir = _get_cache_or_reload(
-        github, force_reload, verbose=True, skip_validation=skip_validation
-    )
+    repo_dir = _get_cache_or_reload(github, force_reload, verbose=True, skip_validation=skip_validation)
 
     sys.path.insert(0, repo_dir)
 
@@ -318,11 +309,7 @@ def list(github, force_reload=False, skip_validation=False):
     sys.path.remove(repo_dir)
 
     # We take functions starts with '_' as internal helper functions
-    entrypoints = [
-        f
-        for f in dir(hub_module)
-        if callable(getattr(hub_module, f)) and not f.startswith("_")
-    ]
+    entrypoints = [f for f in dir(hub_module) if callable(getattr(hub_module, f)) and not f.startswith("_")]
 
     return entrypoints
 
@@ -346,9 +333,7 @@ def help(github, model, force_reload=False, skip_validation=False):
     Example:
         >>> print(torch.hub.help('pytorch/vision', 'resnet18', force_reload=True))
     """
-    repo_dir = _get_cache_or_reload(
-        github, force_reload, verbose=True, skip_validation=skip_validation
-    )
+    repo_dir = _get_cache_or_reload(github, force_reload, verbose=True, skip_validation=skip_validation)
 
     sys.path.insert(0, repo_dir)
 
@@ -424,14 +409,10 @@ def load(
     source = source.lower()
 
     if source not in ("github", "local"):
-        raise ValueError(
-            f'Unknown source: "{source}". Allowed values: "github" | "local".'
-        )
+        raise ValueError(f'Unknown source: "{source}". Allowed values: "github" | "local".')
 
     if source == "github":
-        repo_or_dir = _get_cache_or_reload(
-            repo_or_dir, force_reload, verbose, skip_validation
-        )
+        repo_or_dir = _get_cache_or_reload(repo_or_dir, force_reload, verbose, skip_validation)
 
     model = _load_local(repo_or_dir, model, *args, **kwargs)
     return model
@@ -470,7 +451,8 @@ def _load_local(hubconf_dir, model, *args, **kwargs):
 
 
 def download_url_to_file(url, dst, hash_prefix=None, progress=True):
-    r"""Download object at the given URL to a local path.
+    r"""
+    Download object at the given URL to a local path.
 
     Args:
         url (string): URL of the object to download
@@ -482,7 +464,6 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
 
     Example:
         >>> torch.hub.download_url_to_file('https://s3.amazonaws.com/pytorch/models/resnet18-5c106cde.pth', '/tmp/temporary_file')
-
     """
     file_size = None
     req = Request(url, headers={"User-Agent": "torch.hub"})
@@ -525,11 +506,7 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
         if hash_prefix is not None:
             digest = sha256.hexdigest()
             if digest[: len(hash_prefix)] != hash_prefix:
-                raise RuntimeError(
-                    'invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, digest
-                    )
-                )
+                raise RuntimeError('invalid hash value (expected "{}", got "{}")'.format(hash_prefix, digest))
         shutil.move(f.name, dst)
     finally:
         f.close()
@@ -575,9 +552,7 @@ def _legacy_zip_load(filename, model_dir, map_location):
     return torch.load(extracted_file, map_location=map_location)
 
 
-def download_onnx_from_url(
-    url, model_dir=None, progress=True, check_hash=False, file_name=None
-):
+def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False, file_name=None):
     if model_dir is None:
         hub_dir = get_dir()
         model_dir = os.path.join(hub_dir, "onnx")

@@ -83,16 +83,13 @@ def update_import_domains(graph):
     DEFAULT_CUSTOM_OPSET_VERSION = 1
     for used_domain in all_used_domains:
         if used_domain not in current_domains:
-            graph.import_domains.append(
-                onnx.helper.make_opsetid(used_domain, DEFAULT_CUSTOM_OPSET_VERSION)
-            )
+            graph.import_domains.append(onnx.helper.make_opsetid(used_domain, DEFAULT_CUSTOM_OPSET_VERSION))
             current_domains.add(used_domain)
     return graph.import_domains
 
 
 # Converts a fp32 gs.Constant to a bf16 onnx.TensorProto
 def tensor_to_onnx_bf16(tensor: Constant):
-
     # Converts the fp32 numpy array to bf16 values and store in a uint16 numpy array
     def np_float32_to_bf16_as_uint16(arr):
         new_arr = np.empty(arr.size, dtype=np.uint16)
@@ -142,9 +139,7 @@ class OnnxExporter(BaseExporter):
         return tensor._values.tensor
 
     @staticmethod
-    def export_value_info_proto(
-        tensor: Tensor, do_type_check: bool
-    ) -> onnx.ValueInfoProto:
+    def export_value_info_proto(tensor: Tensor, do_type_check: bool) -> onnx.ValueInfoProto:
         if do_type_check and tensor.dtype is None:
             G_LOGGER.critical(
                 "Graph input and output tensors must include dtype information. Please set the dtype attribute for: {:}".format(
@@ -154,9 +149,7 @@ class OnnxExporter(BaseExporter):
 
         if tensor.dtype is not None:
             if isinstance(tensor, Constant) or tensor.type == "tensor_type":
-                onnx_tensor = onnx.helper.make_tensor_value_info(
-                    tensor.name, dtype_to_onnx(tensor.dtype), tensor.shape
-                )
+                onnx_tensor = onnx.helper.make_tensor_value_info(tensor.name, dtype_to_onnx(tensor.dtype), tensor.shape)
             elif tensor.type == "sequence_type":
                 onnx_tensor = onnx.helper.make_tensor_sequence_value_info(
                     tensor.name, dtype_to_onnx(tensor.dtype), tensor.shape
@@ -186,9 +179,7 @@ class OnnxExporter(BaseExporter):
                 # Netron has a bug which makes it crash if a Tensor attribute has no tensor data.
                 # So provide some meaningless tensor data for Netron to read.
                 if val.type == Tensor:
-                    tensor_proto = OnnxExporter.export_tensor_proto(
-                        Constant("", np.array([0], dtype=np.float32))
-                    )
+                    tensor_proto = OnnxExporter.export_tensor_proto(Constant("", np.array([0], dtype=np.float32)))
                     onnx_attr.t.CopyFrom(tensor_proto)
 
                 onnx_attr.ref_attr_name = val.name
@@ -232,9 +223,7 @@ class OnnxExporter(BaseExporter):
         for tensor in func.tensors().values():
             if isinstance(tensor, Constant):
                 # Copying the tensor prevents the new node from appearing in the Constant tensor's inputs.
-                new_const_nodes.append(
-                    Node("Constant", attrs={"value": tensor}, outputs=[tensor.copy()])
-                )
+                new_const_nodes.append(Node("Constant", attrs={"value": tensor}, outputs=[tensor.copy()]))
         # Const nodes have no inputs, so this maintains a topological ordering.
         func_nodes = new_const_nodes + func_nodes
 
@@ -281,20 +270,13 @@ class OnnxExporter(BaseExporter):
         """
         check_duplicate_node_names(graph.nodes, level=G_LOGGER.WARNING)
         nodes = [OnnxExporter.export_node(node) for node in graph.nodes]
-        inputs = [
-            OnnxExporter.export_value_info_proto(inp, do_type_check)
-            for inp in graph.inputs
-        ]
-        outputs = [
-            OnnxExporter.export_value_info_proto(out, do_type_check)
-            for out in graph.outputs
-        ]
+        inputs = [OnnxExporter.export_value_info_proto(inp, do_type_check) for inp in graph.inputs]
+        outputs = [OnnxExporter.export_value_info_proto(out, do_type_check) for out in graph.outputs]
         tensor_map = graph.tensors()
         initializer = [
             OnnxExporter.export_tensor_proto(tensor)
             for tensor in tensor_map.values()
-            if isinstance(tensor, Constant)
-            and not isinstance(tensor._values, SparseValues)
+            if isinstance(tensor, Constant) and not isinstance(tensor._values, SparseValues)
         ]
         sparse_initializer = [
             OnnxExporter.export_sparse_tensor_proto(tensor)
@@ -309,9 +291,7 @@ class OnnxExporter(BaseExporter):
 
         # Omit tensors from value_info if we don't know their shape/dtype
         def has_value_info(tensor):
-            return isinstance(tensor, Variable) and (
-                tensor.dtype is not None or tensor.shape is not None
-            )
+            return isinstance(tensor, Variable) and (tensor.dtype is not None or tensor.shape is not None)
 
         value_info = [
             OnnxExporter.export_value_info_proto(tensor, do_type_check)

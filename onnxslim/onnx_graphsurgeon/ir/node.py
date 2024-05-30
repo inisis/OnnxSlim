@@ -25,12 +25,11 @@ from onnxslim.onnx_graphsurgeon.util import misc
 
 
 class Node(object):
-
     @dataclass
     class AttributeRef:
         """
-        An AttributeRef is an attribute value which references an attribute in the parent function.
-        A node's attribute can only be an AttributeRef if the node lives inside a Function.
+        An AttributeRef is an attribute value which references an attribute in the parent function. A node's attribute
+        can only be an AttributeRef if the node lives inside a Function.
 
         Args:
             name (str): The name of the referenced attribute in the parent Function.
@@ -64,18 +63,14 @@ class Node(object):
         self.op = op
         self.name = misc.default_value(name, "")
         self.attrs = misc.default_value(attrs, OrderedDict())
-        self.inputs = misc.SynchronizedList(
-            self, field_name="outputs", initial=misc.default_value(inputs, [])
-        )
-        self.outputs = misc.SynchronizedList(
-            self, field_name="inputs", initial=misc.default_value(outputs, [])
-        )
+        self.inputs = misc.SynchronizedList(self, field_name="outputs", initial=misc.default_value(inputs, []))
+        self.outputs = misc.SynchronizedList(self, field_name="inputs", initial=misc.default_value(outputs, []))
         self.domain = domain
 
     def i(self, tensor_idx=0, producer_idx=0):
         """
-        Convenience function to get a producer node of one of this node's input tensors.
-        Note that the parameters are swapped compared to the o() function; this is because tensors are likely to have only a single producer
+        Convenience function to get a producer node of one of this node's input tensors. Note that the parameters are
+        swapped compared to the o() function; this is because tensors are likely to have only a single producer.
 
         For example:
         ::
@@ -113,8 +108,8 @@ class Node(object):
 
     def subgraphs(self, recursive=False):
         """
-        Convenience function to iterate over all subgraphs which are contained in this node.
-        Node subgraphs are found in attributes of ONNX control flow nodes such as 'If' and 'Loop'.
+        Convenience function to iterate over all subgraphs which are contained in this node. Node subgraphs are found in
+        attributes of ONNX control flow nodes such as 'If' and 'Loop'.
 
         Args:
             recursive (bool): Whether to recurse into the subgraph nodes when looking for subgraphs. Defaults to False.
@@ -208,15 +203,9 @@ class Node(object):
         return self.__str__()
 
     def __eq__(self, other):
-        """
-        Check whether two nodes are equal by comparing name, attributes, op, inputs, and outputs.
-        """
+        """Check whether two nodes are equal by comparing name, attributes, op, inputs, and outputs."""
         G_LOGGER.verbose("Comparing node: {:} with {:}".format(self.name, other.name))
-        attrs_match = (
-            self.name == other.name
-            and self.op == other.op
-            and self.attrs == other.attrs
-        )
+        attrs_match = self.name == other.name and self.op == other.op and self.attrs == other.attrs
         if not attrs_match:
             return False
 

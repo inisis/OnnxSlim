@@ -24,14 +24,12 @@ from onnxslim.onnx_graphsurgeon.util import misc
 
 
 class Tensor(object):
-    """Abstract base class for tensors in a graph"""
+    """Abstract base class for tensors in a graph."""
 
     DYNAMIC = -1
 
     def __init__(self):
-        """
-        **This class is abstract and cannot be constructed directly.**
-        """
+        """**This class is abstract and cannot be constructed directly.**"""
         raise NotImplementedError("Tensor is an abstract class")
 
     def __setattr__(self, name, value):
@@ -69,7 +67,8 @@ class Tensor(object):
         export_dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
     ):
         """
-        Modifies this tensor in-place to convert it to a Constant. This means that all consumers/producers of the tensor will see the update.
+        Modifies this tensor in-place to convert it to a Constant. This means that all consumers/producers of the tensor
+        will see the update.
 
         Args:
             values (np.ndarray): The values in this tensor
@@ -95,7 +94,8 @@ class Tensor(object):
         shape: Sequence[Union[int, str]] = [],
     ):
         """
-        Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor will see the update.
+        Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor
+        will see the update.
 
         Args:
             dtype (Union[numpy.dtype, onnx.TensorProto.DataType]): The data type of the tensor.
@@ -115,8 +115,8 @@ class Tensor(object):
 
     def i(self, tensor_idx=0, producer_idx=0):
         """
-        Convenience function to get an input tensor of one of this tensor's input nodes.
-        Note that the parameters are swapped compared to the o() function; this is because tensors are likely to have only a single producer
+        Convenience function to get an input tensor of one of this tensor's input nodes. Note that the parameters are
+        swapped compared to the o() function; this is because tensors are likely to have only a single producer.
 
         For example:
         ::
@@ -153,9 +153,7 @@ class Tensor(object):
         return self.outputs[consumer_idx].outputs[tensor_idx]
 
     def __str__(self):
-        return "{:} ({:}): (shape={:}, dtype={:})".format(
-            type(self).__name__, self.name, self.shape, self.dtype
-        )
+        return "{:} ({:}): (shape={:}, dtype={:})".format(type(self).__name__, self.name, self.shape, self.dtype)
 
     def __repr__(self):  # Hack to make logging output pretty.
         return self.__str__()
@@ -216,44 +214,27 @@ class Variable(Tensor):
         return Variable(self.name, self.dtype, self.shape)
 
     def __eq__(self, other):
-        """
-        Perform a check to see if two variables are equal.
-        """
+        """Perform a check to see if two variables are equal."""
         if not isinstance(other, Variable):
             return False
 
         name_match = self.name == other.name
         inputs_match = len(self.inputs) == len(other.inputs) and all(
-            [
-                inp.name == other_inp.name
-                for inp, other_inp in zip(self.inputs, other.inputs)
-            ]
+            [inp.name == other_inp.name for inp, other_inp in zip(self.inputs, other.inputs)]
         )
         outputs_match = len(self.outputs) == len(other.outputs) and all(
-            [
-                out.name == other_out.name
-                for out, other_out in zip(self.outputs, other.outputs)
-            ]
+            [out.name == other_out.name for out, other_out in zip(self.outputs, other.outputs)]
         )
 
         dtype_match = self.dtype == other.dtype
         shape_match = self.shape == other.shape
         type_match = self.type == other.type
 
-        return (
-            name_match
-            and inputs_match
-            and outputs_match
-            and dtype_match
-            and shape_match
-            and type_match
-        )
+        return name_match and inputs_match and outputs_match and dtype_match and shape_match and type_match
 
 
 class LazyValues(object):
-    """
-    A special object that represents constant tensor values that should be lazily loaded.
-    """
+    """A special object that represents constant tensor values that should be lazily loaded."""
 
     def __init__(self, tensor):
         """
@@ -303,9 +284,7 @@ class LazyValues(object):
         return self.__str__()
 
     def __eq__(self, other):
-        """
-        Perform a check to see if two variables are equal.
-        """
+        """Perform a check to see if two variables are equal."""
         if not isinstance(other, LazyValues):
             return False
 
@@ -317,9 +296,7 @@ class LazyValues(object):
 
 
 class SparseValues(LazyValues):
-    """
-    A special object that represents constant tensor values that is sparse
-    """
+    """A special object that represents constant tensor values that is sparse."""
 
     def load(self):
         """
@@ -343,9 +320,7 @@ class SparseValues(LazyValues):
             )
 
         if self.tensor.values.data_type == onnx.TensorProto.FLOAT16:
-            values_data = np.asarray(
-                self.tensor.values.int32_data, dtype=np.uint16
-            ).view(np.float16)
+            values_data = np.asarray(self.tensor.values.int32_data, dtype=np.uint16).view(np.float16)
         else:
             field_name = onnx.helper.tensor_dtype_to_field(self.tensor.values.data_type)
             values = getattr(self.tensor.values, field_name)
@@ -366,9 +341,7 @@ class SparseValues(LazyValues):
             for i in range(len(values_data)):
                 values[tuple(indices_data[i])] = values_data[i]
         else:
-            G_LOGGER.critical(
-                f"Unsupported index data dims {self.tensor.indices.dims} in {self.tensor.values.name}"
-            )
+            G_LOGGER.critical(f"Unsupported index data dims {self.tensor.indices.dims} in {self.tensor.values.name}")
 
         return values
 
@@ -411,17 +384,13 @@ class Constant(Tensor):
             G_LOGGER.critical(
                 "Provided `values` argument is not a NumPy array, a LazyValues instance or a"
                 "SparseValues instance. Please provide a NumPy array or LazyValues instance "
-                "to construct a Constant. Note: Provided `values` parameter was: {:}".format(
-                    values
-                )
+                "to construct a Constant. Note: Provided `values` parameter was: {:}".format(values)
             )
         self._values = values
         self.data_location = data_location
         self._export_dtype = export_dtype
 
-    def to_variable(
-        self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = []
-    ):
+    def to_variable(self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = []):
         var_dtype = self.export_dtype
 
         del self._export_dtype
@@ -442,7 +411,7 @@ class Constant(Tensor):
 
     @property
     def values(self):
-        # Load values when they are first accesed
+        # Load values when they are first accessed
         if isinstance(self._values, LazyValues):
             self._values = self._values.load()
         return self._values
@@ -476,15 +445,11 @@ class Constant(Tensor):
         return ret
 
     def __eq__(self, other):
-        """
-        Perform a check to see if two variables are equal.
-        """
+        """Perform a check to see if two variables are equal."""
         if not isinstance(other, Constant):
             return False
 
-        if isinstance(self._values, LazyValues) and isinstance(
-            other._values, LazyValues
-        ):
+        if isinstance(self._values, LazyValues) and isinstance(other._values, LazyValues):
             value_match = self._values == other._values
         else:
             value_match = np.array_equal(self.values, other.values)

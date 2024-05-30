@@ -1,5 +1,4 @@
 import logging
-
 import os
 import sys
 import tempfile
@@ -16,20 +15,15 @@ from onnxslim.onnx_graphsurgeon.logger.logger import G_LOGGER
 from ..utils.utils import (
     dump_model_info_to_disk,
     gen_onnxruntime_input_data,
+    logger,
     onnxruntime_inference,
     print_model_info_as_table,
-    logger
 )
-
 from .optimizer import delete_node, optimize_model
 from .symbolic_shape_infer import SymbolicShapeInference
 
 DEBUG = bool(os.getenv("ONNXSLIM_DEBUG"))
-AUTO_MERGE = (
-    True
-    if os.getenv("ONNXSLIM_AUTO_MERGE") is None
-    else bool(int(os.getenv("ONNXSLIM_AUTO_MERGE")))
-)
+AUTO_MERGE = True if os.getenv("ONNXSLIM_AUTO_MERGE") is None else bool(int(os.getenv("ONNXSLIM_AUTO_MERGE")))
 
 
 def init_logging(verbose=False):
@@ -38,14 +32,18 @@ def init_logging(verbose=False):
         logging.root.removeHandler(handler)
 
     if verbose:  # DEBUG
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                            handlers=[logging.StreamHandler(sys.stderr)])
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.StreamHandler(sys.stderr)],
+        )
         G_LOGGER.severity = logging.DEBUG
     else:  # ERROR
-        logging.basicConfig(level=logging.ERROR,
-                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                            handlers=[logging.StreamHandler(sys.stderr)])
+        logging.basicConfig(
+            level=logging.ERROR,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.StreamHandler(sys.stderr)],
+        )
         G_LOGGER.severity = logging.ERROR
 
     G_LOGGER.colors = False
@@ -77,9 +75,7 @@ def summarize_model(model: onnx.ModelProto) -> Dict:
     op_type_counts = {}
 
     def get_tensor_dtype_shape(tensor):
-        type_str = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(
-            tensor.type.tensor_type.elem_type, "Unknown"
-        )
+        type_str = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []
@@ -104,9 +100,7 @@ def summarize_model(model: onnx.ModelProto) -> Dict:
 
         return op_shape_info
 
-    value_info_dict = {
-        value_info.name: value_info for value_info in model.graph.value_info
-    }
+    value_info_dict = {value_info.name: value_info for value_info in model.graph.value_info}
 
     for node in model.graph.node:
         op_type = node.op_type
@@ -148,9 +142,7 @@ def model_save_as_external_data(model: onnx.ModelProto, model_path: str):
     )
 
 
-def input_shape_modification(
-    model: onnx.ModelProto, input_shapes: str
-) -> onnx.ModelProto:
+def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.ModelProto:
     if not input_shapes:
         return
 
@@ -162,9 +154,7 @@ def input_shape_modification(
         key, values = input_shape.rsplit(":", 1)
         values_list = [int(value) for value in values.split(",")]
         if key not in input_names:
-            raise Exception(
-                f"Input name {key} not found in model, available keys: {' '.join(input_names)}"
-            )
+            raise Exception(f"Input name {key} not found in model, available keys: {' '.join(input_names)}")
         tensors[key].shape = values_list
 
     for _, tensor in tensors.items():
@@ -187,15 +177,11 @@ def output_modification(model: onnx.ModelProto, outputs: str) -> onnx.ModelProto
         if len(values) == 1:
             key = values[0]
             if key not in tensors.keys():
-                raise Exception(
-                    f"Output name {key} not found in model, available keys: {' '.join(tensors.keys())}"
-                )
+                raise Exception(f"Output name {key} not found in model, available keys: {' '.join(tensors.keys())}")
             dtype = tensors[key].dtype
             if dtype == None:
                 dtype = np.float32
-                logger.warning(
-                    f"Output layer {key} has no dtype, set to default {dtype}"
-                )
+                logger.warning(f"Output layer {key} has no dtype, set to default {dtype}")
         else:
             key, dtype = values
             if dtype == "fp16":
@@ -207,13 +193,9 @@ def output_modification(model: onnx.ModelProto, outputs: str) -> onnx.ModelProto
             elif dtype == "bool":
                 dtype = bool
             else:
-                raise Exception(
-                    f"Output layer {key} assigned unsupported dtype {dtype}"
-                )
+                raise Exception(f"Output layer {key} assigned unsupported dtype {dtype}")
 
-        graph.outputs.append(
-            tensors[key].to_variable(dtype=dtype, shape=tensors[key].shape)
-        )
+        graph.outputs.append(tensors[key].to_variable(dtype=dtype, shape=tensors[key].shape))
 
     graph.cleanup(remove_unused_graph_inputs=True).toposort()
     model = gs.export_onnx(graph)
@@ -341,9 +323,7 @@ def check_result(raw_onnx_output, slimmed_onnx_output):
     if set(raw_onnx_output.keys()) != set(slimmed_onnx_output.keys()):
         logger.warning("Model output mismatch after slimming.")
         logger.warning("Raw model output keys: {}".format(raw_onnx_output.keys()))
-        logger.warning(
-            "Slimmed model output keys: {}".format(slimmed_onnx_output.keys())
-        )
+        logger.warning("Slimmed model output keys: {}".format(slimmed_onnx_output.keys()))
         logger.warning("Please check the model carefully.")
         return
     else:

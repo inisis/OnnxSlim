@@ -27,15 +27,14 @@ from onnxslim.onnx_graphsurgeon.util import misc
 
 class Function(Graph):
     """
-    Represents a local function, which is a default implementation of a Custom Op.
-    This default implementation is represented as a Graph of other Ops.
+    Represents a local function, which is a default implementation of a Custom Op. This default implementation is
+    represented as a Graph of other Ops.
 
     Functions are used in a model by creating a Node with the same name and domain as the function. This can be done
-    using the __call__() method of a Function, which creates this new node and appends it to a Graph.
-    A Function is not a subgraph of a Graph, and its Nodes, Tensors, and subgraphs are entirely separate
-    from the main Graph.
+    using the __call__() method of a Function, which creates this new node and appends it to a Graph. A Function is not
+    a subgraph of a Graph, and its Nodes, Tensors, and subgraphs are entirely separate from the main Graph.
 
-    Functions can be composed of other functions, but cyclical or recursive defintions are not allowed in ONNX.
+    Functions can be composed of other functions, but cyclical or recursive definitions are not allowed in ONNX.
     """
 
     DEFAULT_DOMAIN = "onnx_graphsurgeon"
@@ -90,9 +89,7 @@ class Function(Graph):
 
     @property
     def unique_id(self):
-        """
-        Returns a tuple which uniquely identifies this function.
-        """
+        """Returns a tuple which uniquely identifies this function."""
         return (self.domain, self.name)
 
     def cleanup(
@@ -102,9 +99,8 @@ class Function(Graph):
         remove_unused_graph_inputs=False,
         recurse_functions=False,
     ):
-        """
-        See Graph.cleanup()
-        The only difference is that 'recurse_functions' defaults to False, so that only this Function is cleaned up.
+        """See Graph.cleanup() The only difference is that 'recurse_functions' defaults to False, so that only this
+        Function is cleaned up.
         """
         if recurse_functions:
             G_LOGGER.warning(
@@ -118,9 +114,8 @@ class Function(Graph):
         )
 
     def fold_constants(self, recurse_functions=False, **kwargs):
-        """
-        See Graph.fold_constants()
-        The only difference is that 'recurse_functions' defaults to False, so that only this Function's constants are folded.
+        """See Graph.fold_constants() The only difference is that 'recurse_functions' defaults to False, so that only
+        this Function's constants are folded.
         """
         if recurse_functions:
             G_LOGGER.warning(
@@ -134,10 +129,8 @@ class Function(Graph):
         recurse_functions=False,
         mode="nodes",
     ):
-        """
-        See Graph.toposort()
-        The only difference is that 'recurse_functions' defaults to False and mode defaults to "nodes",
-        so that by default only this function's nodes will be sorted.
+        """See Graph.toposort() The only difference is that 'recurse_functions' defaults to False and mode defaults to
+        "nodes", so that by default only this function's nodes will be sorted.
         """
         if recurse_functions:
             G_LOGGER.warning(
@@ -149,12 +142,10 @@ class Function(Graph):
             mode=mode,
         )
 
-    def __call__(
-        self, graph, inputs=None, outputs=None, *args, **kwargs
-    ) -> List[Tensor]:
+    def __call__(self, graph, inputs=None, outputs=None, *args, **kwargs) -> List[Tensor]:
         """
-        Creates a Node which is an instance of this function.
-        The created node can be used in a Graph or another Function.
+        Creates a Node which is an instance of this function. The created node can be used in a Graph or another
+        Function.
 
         The provided inputs are processed the same way as in Graph.layer().
         If outputs are not provided, they are created based on the Function's outputs.
@@ -171,12 +162,8 @@ class Function(Graph):
             List[Tensor]: The output tensors of the node.
         """
         if inputs is not None and len(inputs) != len(self.inputs):
-            msg_template = (
-                "Function {} expects {} inputs, but was called with {} inputs."
-            )
-            G_LOGGER.warning(
-                msg_template.format(self.name, len(self.inputs), len(inputs))
-            )
+            msg_template = "Function {} expects {} inputs, but was called with {} inputs."
+            G_LOGGER.warning(msg_template.format(self.name, len(self.inputs), len(inputs)))
 
         new_output_indices = []
         if outputs is None:
@@ -184,16 +171,10 @@ class Function(Graph):
             outputs = [out.name for out in self.outputs]
             new_output_indices = list(range(len(outputs)))
         elif len(outputs) != len(self.outputs):
-            msg_template = (
-                "Function {} expects {} outputs, but was called with {} outputs."
-            )
-            G_LOGGER.warning(
-                msg_template.format(self.name, len(self.outputs), len(outputs))
-            )
+            msg_template = "Function {} expects {} outputs, but was called with {} outputs."
+            G_LOGGER.warning(msg_template.format(self.name, len(self.outputs), len(outputs)))
         else:
-            new_output_indices = [
-                i for i in range(len(outputs)) if not isinstance(outputs[i], Tensor)
-            ]
+            new_output_indices = [i for i in range(len(outputs)) if not isinstance(outputs[i], Tensor)]
 
         attrs = kwargs.get("attrs", None)
         if attrs is not None:
@@ -213,7 +194,7 @@ class Function(Graph):
             outputs=outputs,
         )
 
-        # For newly created output tensors, set their shape and dtype to match the Function defintion.
+        # For newly created output tensors, set their shape and dtype to match the Function definition.
         for i in new_output_indices:
             outputs[i].dtype = self.outputs[i].dtype
             outputs[i].shape = self.outputs[i].shape
@@ -268,9 +249,7 @@ class Function(Graph):
 
     def __eq__(self, other: "Function"):
         def sequences_equal(seq1, seq2):
-            return len(seq1) == len(seq2) and all(
-                [elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)]
-            )
+            return len(seq1) == len(seq2) and all([elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)])
 
         return (
             self.unique_id == other.unique_id

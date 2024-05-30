@@ -1,6 +1,7 @@
 from typing import Union
 
 import onnx
+
 from onnxslim.utils.utils import logger
 
 
@@ -83,11 +84,7 @@ def slim(
 
     init_logging(verbose)
 
-    MAX_ITER = (
-        10
-        if not os.getenv("ONNXSLIM_MAX_ITER")
-        else int(os.getenv("ONNXSLIM_MAX_ITER"))
-    )
+    MAX_ITER = 10 if not os.getenv("ONNXSLIM_MAX_ITER") else int(os.getenv("ONNXSLIM_MAX_ITER"))
 
     if isinstance(model, str):
         model_name = Path(model).name
@@ -175,14 +172,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("input_model", help="input onnx model")
-    parser.add_argument(
-        "output_model", nargs="?", default=None, help="output onnx model"
-    )
+    parser.add_argument("output_model", nargs="?", default=None, help="output onnx model")
 
     parser.add_argument("--model_check", action="store_true", help="enable model check")
-    parser.add_argument(
-        "-v", "--version", action="version", version=onnxslim.__version__
-    )
+    parser.add_argument("-v", "--version", action="version", version=onnxslim.__version__)
 
     # Input Shape Modification
     parser.add_argument(
@@ -259,9 +252,7 @@ def main():
     )
 
     # Verbose
-    parser.add_argument(
-        "--verbose", action="store_true", help="verbose mode, default False."
-    )
+    parser.add_argument("--verbose", action="store_true", help="verbose mode, default False.")
 
     args, unknown = parser.parse_known_args()
 

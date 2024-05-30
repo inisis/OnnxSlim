@@ -1,18 +1,15 @@
 import contextlib
 from collections import Counter, OrderedDict
-
 from typing import List, Union
 
 import numpy as np
-
 import onnx
-from onnxslim.utils.utils import logger
 
 import onnxslim.onnx_graphsurgeon as gs
 from onnxslim.onnx_graphsurgeon.exporters.onnx_exporter import dtype_to_onnx
 from onnxslim.onnx_graphsurgeon.ir.graph import Graph
 from onnxslim.onnx_graphsurgeon.ir.tensor import Constant, Variable
-
+from onnxslim.utils.utils import logger
 
 DEFAULT_FUSION_PATTERNS = OrderedDict()
 
@@ -106,9 +103,7 @@ def graph_constant_fold_inplace(graph):
         elif node.op == "Pad":
             if len(node.inputs) > 1 and isinstance(node.inputs[1], Constant):
                 pad_value = node.inputs[1].values.tolist()
-                pad_value = (
-                    [pad_value] if not isinstance(pad_value, list) else pad_value
-                )
+                pad_value = [pad_value] if not isinstance(pad_value, list) else pad_value
                 if all([value == 0 for value in pad_value]):
                     delete_node(node)
         elif node.op == "Cast":
@@ -123,10 +118,7 @@ def graph_constant_fold_inplace(graph):
             else:
                 node_output_shape = node.outputs[0].shape
                 if node_output_shape and check_shape(node_output_shape):
-                    shapes = [
-                        shape if isinstance(shape, int) else -1
-                        for shape in node_output_shape
-                    ]
+                    shapes = [shape if isinstance(shape, int) else -1 for shape in node_output_shape]
                     reshape_const = gs.Constant(
                         node.inputs[1].name + "_",
                         values=np.array(shapes, dtype=np.int64),
@@ -134,24 +126,16 @@ def graph_constant_fold_inplace(graph):
                     node.inputs.pop(1)
                     node.inputs.insert(1, reshape_const)
         elif node.op == "Mul":
-            if (
-                isinstance(node.inputs[1], Constant)
-                and isinstance(node.inputs[0], Variable)
-            ) or (
-                isinstance(node.inputs[0], Constant)
-                and isinstance(node.inputs[1], Variable)
+            if (isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable)) or (
+                isinstance(node.inputs[0], Constant) and isinstance(node.inputs[1], Variable)
             ):
                 idx, constant_variable = get_constant_variable(node, return_idx=True)
                 if np.all(constant_variable.values == 1):
                     var_idx = 0 if idx == 1 else 1
                     delete_node(node, var_idx)
         elif node.op == "Add":
-            if (
-                isinstance(node.inputs[1], Constant)
-                and isinstance(node.inputs[0], Variable)
-            ) or (
-                isinstance(node.inputs[0], Constant)
-                and isinstance(node.inputs[1], Variable)
+            if (isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable)) or (
+                isinstance(node.inputs[0], Constant) and isinstance(node.inputs[1], Variable)
             ):
                 idx, constant_variable = get_constant_variable(node, return_idx=True)
                 if np.all(constant_variable.values == 0):
@@ -201,10 +185,7 @@ def find_conv_nodes(node, opset):
                 len_conv_pads = int(len(conv_pads) / 2)
 
                 len_pads = int(len(pad_value) / 2)
-                pads = (
-                    pad_value[len_pads - len_conv_pads : len_pads]
-                    + pad_value[len_pads + len_conv_pads :]
-                )
+                pads = pad_value[len_pads - len_conv_pads : len_pads] + pad_value[len_pads + len_conv_pads :]
 
                 pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
                 attrs["pads"] = pads
@@ -227,13 +208,7 @@ def find_conv_nodes(node, opset):
 @register_fusion_pattern("FusionConvBN")
 def find_conv_transpose_nodes(node, opset):
     # fmt: off
-    '''
-             x
-             |
-      Conv/ConvTranspose
-             |
-      BatchNormalization
-    '''
+    """X | Conv/ConvTranspose | BatchNormalization."""
     # fmt: on
     match = {}
     if node.op == "BatchNormalization":
@@ -260,12 +235,8 @@ def find_conv_transpose_nodes(node, opset):
                     shape[0] = -1
                 else:
                     shape[1] = -1
-                conv_w = conv_transpose_weight * (bn_scale * bn_var_rsqrt).reshape(
-                    shape
-                )
-                conv_b = (
-                    conv_transpose_bias - bn_running_mean
-                ) * bn_var_rsqrt * bn_scale + bn_bias
+                conv_w = conv_transpose_weight * (bn_scale * bn_var_rsqrt).reshape(shape)
+                conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt * bn_scale + bn_bias
 
                 inputs = []
                 inputs.append(list(conv_transpose_node.inputs)[0])
@@ -314,19 +285,11 @@ def find_slice_nodes(node, opset):
         if node.i(0).op == "Slice":
             first_slice_node = node.i(0)
             first_slice_node_inputs = list(first_slice_node.inputs)
-            if all(
-                [isinstance(input, Constant) for input in first_slice_node_inputs[1:]]
-            ):
+            if all([isinstance(input, Constant) for input in first_slice_node_inputs[1:]]):
                 first_slice_node_users = get_node_users(first_slice_node)
                 if all(
                     [
-                        user.op == "Slice"
-                        and all(
-                            [
-                                isinstance(input, Constant)
-                                for input in list(user.inputs)[1:]
-                            ]
-                        )
+                        user.op == "Slice" and all([isinstance(input, Constant) for input in list(user.inputs)[1:]])
                         for user in first_slice_node_users
                     ]
                 ):
@@ -338,18 +301,10 @@ def find_slice_nodes(node, opset):
                     for user_node in first_slice_node_users:
                         second_slice_node = user_node
                         second_slice_node_inputs = list(second_slice_node.inputs)
-                        second_slice_node_starts = second_slice_node_inputs[
-                            1
-                        ].values.tolist()
-                        second_slice_node_ends = second_slice_node_inputs[
-                            2
-                        ].values.tolist()
-                        second_slice_node_axes = second_slice_node_inputs[
-                            3
-                        ].values.tolist()
-                        second_slice_node_steps = second_slice_node_inputs[
-                            4
-                        ].values.tolist()
+                        second_slice_node_starts = second_slice_node_inputs[1].values.tolist()
+                        second_slice_node_ends = second_slice_node_inputs[2].values.tolist()
+                        second_slice_node_axes = second_slice_node_inputs[3].values.tolist()
+                        second_slice_node_steps = second_slice_node_inputs[4].values.tolist()
 
                         new_starts = first_slice_node_starts + second_slice_node_starts
                         new_ends = first_slice_node_ends + second_slice_node_ends
@@ -454,9 +409,7 @@ def find_reshape_nodes(node, opset):
                                 return False
                     return True
 
-                if check_constant_mergeable(
-                    first_reshape_node
-                ) and check_constant_mergeable(second_reshape_node):
+                if check_constant_mergeable(first_reshape_node) and check_constant_mergeable(second_reshape_node):
                     inputs = []
                     inputs.append(first_reshape_node_inputs[0])
                     inputs.append(second_reshape_node.inputs[1])
@@ -509,9 +462,7 @@ def find_slice_nodes(node, opset):
                 )
                 last_node.inputs.pop(3)
                 last_node.inputs.insert(3, slice_axis)
-                previous_transpose_node_variable = previous_transpose_node.outputs[
-                    0
-                ]  # pad output variable
+                previous_transpose_node_variable = previous_transpose_node.outputs[0]  # pad output variable
                 previous_transpose_node_variable.outputs.remove(last_node)
                 last_node.inputs.insert(0, previous_transpose_node.inputs[0])
                 for node in previous_nodes:
@@ -539,14 +490,10 @@ def find_matmul_add_nodes(node, opset):
         if (isinstance(node.inputs[1], Constant) and node.i(0).op == "MatMul") or (
             isinstance(node.inputs[0], Constant) and node.i(1).op == "MatMul"
         ):
-            matmul_node = (
-                node.i(0) if isinstance(node.inputs[1], Constant) else node.i(1)
-            )
+            matmul_node = node.i(0) if isinstance(node.inputs[1], Constant) else node.i(1)
             matmul_bias_variable = get_constant_variable(matmul_node)
             input_variable = (
-                matmul_node.inputs[0]
-                if isinstance(matmul_node.inputs[1], Constant)
-                else matmul_node.inputs[1]
+                matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], Constant) else matmul_node.inputs[1]
             )
             users = get_node_users(matmul_node)
             if len(users) == 1 and matmul_bias_variable:
@@ -557,9 +504,7 @@ def find_matmul_add_nodes(node, opset):
                 ):
                     pre_reshape_const = gs.Constant(
                         matmul_node.name + "_pre_reshape_in",
-                        values=np.array(
-                            [-1, matmul_bias_variable.values.shape[0]], dtype=np.int64
-                        ),
+                        values=np.array([-1, matmul_bias_variable.values.shape[0]], dtype=np.int64),
                     )
                     inputs = []
                     inputs.append(input_variable)
@@ -573,8 +518,7 @@ def find_matmul_add_nodes(node, opset):
 
                     match.update(
                         {
-                            matmul_node.name
-                            + "_pre_reshape": {
+                            matmul_node.name + "_pre_reshape": {
                                 "op": "Reshape",
                                 "inputs": inputs,
                                 "outputs": outputs,
@@ -599,9 +543,7 @@ def find_matmul_add_nodes(node, opset):
                     inputs.append(matmul_bias_transpose_constant)
                     inputs.append(add_bias_variable)
 
-                    gemm_out_variable = gs.Variable(
-                        matmul_node.name + "_gemm_out", dtype=output_variable.dtype
-                    )
+                    gemm_out_variable = gs.Variable(matmul_node.name + "_gemm_out", dtype=output_variable.dtype)
                     outputs = [gemm_out_variable]
 
                     match.update(
@@ -622,9 +564,7 @@ def find_matmul_add_nodes(node, opset):
                         }
                     )
 
-                    values = input_variable.shape[:-1] + [
-                        matmul_bias_variable.values.shape[-1]
-                    ]
+                    values = input_variable.shape[:-1] + [matmul_bias_variable.values.shape[-1]]
                     post_reshape_const = gs.Constant(
                         matmul_node.name + "_post_reshape_in",
                         values=np.array(values, dtype=np.int64),
@@ -641,8 +581,7 @@ def find_matmul_add_nodes(node, opset):
 
                     match.update(
                         {
-                            matmul_node.name
-                            + "_post_reshape": {
+                            matmul_node.name + "_post_reshape": {
                                 "op": "Reshape",
                                 "inputs": inputs,
                                 "outputs": outputs,
@@ -829,13 +768,7 @@ def find_matches(graph: Graph, fusion_patterns: dict):
                             if "op" not in match:
                                 match.update({"op": layer_type})
                             if "name" not in match:
-                                match.update(
-                                    {
-                                        "name": "{}_{}".format(
-                                            layer_type.lower(), counter[layer_type]
-                                        )
-                                    }
-                                )
+                                match.update({"name": "{}_{}".format(layer_type.lower(), counter[layer_type])})
                             counter.update([layer_type])
                         match_map.update(matches)
 
@@ -880,19 +813,13 @@ def find_and_remove_replaceable_nodes(nodes):
                 if keep_nodes[i]:
                     for j in range(i + 1, len(bucketed_nodes)):
                         if keep_nodes[j]:
-                            logger.debug(
-                                f"node.op {bucketed_nodes[0].op} idx i: {i}, idx j: {j}"
-                            )
+                            logger.debug(f"node.op {bucketed_nodes[0].op} idx i: {i}, idx j: {j}")
                             if can_be_replaced(node, bucketed_nodes[j]):
                                 keep_nodes[j] = False
                                 existing_node = node
                                 to_be_removed_node = bucketed_nodes[j]
-                                replace_node_references(
-                                    existing_node, to_be_removed_node
-                                )
-                                logger.debug(
-                                    f"Node {to_be_removed_node.name} can be replaced by {existing_node.name}"
-                                )
+                                replace_node_references(existing_node, to_be_removed_node)
+                                logger.debug(f"Node {to_be_removed_node.name} can be replaced by {existing_node.name}")
 
 
 def sequences_equal(seq1, seq2):
@@ -927,9 +854,7 @@ def subexpression_elimination(graph):
         find_and_remove_replaceable_nodes(nodes)
 
 
-def optimize_model(
-    model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns: str = None
-) -> onnx.ModelProto:
+def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns: str = None) -> onnx.ModelProto:
     if isinstance(model, gs.Graph):
         graph = model
     else:

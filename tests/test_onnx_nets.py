@@ -7,7 +7,6 @@ import timm
 import torch
 import torchvision.models as models
 
-
 FUSE = True
 PRETRAINED = False
 

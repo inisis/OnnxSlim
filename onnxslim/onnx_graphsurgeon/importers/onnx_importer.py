@@ -53,13 +53,9 @@ ONNX_PYTHON_ATTR_MAPPING = {
 }
 
 
-def get_onnx_tensor_shape(
-    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]
-) -> List[int]:
+def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> List[int]:
     shape = None
-    if isinstance(onnx_tensor, onnx.TensorProto) or isinstance(
-        onnx_tensor, onnx.SparseTensorProto
-    ):
+    if isinstance(onnx_tensor, onnx.TensorProto) or isinstance(onnx_tensor, onnx.SparseTensorProto):
         shape = onnx_tensor.dims
     else:
         if onnx_tensor.type.tensor_type.HasField("shape"):
@@ -111,16 +107,13 @@ def get_numpy_type(onnx_type):
 
     # TENSOR_TYPE_TO_NP_TYPE maps types unsupported by NumPy to random other types.
     # This obviously breaks things, so we need to treat this as a special case.
-    if (
-        onnx_type not in numpy_unsupported_types
-        and onnx_type in onnx.helper.get_all_tensor_dtypes()
-    ):
+    if onnx_type not in numpy_unsupported_types and onnx_type in onnx.helper.get_all_tensor_dtypes():
         return onnx.helper.tensor_dtype_to_np_dtype(onnx_type)
     return None
 
 
 def get_onnx_tensor_dtype(
-    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]
+    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto],
 ) -> Union[np.dtype, "onnx.TensorProto.DataType"]:
     if isinstance(onnx_tensor, onnx.TensorProto):
         onnx_dtype = onnx_tensor.data_type
@@ -152,9 +145,7 @@ def get_onnx_tensor_dtype(
     return onnx_dtype
 
 
-def get_onnx_tensor_type(
-    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]
-) -> str:
+def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
     if isinstance(onnx_tensor, onnx.TensorProto):
         onnx_type = "tensor_type"
     else:
@@ -176,9 +167,7 @@ def get_onnx_tensor_type(
     return onnx_type
 
 
-def get_onnx_tensor_type(
-    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]
-) -> str:
+def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
     if isinstance(onnx_tensor, onnx.TensorProto):
         onnx_type = "tensor_type"
     else:
@@ -203,21 +192,15 @@ def get_onnx_tensor_type(
 class OnnxImporter(BaseImporter):
     @staticmethod
     def get_opset(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
-        class_name = (
-            "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
-        )
+        class_name = "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
         try:
             for importer in OnnxImporter.get_import_domains(model_or_func):
                 if importer.domain == "" or importer.domain == "ai.onnx":
                     return importer.version
-            G_LOGGER.warning(
-                f"{class_name} does not contain ONNX domain opset information! Using default opset."
-            )
+            G_LOGGER.warning(f"{class_name} does not contain ONNX domain opset information! Using default opset.")
             return None
         except:
-            G_LOGGER.warning(
-                f"{class_name} does not contain opset information! Using default opset."
-            )
+            G_LOGGER.warning(f"{class_name} does not contain opset information! Using default opset.")
             return None
 
     @staticmethod
@@ -225,11 +208,7 @@ class OnnxImporter(BaseImporter):
         return model_or_func.opset_import
 
     @staticmethod
-    def import_tensor(
-        onnx_tensor: Union[
-            onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto
-        ]
-    ) -> Tensor:
+    def import_tensor(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto]) -> Tensor:
         if isinstance(onnx_tensor, onnx.SparseTensorProto):
             return Constant(
                 name=onnx_tensor.values.name,
@@ -237,11 +216,7 @@ class OnnxImporter(BaseImporter):
                 data_location=onnx_tensor.values.data_location,
             )
         elif isinstance(onnx_tensor, onnx.TensorProto):
-            data_location = (
-                int(onnx_tensor.data_location)
-                if onnx_tensor.HasField("data_location")
-                else None
-            )
+            data_location = int(onnx_tensor.data_location) if onnx_tensor.HasField("data_location") else None
             return Constant(
                 name=onnx_tensor.name,
                 values=LazyValues(onnx_tensor),
@@ -295,9 +270,7 @@ class OnnxImporter(BaseImporter):
                     attr_dict[attr.name] = process_attr(attr_str)
                 else:
                     G_LOGGER.warning(
-                        "Attribute of type {:} is currently unsupported. Skipping attribute.".format(
-                            attr_str
-                        )
+                        "Attribute of type {:} is currently unsupported. Skipping attribute.".format(attr_str)
                     )
             else:
                 G_LOGGER.warning(
@@ -371,9 +344,7 @@ class OnnxImporter(BaseImporter):
         model_import_domains: onnx.OperatorSetIdProto = None,
     ) -> Function:
         opset = OnnxImporter.get_opset(onnx_function) or model_opset
-        import_domains = (
-            OnnxImporter.get_import_domains(onnx_function) or model_import_domains
-        )
+        import_domains = OnnxImporter.get_import_domains(onnx_function) or model_import_domains
         subgraph_tensor_map = OrderedDict()  # Tensors in this function
 
         def make_tensor(name: str) -> Tensor:
@@ -384,9 +355,7 @@ class OnnxImporter(BaseImporter):
         function_inputs = [make_tensor(inp) for inp in onnx_function.input]
         function_outputs = [make_tensor(out) for out in onnx_function.output]
         nodes = [
-            OnnxImporter.import_node(
-                onnx_node, dict(), subgraph_tensor_map, opset, import_domains
-            )
+            OnnxImporter.import_node(onnx_node, dict(), subgraph_tensor_map, opset, import_domains)
             for onnx_node in onnx_function.node
         ]
 
@@ -438,18 +407,14 @@ class OnnxImporter(BaseImporter):
             functions (List[Function]): The list of custom functions which are available to use in the model.
         """
         functions = misc.default_value(functions, [])
-        tensor_map = copy.copy(
-            misc.default_value(tensor_map, OrderedDict())
-        )  # Outer graph tensors, read-only
+        tensor_map = copy.copy(misc.default_value(tensor_map, OrderedDict()))  # Outer graph tensors, read-only
         subgraph_tensor_map = OrderedDict()  # Tensors in this subgraph
 
         # Retrieves a Tensor from subgraph_tensor_map or the outer graph (tensor_map) if present, otherwise imports the tensor
         # If overwrite=True, this function will overwrite previously imported tensors
         # if the new tensor has more information available.
         def get_tensor(
-            onnx_tensor: Union[
-                onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto
-            ],
+            onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto],
             overwrite=False,
             check_outer_graph=True,
         ) -> Tensor:
@@ -462,12 +427,8 @@ class OnnxImporter(BaseImporter):
                 if overwrite:
                     tensor = OnnxImporter.import_tensor(onnx_tensor)
                     if isinstance(subgraph_tensor_map[name], Variable):
-                        subgraph_tensor_map[name].dtype = (
-                            subgraph_tensor_map[name].dtype or tensor.dtype
-                        )
-                        subgraph_tensor_map[name].shape = (
-                            subgraph_tensor_map[name].shape or tensor.shape
-                        )
+                        subgraph_tensor_map[name].dtype = subgraph_tensor_map[name].dtype or tensor.dtype
+                        subgraph_tensor_map[name].shape = subgraph_tensor_map[name].shape or tensor.shape
                 return subgraph_tensor_map[name]
 
             if check_outer_graph and name in tensor_map:
@@ -512,9 +473,7 @@ class OnnxImporter(BaseImporter):
         G_LOGGER.verbose("Importing nodes")
         nodes = []  # List[Node]
         for onnx_node in onnx_graph.node:
-            node = OnnxImporter.import_node(
-                onnx_node, tensor_map, subgraph_tensor_map, opset, import_domains
-            )
+            node = OnnxImporter.import_node(onnx_node, tensor_map, subgraph_tensor_map, opset, import_domains)
             nodes.append(node)
 
         return Graph(

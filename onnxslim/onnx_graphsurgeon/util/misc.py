@@ -58,7 +58,9 @@ def default_value(value, default):
 
 def combine_dicts(dict0, dict1):
     """
-    Combine two dictionaries. Values in the second will overwrite values in the first.
+    Combine two dictionaries.
+
+    Values in the second will overwrite values in the first.
     """
     combined = OrderedDict()
     combined.update(dict0)

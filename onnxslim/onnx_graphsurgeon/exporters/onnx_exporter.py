@@ -91,6 +91,7 @@ def update_import_domains(graph):
 # Converts a fp32 gs.Constant to a bf16 onnx.TensorProto
 def tensor_to_onnx_bf16(tensor: Constant):
     """Converts an fp32 gs.Constant tensor to a bf16 onnx.TensorProto."""
+
     def np_float32_to_bf16_as_uint16(arr):
         new_arr = np.empty(arr.size, dtype=np.uint16)
         flatten = arr.flatten()

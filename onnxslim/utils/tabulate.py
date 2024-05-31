@@ -280,6 +280,7 @@ LATEX_ESCAPE_RULES = {
 
 def _latex_row(cell_values, colwidths, colaligns, escrules=LATEX_ESCAPE_RULES):
     """Generates a LaTeX table row with escaped special characters based on provided cell values, column widths, and alignments."""
+
     def escape_char(c):
         return escrules.get(c, c)
 
@@ -290,6 +291,7 @@ def _latex_row(cell_values, colwidths, colaligns, escrules=LATEX_ESCAPE_RULES):
 
 def _rst_escape_first_column(rows, headers):
     """Escapes empty values in the first column of rows and headers for reStructuredText (RST) formatting compliance."""
+
     def escape_empty(val):
         if isinstance(val, (str, bytes)) and not val.strip():
             return ".."

@@ -250,6 +250,7 @@ class Function(Graph):
 
     def __eq__(self, other: "Function"):
         """Checks equality of self with another Function object based on their attributes."""
+
         def sequences_equal(seq1, seq2):
             return len(seq1) == len(seq2) and all([elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)])
 

@@ -628,6 +628,7 @@ class SymbolicShapeInference:
 
     def _get_int_or_float_values(self, node, broadcast=False, allow_float_values=False):
         """Extracts integer or float values from a node, with options for broadcasting and allowing float values."""
+
         def int_or_float(value, allow_float_values):
             # If casting into int has precision loss: keep float output
             if allow_float_values and value % 1 != 0:
@@ -1876,6 +1877,7 @@ class SymbolicShapeInference:
 
     def _infer_Slice(self, node):  # noqa: N802
         """Infer the shape and value information for the Slice node using SymPy and ONNX helper methods."""
+
         # even when the relation holds for both `a` and `b`.
         #
         # When given `expr` of form `min(a, b) + ...`, this function returns `[a + ..., b + ...]`,

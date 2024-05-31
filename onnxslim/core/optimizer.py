@@ -16,6 +16,7 @@ DEFAULT_FUSION_PATTERNS = OrderedDict()
 
 def register_fusion_pattern(layer_type):
     """Registers a fusion pattern function for a specified layer type in the DEFAULT_FUSION_PATTERNS dictionary."""
+
     def insert(fn):
         if layer_type in DEFAULT_FUSION_PATTERNS.keys():
             raise
@@ -160,13 +161,13 @@ def graph_constant_fold_inplace(graph):
 @register_fusion_pattern("FusionPadConv")
 def find_conv_nodes(node, opset):
     """Identify and match convolution nodes following a padding operation to update padding attributes for fusion purposes."""
-    '''
+    """
              x
              |
             Pad
              |
             Conv
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Conv":
@@ -281,13 +282,13 @@ def find_conv_transpose_nodes(node, opset):
 @register_fusion_pattern("EliminationSlice")
 def find_slice_nodes(node, opset):
     """Identify and combine consecutive 'Slice' nodes in a computational graph for optimization purposes."""
-    '''
+    """
              x
              |
            Slice
              |
            Slice
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Slice":
@@ -388,13 +389,13 @@ def find_slice_nodes(node, opset):
 @register_fusion_pattern("EliminationReshape")
 def find_reshape_nodes(node, opset):
     """Identify consecutive 'Reshape' nodes in the computational graph for potential fusion, returning a matching dictionary when criteria are met."""
-    '''
+    """
              x
              |
            Reshape
              |
            Reshape
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Reshape":
@@ -446,13 +447,13 @@ def find_reshape_nodes(node, opset):
 # @register_fusion_pattern("EliminationTranspose")
 def find_slice_nodes(node, opset):
     """Identifies and processes patterns of consecutive Transpose nodes in a computational graph."""
-    '''
+    """
              x
              |
           Transpose
              |
           Transpose
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Transpose":
@@ -486,13 +487,13 @@ def find_slice_nodes(node, opset):
 @register_fusion_pattern("FusionGemm")
 def find_matmul_add_nodes(node, opset):
     """Identifies and returns a pattern match for MatMul followed by Add operations for optimization in a computational graph."""
-    '''
+    """
              x
              |
            MatMul
              |
             Add
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Add":
@@ -645,7 +646,7 @@ def find_matmul_add_nodes(node, opset):
 # @register_fusion_pattern("FusionGelu")
 def find_gelu_nodes(node, opset):
     """Identifies GELU (Gaussian Error Linear Unit) activation pattern nodes in a computational graph based on given conditions."""
-    '''
+    """
              x
          /      \
          |     Div
@@ -657,7 +658,7 @@ def find_gelu_nodes(node, opset):
             Mul
              |
             Mul
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Mul":
@@ -693,13 +694,13 @@ def find_gelu_nodes(node, opset):
 @register_fusion_pattern("FusionReduce")
 def find_slice_nodes(node, opset):
     """Find and return a dictionary of matching 'ReduceSum' followed by 'Unsqueeze' nodes that match specific conditions in the graph."""
-    '''
+    """
              x
              |
          ReduceSum
              |
          Unsqueeze
-    '''
+    """
     # fmt: on
     match = {}
     if node.op == "Unsqueeze":
@@ -787,6 +788,7 @@ def find_matches(graph: Graph, fusion_patterns: dict):
 
 def find_and_remove_replaceable_nodes(nodes):
     """Find and remove duplicate or replaceable nodes in a given list of computational graph nodes."""
+
     def get_node_key(node):
         input_names = []
         for input_node in node.inputs:

@@ -183,7 +183,9 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
     ).split("\n")
     if elapsed_time:
         time_row = lines[-2].split("|")
-        time_row[-3] = time_row[-2][: len(time_row[-2]) // 2 + 1] + time_row[-3] + time_row[-2][len(time_row[-2]) // 2 :]
+        time_row[-3] = (
+            time_row[-2][: len(time_row[-2]) // 2 + 1] + time_row[-3] + time_row[-2][len(time_row[-2]) // 2 :]
+        )
         time_row.pop(-2)
         lines[-2] = "|".join(time_row)
     output = "\n".join([line if line != "| \x01 |" else lines[0] for line in lines])

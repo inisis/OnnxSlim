@@ -27,7 +27,7 @@ AUTO_MERGE = True if os.getenv("ONNXSLIM_AUTO_MERGE") is None else bool(int(os.g
 
 
 def init_logging(verbose=False):
-    # Remove all handlers associated with the root logger object.
+    """Configure the logging settings for the application, setting verbosity based on the 'verbose' parameter."""
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
@@ -75,6 +75,7 @@ def summarize_model(model: onnx.ModelProto) -> Dict:
     op_type_counts = {}
 
     def get_tensor_dtype_shape(tensor):
+        """Extract the data type and shape of an ONNX tensor."""
         type_str = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
@@ -130,6 +131,7 @@ def summarize_model(model: onnx.ModelProto) -> Dict:
 
 
 def model_save_as_external_data(model: onnx.ModelProto, model_path: str):
+    """Save an ONNX model with tensor data as an external file."""
     location = os.path.basename(model_path) + ".data"
     if os.path.exists(location):
         os.remove(location)
@@ -204,6 +206,7 @@ def output_modification(model: onnx.ModelProto, outputs: str) -> onnx.ModelProto
 
 
 def check_onnx(model: onnx.ModelProto, model_check_inputs=None):
+    """Validates an ONNX model by generating input data and performing inference to check outputs."""
     input_data_dict = gen_onnxruntime_input_data(model, model_check_inputs)
     raw_onnx_output = onnxruntime_inference(model, input_data_dict)
 
@@ -211,6 +214,7 @@ def check_onnx(model: onnx.ModelProto, model_check_inputs=None):
 
 
 def shape_infer(model: onnx.ModelProto):
+    """Infer tensor shapes in an ONNX model using onnxruntime or ONNX shape inference methods."""
     logger.debug("Start shape inference.")
     try:
         logger.debug("try onnxruntime shape infer.")
@@ -233,6 +237,7 @@ def shape_infer(model: onnx.ModelProto):
 
 
 def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None):
+    """Optimize the given ONNX model by converting to GraphSurgeon format, performing constant folding, and model optimizations."""
     logger.debug("Start converting model to gs.")
     graph = gs.import_onnx(model).toposort()
     logger.debug("Finish converting model to gs.")
@@ -249,6 +254,7 @@ def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None):
 
 
 def check_point(model: onnx.ModelProto):
+    """Imports an ONNX model into a graph from the specified model checkpoint."""
     graph_check_point = gs.import_onnx(model)
 
     return graph_check_point
@@ -292,6 +298,7 @@ def convert_data_format(model: onnx.ModelProto, dtype: str) -> onnx.ModelProto:
 
 
 def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
+    """Save an ONNX model to a specified path, with optional model checking for validity."""
     if model_check:
         try:
             checker.check_model(model)
@@ -320,6 +327,7 @@ def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
 
 
 def check_result(raw_onnx_output, slimmed_onnx_output):
+    """Verify the consistency of outputs between the raw and slimmed ONNX models, logging warnings if discrepancies are detected."""
     if set(raw_onnx_output.keys()) != set(slimmed_onnx_output.keys()):
         logger.warning("Model output mismatch after slimming.")
         logger.warning("Raw model output keys: {}".format(raw_onnx_output.keys()))
@@ -341,6 +349,7 @@ def check_result(raw_onnx_output, slimmed_onnx_output):
 
 
 def freeze(model: onnx.ModelProto):
+    """Freezes the ONNX model by removing inputs that are also present in the initializers."""
     inputs = model.graph.input
     name_to_input = {}
     for input in inputs:

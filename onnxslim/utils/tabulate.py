@@ -20,6 +20,7 @@ except ImportError:
 
 
 def _is_file(f):
+    """Check if an object 'f' is an instance of io.IOBase."""
     return isinstance(f, io.IOBase)
 
 
@@ -104,6 +105,7 @@ TableFormat = namedtuple(
 
 
 def _is_separating_line(row):
+    """Determine if a row is a separating line based on its type and specific content criteria."""
     row_type = type(row)
     is_sl = (row_type == list or row_type == str) and (
         (len(row) >= 1 and row[0] == SEPARATING_LINE) or (len(row) >= 2 and row[1] == SEPARATING_LINE)
@@ -135,6 +137,7 @@ def _pipe_line_with_colons(colwidths, colaligns):
 
 
 def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
+    """Returns a MediaWiki table row with specific alignment attributes for each cell based on given parameters."""
     alignment = {
         "left": "",
         "right": 'style="text-align: right;"| ',
@@ -149,6 +152,7 @@ def _mediawiki_row_with_attrs(separator, cell_values, colwidths, colaligns):
 
 
 def _textile_row_with_attrs(cell_values, colwidths, colaligns):
+    """Generate a Textile-formatted table row with specified cell values, column widths, and alignments."""
     cell_values[0] += " "
     alignment = {"left": "<.", "right": ">.", "center": "=.", "decimal": ">."}
     values = (alignment.get(a, "") + v for a, v in zip(colaligns, cell_values))
@@ -156,11 +160,12 @@ def _textile_row_with_attrs(cell_values, colwidths, colaligns):
 
 
 def _html_begin_table_without_header(colwidths_ignore, colaligns_ignore):
-    # this table header will be suppressed if there is a header row
+    """Generate the beginning of an HTML table without a header row."""
     return "<table>\n<tbody>"
 
 
 def _html_row_with_attrs(celltag, unsafe, cell_values, colwidths, colaligns):
+    """Generate an HTML table row with specified attributes for each cell."""
     alignment = {
         "left": "",
         "right": ' style="text-align: right;"',
@@ -183,6 +188,7 @@ def _html_row_with_attrs(celltag, unsafe, cell_values, colwidths, colaligns):
 
 
 def _moin_row_with_attrs(celltag, cell_values, colwidths, colaligns, header=""):
+    """Generate a row of HTML table cells with specified attributes like alignment and headers."""
     alignment = {
         "left": "",
         "right": '<style="text-align: right;">',
@@ -196,6 +202,7 @@ def _moin_row_with_attrs(celltag, cell_values, colwidths, colaligns, header=""):
 
 
 def _latex_line_begin_tabular(colwidths, colaligns, booktabs=False, longtable=False):
+    """Generate LaTeX tabular or longtable environment start with specified column widths, alignments, and booktabs option."""
     alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
     return "\n".join(
@@ -272,6 +279,7 @@ LATEX_ESCAPE_RULES = {
 
 
 def _latex_row(cell_values, colwidths, colaligns, escrules=LATEX_ESCAPE_RULES):
+    """Generates a LaTeX table row with escaped special characters based on provided cell values, column widths, and alignments."""
     def escape_char(c):
         return escrules.get(c, c)
 
@@ -281,6 +289,7 @@ def _latex_row(cell_values, colwidths, colaligns, escrules=LATEX_ESCAPE_RULES):
 
 
 def _rst_escape_first_column(rows, headers):
+    """Escapes empty values in the first column of rows and headers for reStructuredText (RST) formatting."""
     def escape_empty(val):
         if isinstance(val, (str, bytes)) and not val.strip():
             return ".."
@@ -819,6 +828,7 @@ def _isnumber_with_thousands_separator(string):
 
 
 def _isconvertible(conv, string):
+    """Check if a string can be converted to a specified type without raising a ValueError or TypeError."""
     try:
         conv(string)
         return True
@@ -973,6 +983,7 @@ def _padboth(width, s):
 
 
 def _padnone(ignore_width, s):
+    """Returns the input string without padding."""
     return s
 
 
@@ -1015,6 +1026,7 @@ def _visible_width(s):
 
 
 def _is_multiline(s):
+    """Check if the input string or bytestring contains multiline ANSI escape codes."""
     if isinstance(s, str):
         return bool(re.search(_multiline_codes, s))
     else:  # a bytestring
@@ -1042,6 +1054,7 @@ def _choose_width_fn(has_invisible, enable_widechars, is_multiline):
 
 
 def _align_column_choose_padfn(strings, alignment, has_invisible):
+    """Selects the appropriate padding function based on alignment and visibility of invisible characters for given strings."""
     if alignment == "right":
         if not PRESERVE_WHITESPACE:
             strings = [s.strip() for s in strings]
@@ -1068,6 +1081,7 @@ def _align_column_choose_padfn(strings, alignment, has_invisible):
 
 
 def _align_column_choose_width_fn(has_invisible, enable_widechars, is_multiline):
+    """Choose the appropriate width function for aligning text columns based on visibility, wide characters support, and multiline status."""
     if has_invisible:
         line_width_fn = _visible_width
     elif enable_widechars:  # optional wide-character support if available
@@ -1087,6 +1101,7 @@ def _align_column_multiline_width(multiline_s, line_width_fn=len):
 
 
 def _flat_list(nested_list):
+    """Flatten a nested list into a single list."""
     ret = []
     for item in nested_list:
         if isinstance(item, list):
@@ -1139,6 +1154,7 @@ def _align_column(
 
 
 def _more_generic(type1, type2):
+    """Return the more generic type between type1 and type2 based on a predefined hierarchy."""
     types = {
         type(None): 0,
         bool: 1,
@@ -1222,6 +1238,7 @@ def _format(val, valtype, floatfmt, intfmt, missingval="", has_invisible=True):
 
 
 def _align_header(header, alignment, width, visible_width, is_multiline=False, width_fn=None):
+    """Pad string header to width chars given known visible_width of the header."""
     "Pad string header to width chars given known visible_width of the header."
     if is_multiline:
         header_lines = re.split(_multiline_codes, header)
@@ -1241,6 +1258,7 @@ def _align_header(header, alignment, width, visible_width, is_multiline=False, w
 
 
 def _remove_separating_lines(rows):
+    """Remove rows that are separating lines and return the filtered rows along with indices of separating lines if input is a list."""
     if type(rows) == list:
         separating_lines = []
         sans_rows = []
@@ -1255,6 +1273,7 @@ def _remove_separating_lines(rows):
 
 
 def _reinsert_separating_lines(rows, separating_lines):
+    """Reinserts separating lines back into their original positions in the rows."""
     if separating_lines:
         for index in separating_lines:
             rows.insert(index, SEPARATING_LINE)
@@ -1281,6 +1300,7 @@ def _prepend_row_index(rows, index):
 
 
 def _bool(val):
+    """Convert a value to a boolean without throwing an exception on NumPy arrays."""
     "A wrapper around standard bool() which doesn't throw on NumPy arrays"
     try:
         return bool(val)
@@ -1458,6 +1478,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
 
 
 def _wrap_text_to_colwidths(list_of_lists, colwidths, numparses=True):
+    """Wrap text in each cell of a list of lists to fit specified column widths, optionally parsing numbers."""
     if len(list_of_lists):
         num_cols = len(list_of_lists[0])
     else:
@@ -2239,6 +2260,7 @@ def _expand_iterable(original, num_desired, default):
 
 
 def _pad_row(cells, padding):
+    """Pads the strings in a list `cells` with spaces of length `padding` on both sides."""
     if cells:
         pad = " " * padding
         padded_cells = [pad + cell + pad for cell in cells]
@@ -2248,12 +2270,14 @@ def _pad_row(cells, padding):
 
 
 def _build_simple_row(padded_cells, rowfmt):
+    """Format a list of padded cells into a table row according to the specified DataRow format."""
     "Format row according to DataRow format without padding."
     begin, sep, end = rowfmt
     return (begin + sep.join(padded_cells) + end).rstrip()
 
 
 def _build_row(padded_cells, colwidths, colaligns, rowfmt):
+    """Format a list of padded cells into a table row according to specified format or custom row formatting function."""
     "Return a string which represents a row of data cells."
     if not rowfmt:
         return None
@@ -2264,12 +2288,13 @@ def _build_row(padded_cells, colwidths, colaligns, rowfmt):
 
 
 def _append_basic_row(lines, padded_cells, colwidths, colaligns, rowfmt, rowalign=None):
-    # NOTE: rowalign is ignored and exists for api compatibility with _append_multiline_row
+    """Append a formatted row to the lines list using the provided cell data and column specifications."""
     lines.append(_build_row(padded_cells, colwidths, colaligns, rowfmt))
     return lines
 
 
 def _align_cell_veritically(text_lines, num_lines, column_width, row_alignment):
+    """Adjust vertical alignment of text lines within a column based on the specified row alignment."""
     delta_lines = num_lines - len(text_lines)
     blank = [" " * column_width]
     if row_alignment == "bottom":
@@ -2283,6 +2308,7 @@ def _align_cell_veritically(text_lines, num_lines, column_width, row_alignment):
 
 
 def _append_multiline_row(lines, padded_multiline_cells, padded_widths, colaligns, rowfmt, pad, rowalign=None):
+    """Append a multiline row to the table lines with specified alignments and padding."""
     colwidths = [w - 2 * pad for w in padded_widths]
     cells_lines = [c.splitlines() for c in padded_multiline_cells]
     nlines = max(map(len, cells_lines))  # number of lines in the row
@@ -2300,6 +2326,7 @@ def _append_multiline_row(lines, padded_multiline_cells, padded_widths, colalign
 
 
 def _build_line(colwidths, colaligns, linefmt):
+    """Return a string representing a horizontal line formatted with column widths and alignments using the specified format."""
     "Return a string which represents a horizontal line."
     if not linefmt:
         return None
@@ -2312,6 +2339,7 @@ def _build_line(colwidths, colaligns, linefmt):
 
 
 def _append_line(lines, colwidths, colaligns, linefmt):
+    """Append a formatted line to the list of lines based on column widths, alignments, and line format."""
     lines.append(_build_line(colwidths, colaligns, linefmt))
     return lines
 
@@ -2320,6 +2348,7 @@ class JupyterHTMLStr(str):
     """Wrap the string with a _repr_html_ method so that Jupyter displays the HTML table."""
 
     def _repr_html_(self):
+        """Return the HTML representation of the JupyterHTMLStr object for proper display in Jupyter Notebooks."""
         return self
 
     @property
@@ -2405,6 +2434,7 @@ class _CustomTextWrap(textwrap.TextWrapper):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize the wrapper with support for wide characters and custom length logic."""
         self._active_codes = []
         self.max_lines = None  # For python2 compatibility
         textwrap.TextWrapper.__init__(self, *args, **kwargs)
@@ -2681,6 +2711,7 @@ def _main():
 
 
 def _pprint_file(fobject, headers, tablefmt, sep, floatfmt, intfmt, file, colalign):
+    """Pretty prints a tabulated version of a file-like object's content using specified formatting parameters."""
     rows = fobject.readlines()
     table = [re.split(sep, r.rstrip()) for r in rows if r.strip()]
     print(

@@ -116,6 +116,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
 
 
 def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elapsed_time: float = 0.0):
+    """Prints detailed model information as a formatted table."""
     assert len(model_info_list) > 0, "model_info_list must contain more than one model info"
 
     final_op_info = []
@@ -191,6 +192,7 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
 
 
 def dump_model_info_to_disk(model_name: str, model_info: Dict):
+    """Dumps detailed model information to a CSV file for a given model and its associated operation information."""
     import csv
     import os
 

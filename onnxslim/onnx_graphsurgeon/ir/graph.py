@@ -30,15 +30,17 @@ from onnxslim.onnx_graphsurgeon.util import misc
 
 class NodeIDAdder(object):
     def __init__(self, graph):
+        """Initializes NodeIDAdder with a specified graph."""
         self.graph = graph
 
     def __enter__(self):
-        # To get unique ids for each node, add an `id` attribute. This will be removed before the function returns.
+        """Assigns unique `id` attributes to each node in the graph upon entering the context."""
         # Using the index in the node list allows the same object to count as different nodes.
         for index, node in enumerate(self.graph.nodes):
             node.id = index
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Removes the `id` attributes from each node in the graph upon exiting the context."""
         for node in self.graph.nodes:
             del node.id
 
@@ -75,6 +77,7 @@ class Graph(object):
         """
 
         def register_func(func):
+            """Registers a function for different opsets, overwriting any previously registered function with the same name."""
             if hasattr(Graph, func.__name__):
                 G_LOGGER.warning(
                     "Registered function: {:} is hidden by a Graph attribute or function with the same name. "
@@ -140,6 +143,7 @@ class Graph(object):
         G_LOGGER.ultra_verbose(lambda: "Created Graph: {:}".format(self))
 
     def __getattr__(self, name):
+        """Dynamically retrieves attributes and handles multiple registered functions gracefully."""
         try:
             return super().__getattribute__(name)
         except AttributeError as err:
@@ -185,7 +189,7 @@ class Graph(object):
             raise err
 
     def __setattr__(self, name, value):
-        # We don't want graph inputs/outputs to be SynchronizedLists
+        """Sets an attribute to the given value, converting 'inputs' and 'outputs' to lists."""
         if name in ["inputs", "outputs"]:
             value = list(value)
         return super().__setattr__(name, value)
@@ -196,7 +200,7 @@ class Graph(object):
 
     @functions.setter
     def functions(self, new_fns: "Sequence[Function]"):
-        # The 'self._functions' list object is shared between
+        """Get or set the list of functions, ensuring changes propagate to all associated subgraphs and functions."""
         # this graph, its subgraphs, and its functions.
         # If the user sets a new value for self.functions,
         # all subgraphs and functions should also see this new value.
@@ -204,6 +208,7 @@ class Graph(object):
         self._functions += list(new_fns)
 
     def __eq__(self, other: "Graph"):
+        """Check for equality of two Graph objects by comparing their nodes, inputs, and outputs."""
         nodes_match = misc.sequences_equal(self.nodes, other.nodes)
         if not nodes_match:
             return False
@@ -237,6 +242,7 @@ class Graph(object):
 
     # Gets the node ID for a node. All internal code should use this instead of accessing `node.id` directly.
     def _get_node_id(self, node):
+        """Gets the node ID for a node, ensuring all internal code uses this instead of accessing `node.id` directly."""
         try:
             return node.id
         except AttributeError:
@@ -247,6 +253,7 @@ class Graph(object):
 
     # A tensor is local if it is produced in this graph, or is explicitly a graph input.
     def _local_tensors(self):
+        """Return a dictionary of tensors that are local to the graph, including nodes' outputs, graph inputs, and constants."""
         local_tensors = {t.name: t for node in self.nodes for t in node.outputs if not t.is_empty()}
         local_tensors.update({t.name: t for t in self.inputs})
         local_tensors.update({t.name: t for t in self.tensors().values() if isinstance(t, Constant)})
@@ -255,10 +262,12 @@ class Graph(object):
     # Returns tensors used by this graph which are not present in the graph.
     # These may come from an outer graph for example.
     def _foreign_tensors(self):
+        """Returns tensors used by this graph which are not present in the graph, potentially from an outer graph."""
         local_tensors = self._local_tensors()
         foreign_tensors = {}
 
         def is_foreign_tensor(tensor):
+            """Check if a tensor is not present in the local tensors of the current graph."""
             return tensor.name not in local_tensors
 
         for node in self.nodes:
@@ -275,17 +284,19 @@ class Graph(object):
         return foreign_tensors
 
     def _get_used_node_ids(self):
+        """Retrieve a dictionary of tensors that are used by node IDs in the current subgraph."""
         local_tensors = self._local_tensors()
 
         # We only want to consider tensors that are local to this graph, because we can't
         # remove external tensors (e.g. from outer graphs) anyway.
         class IgnoreDupAndForeign(object):
             def __init__(self, initial_tensors=None):
+                """Initialize IgnoreDupAndForeign with an optional list of initial_tensors."""
                 tensors = misc.default_value(initial_tensors, [])
                 self.seen_tensors = set([tensor.name for tensor in tensors])
 
             def __call__(self, tensor):
-                # Returns True if a tensor should included,
+                """Determine whether a tensor should be included based on its emptiness and presence in seen and local tensors."""
                 # False if it should be filtered out.
                 if tensor.is_empty():
                     return True
@@ -318,11 +329,12 @@ class Graph(object):
         return used_node_ids, used_tensors
 
     def _merge_subgraph_functions(self):
-        # When a user adds a Graph as a node attr, that graph will have a different
+        """Merge function lists of subgraphs into the parent graph's function list."""
         # function list than the parent graph. This function merges those lists.
         func_ids = {func.unique_id for func in self.functions}
 
         def absorb_function_list(func_list):
+            """Absorb and merge unique functions from a provided list into the current graph's function list."""
             for func in func_list:
                 if func.unique_id not in func_ids:
                     self.functions.append(func)
@@ -385,6 +397,7 @@ class Graph(object):
         """
 
         def cleanup_subgraphs():
+            """Clean up subgraphs by removing unused node outputs and graph inputs, optionally recursing into subgraphs and local functions."""
             for subgraph in self.subgraphs():
                 subgraph.cleanup(
                     remove_unused_node_outputs=remove_unused_node_outputs,
@@ -438,6 +451,7 @@ class Graph(object):
                 for node in nodes:
 
                     def is_hanging_tensor(tensor):
+                        """Checks if a tensor is hanging by verifying it has no outputs and its name is not in graph_output_names."""
                         return (
                             not tensor.is_empty() and len(tensor.outputs) == 0 and tensor.name not in graph_output_names
                         )
@@ -502,10 +516,12 @@ class Graph(object):
         # 0 corresponds to an input node, N corresponds to a node with N layers of inputs.
         class HierarchyDescriptor(object):
             def __init__(self, node_or_func, level=None):
+                """Initializes a HierarchyDescriptor with a node or function and an optional level in the graph hierarchy."""
                 self.node_or_func = node_or_func
                 self.level = level
 
             def __lt__(self, other):
+                """Defines less-than comparison behavior based on hierarchy levels."""
                 return self.level < other.level
 
         hierarchy_levels = {}  # Dict[int, HierarchyDescriptor]
@@ -514,11 +530,13 @@ class Graph(object):
         func_id_to_func = dict()
 
         def get_id(node_or_func):
+            """Returns the unique ID for a Node object or a function."""
             if isinstance(node_or_func, Node):
                 return self._get_node_id(node_or_func)
             return node_or_func.unique_id
 
         def get_hierarchy_level(node_or_func, visited=None):
+            """Returns the hierarchy level of a node or function, optionally using a 'visited' set to track processed elements."""
             from onnxslim.onnx_graphsurgeon.ir.function import Function
 
             visited = misc.default_value(visited, set())
@@ -531,11 +549,12 @@ class Graph(object):
             visited.add(get_id(node_or_func))
 
             def get_inputs(node_or_func):
-                # Find all nodes used by this node.
+                """Find all nodes used by a given node or function."""
                 def get_used_nodes(node):
                     inputs = {}
 
                     def add_local_producers(tensor):
+                        """Add local tensors and their producer nodes to the inputs dictionary."""
                         nonlocal inputs
                         if tensor.name in local_tensors:
                             for inp_node in tensor.inputs:
@@ -553,6 +572,7 @@ class Graph(object):
 
                 # Find all functions used in this list of nodes.
                 def get_used_funcs(nodes):
+                    """Return a dictionary of functions used in the provided list of nodes."""
                     inputs = {}
                     for subgraph in self.subgraphs():
                         inputs.update(get_used_funcs(subgraph.nodes))
@@ -615,6 +635,7 @@ class Graph(object):
         tensor_map = OrderedDict()
 
         def add_to_tensor_map(tensor):
+            """Add a tensor to the tensor map, ensuring no duplicate names exist by checking tensor IDs."""
             if not tensor.is_empty():
                 if tensor.name in tensor_map and not (tensor_map[tensor.name] is tensor):
                     msg = "Found distinct tensors that share the same name:\n[id: {:}] {:}\n[id: {:}] {:}\n".format(
@@ -727,6 +748,7 @@ class Graph(object):
 
         # Don't fold nodes with attribute values which are variable.
         def should_exclude_node(node):
+            """Determine if an ONNX graph node should be excluded based on its attributes."""
             for attr_val in node.attrs.values():
                 if isinstance(attr_val, Node.AttributeRef):
                     return True
@@ -779,6 +801,7 @@ class Graph(object):
 
         # Pass 2: Run shape-tensor cast elision
         def run_cast_elision(node):
+            """Perform cast elision optimization on an ONNX node to eliminate unnecessary cast operations."""
             import onnx
 
             # Search for Cast(s) (from int -> float) -> intermediate operator (with float constants) -> Cast(s) (back to int)
@@ -890,6 +913,7 @@ class Graph(object):
         graph_clone.producer_version = ""
 
         def update_foldable_outputs(graph_constants):
+            """Updates the graph's outputs to ensure certain operations remain foldable."""
             def is_foldable(node):
                 NO_FOLD_OPS = [
                     "QuantizeLinear",
@@ -900,7 +924,7 @@ class Graph(object):
                     return False
 
                 def all_tensors_const(tensors):
-                    # Ignore omitted optional inputs.
+                    """Check if all tensors in the given list are constants, excluding omitted optional inputs."""
                     return all([t.name in graph_constants for t in tensors if not t.is_empty()])
 
                 if not all_tensors_const(node.inputs):
@@ -956,6 +980,7 @@ class Graph(object):
                 return list(tensor.values)[0]
 
         def fold_shape(tensor):
+            """Returns the input tensor shape if available, otherwise returns None."""
             inp = get_input(get_producer(tensor, "Shape"))
             if inp is None:
                 return None
@@ -965,6 +990,7 @@ class Graph(object):
             return np.array(inp.shape, dtype=np.int64)
 
         def fold_shape_gather(tensor):
+            """Retrieves and returns the shape of the input tensor as a NumPy array, otherwise returns None."""
             gather = get_producer(tensor, "Gather")
             if gather is None:
                 return None
@@ -992,6 +1018,7 @@ class Graph(object):
             return np.array(shape, dtype=np.int64)
 
         def fold_shape_slice(tensor):
+            """Fold tensor shape slice if dynamic dimensions are present, returning numpy array of shape, or None if dynamic."""
             slice = get_producer(tensor, "Slice")
             if slice is None:
                 return None
@@ -1061,6 +1088,7 @@ class Graph(object):
         # Pass 5: Evaluate all tensors descended from constants with ONNX-Runtime and replace them with constant values.
 
         def partition_and_infer(subgraph):
+            """Evaluates and partitions the subgraph to infer constant values using ONNX-Runtime."""
             def get_out_node_ids():
                 # Gets the final output nodes - producer nodes of graph output tensors without other outputs.
                 with subgraph.node_ids():
@@ -1117,6 +1145,7 @@ class Graph(object):
         # Otherwise, if all the outputs are foldable, then we can just evaluate the outputs directly.
         # Additionally, if we can determine tensor size, do not evaluate tensors whose sizes exceed the size threshold.
         def should_eval_foldable(tensor):
+            """Determine if foldable values should be evaluated based on output nature and tensor size constraints."""
             from onnxslim.onnx_graphsurgeon.importers.onnx_importer import get_itemsize
 
             non_const = not isinstance(tensor, Constant)
@@ -1204,6 +1233,7 @@ class Graph(object):
 
         # Folding subgraphs after the outer graph can lead to better folding.
         def fold_subgraphs():
+            """Folds constants within subgraphs to optimize the performance of the outer graph."""
             for subgraph in self.subgraphs():
                 subgraph.fold_constants(
                     fold_shapes=fold_shapes,
@@ -1266,7 +1296,7 @@ class Graph(object):
         return self
 
     def _generate_name(self, prefix: str, existing_names: set):
-        # `existing_names` will ensure that generated name does not clash existing names.
+        """Generate a unique name by appending an index to the given prefix, ensuring it does not clash with existing names."""
         # Generation is done by appending an index to the prefix.
         while True:
             name = "{}_{}".format(prefix, self.name_idx)
@@ -1311,7 +1341,7 @@ class Graph(object):
         outputs = misc.default_value(outputs, [])
 
         def process_io(io, existing_names):
-            # Note: modifies `existing_names` in-place
+            """Processes input/output elements, converting them to Tensor, Variable, or Constant, and ensuring unique names."""
             new_io = []
             for elem in io:
                 if isinstance(elem, Tensor):
@@ -1381,6 +1411,7 @@ class Graph(object):
         local_tensor_copies.update({n: t.copy() for n, t in self._local_tensors().items()})
 
         def get_tensor(name):
+            """Retrieve a tensor by its name from local copies, or return an empty variable if no name is provided."""
             if not name:
                 return Variable.empty()
             return local_tensor_copies[name]
@@ -1409,6 +1440,7 @@ class Graph(object):
         )
 
     def __str__(self):
+        """Return a string representation of the graph including its name, opset, local functions, inputs, nodes, and outputs."""
         nodes_str = "\n".join([str(node) for node in self.nodes])
         functions_str = ",".join([str(func.name) for func in self.functions])
         out = f"Graph {self.name} (Opset {self.opset})"
@@ -1419,4 +1451,5 @@ class Graph(object):
         return out
 
     def __repr__(self):
+        """Returns a string representation of the object."""
         return self.__str__()

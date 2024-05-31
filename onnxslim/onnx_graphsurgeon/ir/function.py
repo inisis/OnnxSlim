@@ -216,6 +216,7 @@ class Function(Graph):
         local_tensor_copies = {n: t.copy() for n, t in self.tensors().items()}
 
         def get_tensor(name):
+            """Retrieve a deep-copied tensor by its name from the local tensor copies."""
             if not name:
                 return Variable.empty()
             return local_tensor_copies[name]
@@ -248,6 +249,7 @@ class Function(Graph):
         )
 
     def __eq__(self, other: "Function"):
+        """Checks equality of self with another Function object based on their attributes."""
         def sequences_equal(seq1, seq2):
             return len(seq1) == len(seq2) and all([elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)])
 
@@ -261,6 +263,7 @@ class Function(Graph):
         )
 
     def __str__(self):
+        """Returns a string representation of the function including its name, domain, opset, inputs, nodes, and outputs."""
         nodes_str = "\n".join([str(node) for node in self.nodes])
         out = f"Function {self.name}, Domain {self.domain}, Opset {self.opset}"
         out += f"\nInputs: {self.inputs}"

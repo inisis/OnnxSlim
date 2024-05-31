@@ -15,6 +15,7 @@ DEFAULT_FUSION_PATTERNS = OrderedDict()
 
 
 def register_fusion_pattern(layer_type):
+    """Registers a fusion pattern function for a specified layer type in the DEFAULT_FUSION_PATTERNS dictionary."""
     def insert(fn):
         if layer_type in DEFAULT_FUSION_PATTERNS.keys():
             raise
@@ -25,6 +26,7 @@ def register_fusion_pattern(layer_type):
 
 
 def get_fusion_patterns(skip_fusion_patterns: str = None):
+    """Returns a copy of the default fusion patterns, optionally excluding specific patterns."""
     default_fusion_patterns = DEFAULT_FUSION_PATTERNS.copy()
     if skip_fusion_patterns:
         for pattern in skip_fusion_patterns:
@@ -34,6 +36,7 @@ def get_fusion_patterns(skip_fusion_patterns: str = None):
 
 
 def get_node_users(node):
+    """Retrieve the list of nodes that use the outputs of the given node."""
     users = []
     for output in node.outputs:  # output is a Variable
         for user in output.outputs:  # user is a Node
@@ -42,6 +45,7 @@ def get_node_users(node):
 
 
 def get_node_feeds(node):
+    """Retrieve the list of nodes that provide inputs to the given node."""
     feeds = []
     for input in node.inputs:  # input is a Variable
         for feed in input.inputs:  # feed is a Node
@@ -50,6 +54,7 @@ def get_node_feeds(node):
 
 
 def get_previous_node_by_type(node, op_type, trajectory=[]):
+    """Recursively find and return the first preceding node of a specified type in the computation graph."""
     node_feeds = get_node_feeds(node)
     for node_feed in node_feeds:
         if node_feed.op == op_type:
@@ -61,12 +66,14 @@ def get_previous_node_by_type(node, op_type, trajectory=[]):
 
 
 def get_constant_variable(node, return_idx=False):
+    """Return the first constant variable found in a node's inputs, optionally including the index."""
     for idx, input in enumerate(list(node.inputs)):
         if isinstance(input, Constant):
             return input if not return_idx else (idx, input)
 
 
 def delete_node(node, input_var_idx=0, output_var_idx=0):
+    """Delete a node from the computation graph while re-linking its input and output to maintain graph integrity."""
     input_variable = node.inputs[input_var_idx]
     node_variable = node.outputs[output_var_idx]
     next_nodes = get_node_users(node)
@@ -83,6 +90,7 @@ def delete_node(node, input_var_idx=0, output_var_idx=0):
 
 
 def check_shape(shapes):
+    """Verify that 'shapes' contains exactly one string and all other elements are positive integers."""
     string_count = 0
     non_negative_int_count = 0
 
@@ -96,6 +104,7 @@ def check_shape(shapes):
 
 
 def graph_constant_fold_inplace(graph):
+    """Perform in-place constant folding optimizations on the given computational graph by eliminating redundant nodes."""
     for node in graph.nodes:
         if node.op == "Identity" or node.op == "Dropout":
             delete_node(node)
@@ -150,7 +159,7 @@ def graph_constant_fold_inplace(graph):
 
 @register_fusion_pattern("FusionPadConv")
 def find_conv_nodes(node, opset):
-    # fmt: off
+    """Identify and match convolution nodes following a padding operation to update padding attributes for fusion purposes."""
     '''
              x
              |
@@ -271,7 +280,7 @@ def find_conv_transpose_nodes(node, opset):
 
 @register_fusion_pattern("EliminationSlice")
 def find_slice_nodes(node, opset):
-    # fmt: off
+    """Identify and combine consecutive 'Slice' nodes in a computational graph for optimization purposes."""
     '''
              x
              |
@@ -378,7 +387,7 @@ def find_slice_nodes(node, opset):
 
 @register_fusion_pattern("EliminationReshape")
 def find_reshape_nodes(node, opset):
-    # fmt: off
+    """Identify consecutive 'Reshape' nodes in the computational graph for potential fusion, returning a matching dictionary when criteria are met."""
     '''
              x
              |
@@ -436,7 +445,7 @@ def find_reshape_nodes(node, opset):
 
 # @register_fusion_pattern("EliminationTranspose")
 def find_slice_nodes(node, opset):
-    # fmt: off
+    """Identifies and processes patterns of consecutive Transpose nodes in a computational graph."""
     '''
              x
              |
@@ -476,7 +485,7 @@ def find_slice_nodes(node, opset):
 
 @register_fusion_pattern("FusionGemm")
 def find_matmul_add_nodes(node, opset):
-    # fmt: off
+    """Identifies and returns a pattern match for MatMul followed by Add operations for optimization in a computational graph."""
     '''
              x
              |
@@ -635,7 +644,7 @@ def find_matmul_add_nodes(node, opset):
 
 # @register_fusion_pattern("FusionGelu")
 def find_gelu_nodes(node, opset):
-    # fmt: off
+    """Identifies GELU (Gaussian Error Linear Unit) activation pattern nodes in a computational graph based on given conditions."""
     '''
              x
          /      \
@@ -683,7 +692,7 @@ def find_gelu_nodes(node, opset):
 
 @register_fusion_pattern("FusionReduce")
 def find_slice_nodes(node, opset):
-    # fmt: off
+    """Find and return a dictionary of matching 'ReduceSum' followed by 'Unsqueeze' nodes that match specific conditions in the graph."""
     '''
              x
              |
@@ -754,6 +763,7 @@ def replace_custom_layer(
 
 
 def find_matches(graph: Graph, fusion_patterns: dict):
+    """Find matching patterns in the graph based on provided fusion patterns."""
     opset = graph.opset
     match_map = {}
     counter = Counter()
@@ -776,6 +786,7 @@ def find_matches(graph: Graph, fusion_patterns: dict):
 
 
 def find_and_remove_replaceable_nodes(nodes):
+    """Find and remove duplicate or replaceable nodes in a given list of computational graph nodes."""
     def get_node_key(node):
         input_names = []
         for input_node in node.inputs:
@@ -823,6 +834,7 @@ def find_and_remove_replaceable_nodes(nodes):
 
 
 def sequences_equal(seq1, seq2):
+    """Check if two sequences are equal by comparing their lengths and elements."""
     length_match = len(seq1) == len(seq2)
     if not length_match:
         return False
@@ -835,6 +847,7 @@ def sequences_equal(seq1, seq2):
 
 
 def can_be_replaced(node, other_node):
+    """Check if two nodes can be replaced based on their operations, attributes, and inputs."""
     attrs_match = node.op == other_node.op and node.attrs == other_node.attrs
     inputs_match = sequences_equal(node.inputs, other_node.inputs)
 
@@ -842,6 +855,7 @@ def can_be_replaced(node, other_node):
 
 
 def subexpression_elimination(graph):
+    """Perform subexpression elimination on a computational graph to optimize node operations."""
     nodes_by_op = {}
 
     for node in graph.nodes:

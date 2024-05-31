@@ -38,4 +38,5 @@ html_static_path = ["_static"]
 
 
 def setup(app):
+    """Configure the Sphinx app by adding a custom CSS file ('style.css')."""
     app.add_css_file("style.css")

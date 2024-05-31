@@ -37,6 +37,7 @@ class PatternMapping(dict):
         self.constants = dict()  # constant name -> onnx tensor mapping
 
     def set_input_onnx_tensor(self, onnx_tensor, index):
+        """Sets an ONNX tensor at a specified index of the input list, extending the list if necessary."""
         length = len(self.inputs)
         for _ in range(index - length + 1):
             self.inputs.append(None)
@@ -46,6 +47,7 @@ class PatternMapping(dict):
         return True
 
     def set_output_onnx_tensor(self, onnx_tensor, index):
+        """Sets the output ONNX tensor at the given index within the outputs list."""
         length = len(self.outputs)
         for _ in range(index - length + 1):
             self.outputs.append(None)
@@ -55,12 +57,14 @@ class PatternMapping(dict):
         return True
 
     def set_constant_onnx_tensor(self, onnx_tensor, name):
+        """Set an ONNX tensor as a constant if it hasn't already been set with a different name."""
         if name in self.constants and self.constants[name].name != onnx_tensor.name:
             return False
         self.constants[name] = onnx_tensor
         return True
 
     def _get_node(self):
+        """Return the ONNX node associated with the current instance."""
         return self.onnx_node
 
     def get(self, name: str):
@@ -209,6 +213,7 @@ class GraphPattern:
         return tuple(self.node_outputs[name])
 
     def _get_inbound(self, tensor_index):
+        """Retrieve the tensor id and first inbound node for a given tensor index."""
         if len(self.input_tensors) > tensor_index:
             tensor_id = self.input_tensors[tensor_index]
             if len(self.tensor_outputs[tensor_id]):
@@ -217,6 +222,7 @@ class GraphPattern:
         return None, None
 
     def _get_outbound(self, tensor_index):
+        """Retrieve the outbound node and tensor ID based on the specified tensor index."""
         if len(self.output_tensors) > tensor_index:
             tensor_id = self.output_tensors[tensor_index]
             if len(self.tensor_inputs[tensor_id]):
@@ -242,12 +248,14 @@ class GraphPattern:
         return True
 
     def _get_tensor_index_for_node(self, node: str, tensor_id: int, is_node_input: bool):
+        """Returns the index of a tensor for a given node, based on whether it is an input or output tensor."""
         if is_node_input:
             return self.node_inputs[node].index(tensor_id)
         else:
             return self.node_outputs[node].index(tensor_id)
 
     def get_inbound_or_outbound_onnx_node(self, mapping: PatternMapping, is_inbound: bool, tensor_index: int):
+        """Gets the ONNX node based on whether it's inbound or outbound for a specified tensor index and mapping."""
         if self.op is not None:
             onnx_node = mapping._get_node()
             return onnx_node

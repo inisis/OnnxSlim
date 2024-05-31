@@ -43,7 +43,7 @@ def dtype_to_onnx(dtype: Union[np.dtype, "onnx.TensorProto.DataType"]) -> int:
 
 
 def check_duplicate_node_names(nodes: Sequence[Node], level=G_LOGGER.WARNING):
-    # Check if node names are unique. If not, log based on severity.
+    """Check if node names are unique and log any duplicates based on the specified severity level."""
 
     # Note:
     # Empty string or None attribute values are not considered duplicates.
@@ -64,7 +64,7 @@ def check_duplicate_node_names(nodes: Sequence[Node], level=G_LOGGER.WARNING):
 
 
 def update_import_domains(graph):
-    # Update the import_domains field to contain the graph's ONNX opset,
+    """Update the import_domains field of a graph to include its ONNX opset and other used non-ONNX domains."""
     # as well as other non-ONNX domains which are used by this graph's nodes.
     # Returns the updated value of the import_domains field.
 
@@ -90,7 +90,7 @@ def update_import_domains(graph):
 
 # Converts a fp32 gs.Constant to a bf16 onnx.TensorProto
 def tensor_to_onnx_bf16(tensor: Constant):
-    # Converts the fp32 numpy array to bf16 values and store in a uint16 numpy array
+    """Converts an fp32 gs.Constant tensor to a bf16 onnx.TensorProto."""
     def np_float32_to_bf16_as_uint16(arr):
         new_arr = np.empty(arr.size, dtype=np.uint16)
         flatten = arr.flatten()
@@ -291,6 +291,7 @@ class OnnxExporter(BaseExporter):
 
         # Omit tensors from value_info if we don't know their shape/dtype
         def has_value_info(tensor):
+            """Check if a tensor is a Variable with either a defined dtype or shape."""
             return isinstance(tensor, Variable) and (tensor.dtype is not None or tensor.shape is not None)
 
         value_info = [

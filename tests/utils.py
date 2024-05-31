@@ -38,6 +38,7 @@ except ImportError:
                 # ignore unit, unit_scale, unit_divisor; they're just for real tqdm
 
             def update(self, n):
+                """Updates the progress bar by incrementing the current progress 'n' if not disabled."""
                 if self.disable:
                     return
 
@@ -49,12 +50,15 @@ except ImportError:
                 sys.stderr.flush()
 
             def close(self):
+                """Disables the current process by setting the 'disable' attribute to True."""
                 self.disable = True
 
             def __enter__(self):
+                """Enables the use of the 'with' statement for this class, returning the instance itself."""
                 return self
 
             def __exit__(self, exc_type, exc_val, exc_tb):
+                """Handles cleanup actions when exiting the 'with' statement context for this class."""
                 if self.disable:
                     return
 
@@ -76,6 +80,7 @@ _hub_dir = None
 
 # Copied from tools/shared/module_loader to be included in torch package
 def import_module(name, path):
+    """Dynamically import a module given its name and file path."""
     import importlib.util
     from importlib.abc import Loader
 
@@ -87,6 +92,7 @@ def import_module(name, path):
 
 
 def _remove_if_exists(path):
+    """Remove a file or directory if it exists at the specified path."""
     if os.path.exists(path):
         if os.path.isfile(path):
             os.remove(path)
@@ -95,17 +101,19 @@ def _remove_if_exists(path):
 
 
 def _git_archive_link(repo_owner, repo_name, branch):
+    """Generate a GitHub archive link for a specific repository owner, name, and branch."""
     return "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
 
 
 def _load_attr_from_module(module, func_name):
-    # Check if callable is defined in the module
+    """Load an attribute or function from a module if it exists."""
     if func_name not in dir(module):
         return None
     return getattr(module, func_name)
 
 
 def _get_torch_home():
+    """Return the path to the torch home directory, using environment variables or default cache settings."""
     torch_home = os.path.expanduser(
         os.getenv(
             ENV_TORCH_HOME,
@@ -116,6 +124,7 @@ def _get_torch_home():
 
 
 def _parse_repo_info(github):
+    """Parse GitHub repository information from a string and determine the default branch if not specified."""
     if ":" in github:
         repo_info, branch = github.split(":")
     else:
@@ -138,12 +147,13 @@ def _parse_repo_info(github):
 
 
 def _read_url(url):
+    """Fetches and decodes the content from a specified URL."""
     with urlopen(url) as r:
         return r.read().decode(r.headers.get_content_charset("utf-8"))
 
 
 def _validate_not_a_forked_repo(repo_owner, repo_name, branch):
-    # Use urlopen to avoid depending on local git.
+    """Ensures the specified branch exists in the given GitHub repository and is not from a forked repository."""
     headers = {"Accept": "application/vnd.github.v3+json"}
     token = os.environ.get(ENV_GITHUB_TOKEN)
     if token is not None:
@@ -171,7 +181,7 @@ def _validate_not_a_forked_repo(repo_owner, repo_name, branch):
 
 
 def _get_cache_or_reload(github, force_reload, verbose=True, skip_validation=False):
-    # Setup hub_dir to save downloaded files
+    """Retrieve cached repository or reload it from GitHub if necessary."""
     hub_dir = get_dir()
     if not os.path.exists(hub_dir):
         os.makedirs(hub_dir)
@@ -220,12 +230,14 @@ def _get_cache_or_reload(github, force_reload, verbose=True, skip_validation=Fal
 
 
 def _check_module_exists(name):
+    """Check if a module exists by name using importlib.util.find_spec()."""
     import importlib.util
 
     return importlib.util.find_spec(name) is not None
 
 
 def _check_dependencies(m):
+    """Verify that all dependencies defined in the specified module are installed, raising a RuntimeError if any are missing."""
     dependencies = _load_attr_from_module(m, VAR_DEPENDENCY)
 
     if dependencies is not None:
@@ -235,6 +247,7 @@ def _check_dependencies(m):
 
 
 def _load_entry_from_hubconf(m, model):
+    """Load a callable function from hubconf while checking for required dependencies and valid input model string."""
     if not isinstance(model, str):
         raise ValueError("Invalid input: model should be a string of function name")
 
@@ -515,6 +528,7 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
 
 
 def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
+    """Downloads a file from a URL to a destination with optional hash checking and progress display."""
     warnings.warn(
         "torch.hub._download_url_to_file has been renamed to\
             torch.hub.download_url_to_file to be a public API,\
@@ -527,6 +541,7 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
 # The legacy zip format expects only one file from torch.save() < 1.6 in the zip.
 # We should remove this support since zipfile is now default zipfile format for torch.save().
 def _is_legacy_zip_format(filename):
+    """Checks if the given zip file is in the legacy format, containing only one non-directory file."""
     if zipfile.is_zipfile(filename):
         infolist = zipfile.ZipFile(filename).infolist()
         return len(infolist) == 1 and not infolist[0].is_dir()
@@ -534,6 +549,7 @@ def _is_legacy_zip_format(filename):
 
 
 def _legacy_zip_load(filename, model_dir, map_location):
+    """Loads a PyTorch model from a legacy zip file containing a single file and saves it in the specified directory."""
     warnings.warn(
         "Falling back to the old format < 1.6. This support will be "
         "deprecated in favor of default zipfile format introduced in 1.6. "
@@ -553,6 +569,7 @@ def _legacy_zip_load(filename, model_dir, map_location):
 
 
 def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False, file_name=None):
+    """Download an ONNX file from a URL and save it to the specified directory."""
     if model_dir is None:
         hub_dir = get_dir()
         model_dir = os.path.join(hub_dir, "onnx")

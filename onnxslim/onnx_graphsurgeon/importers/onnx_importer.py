@@ -71,10 +71,12 @@ def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorPro
 
 
 def get_dtype_name(onnx_type):
+    """Get the ONNX data type name from its integer representation."""
     return {val: key for key, val in onnx.TensorProto.DataType.items()}[onnx_type]
 
 
 def get_itemsize(dtype):
+    """Return the byte size of an element for a given ONNX data type."""
     np_dtype = get_numpy_type(dtype)
     if np_dtype is not None:
         return np.dtype(np_dtype).itemsize
@@ -93,6 +95,7 @@ def get_itemsize(dtype):
 
 
 def get_numpy_type(onnx_type):
+    """Convert an ONNX tensor type to a corresponding NumPy type, if supported."""
     if not isinstance(onnx_type, int):
         # Already a NumPy type
         return onnx_type
@@ -192,6 +195,7 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
 class OnnxImporter(BaseImporter):
     @staticmethod
     def get_opset(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
+        """Return the ONNX opset version for the given ONNX model or function, or None if the information is unavailable."""
         class_name = "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
         try:
             for importer in OnnxImporter.get_import_domains(model_or_func):
@@ -205,6 +209,7 @@ class OnnxImporter(BaseImporter):
 
     @staticmethod
     def get_import_domains(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
+        """Retrieves the import domains from an ONNX model or function."""
         return model_or_func.opset_import
 
     @staticmethod
@@ -243,6 +248,7 @@ class OnnxImporter(BaseImporter):
         for attr in onnx_attributes:
 
             def process_attr(attr_str: str):
+                """Process an ONNX attribute based on its type, handling strings, tensors, graphs, and numeric sequences."""
                 if attr.ref_attr_name:
                     attr_type = misc.convert_from_onnx_attr_type(attr.type)
                     return Node.AttributeRef(attr.ref_attr_name, attr_type)
@@ -290,7 +296,7 @@ class OnnxImporter(BaseImporter):
     ) -> Node:
         # Optional inputs/outputs are represented by empty tensors. All other tensors should already have been populated during shape inference.
         def get_tensor(name: str, check_outer_graph=True):
-            # Prioritize the subgraph even if check_outer_graph is set
+            """Retrieve a tensor by its name, prioritizing the subgraph tensor map and optionally checking the outer graph."""
             if name in subgraph_tensor_map:
                 return subgraph_tensor_map[name]
 

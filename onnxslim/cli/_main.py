@@ -163,6 +163,7 @@ def slim(
 
 
 def main():
+    """Entry point for the OnnxSlim toolkit, processes command-line arguments and passes them to the slim function."""
     import argparse
 
     import onnxslim

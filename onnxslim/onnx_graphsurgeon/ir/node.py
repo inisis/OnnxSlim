@@ -134,6 +134,7 @@ class Node(object):
                     yield attr
 
     def __setattr__(self, name, value):
+        """Sets the attribute 'name' to 'value', handling special cases for 'inputs' and 'outputs' attributes."""
         if name in ["inputs", "outputs"]:
             try:
                 attr = getattr(self, name)
@@ -179,9 +180,11 @@ class Node(object):
         )
 
     def __str__(self):
+        """Return a string representation of the object showing its name and operation."""
         ret = "{:} ({:})".format(self.name, self.op)
 
         def add_io(name, io):
+            """Add the input or output operations and their names to the string representation of the object."""
             nonlocal ret
             ret += "\n\t{:}: [".format(name)
             for elem in io:
@@ -200,6 +203,7 @@ class Node(object):
         return ret
 
     def __repr__(self):
+        """Return the string representation of the Ultralytics object."""
         return self.__str__()
 
     def __eq__(self, other):

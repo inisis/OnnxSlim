@@ -53,6 +53,7 @@ from onnxslim.onnx_graphsurgeon.logger import G_LOGGER
 # >>> y.value
 # []
 def default_value(value, default):
+    """Return the value if not None, otherwise return the default value."""
     return value if value is not None else default
 
 
@@ -69,14 +70,17 @@ def combine_dicts(dict0, dict1):
 
 
 def is_dynamic_dimension(dim):
+    """Check if a dimension is dynamic (non-integer or negative)."""
     return not isinstance(dim, int) or dim < 0
 
 
 def is_dynamic_shape(shape):
+    """Determine if any dimension in the given shape is dynamic (non-integer or negative)."""
     return any(is_dynamic_dimension(dim) for dim in shape)
 
 
 def volume(obj):
+    """Calculate the volume by multiplying the elements of an iterable object."""
     vol = 1
     for elem in obj:
         vol *= elem
@@ -89,6 +93,7 @@ _GS_TYPE_TO_ONNX_ATTR_TYPE = {}
 
 # This method prevents circular import of Tensor and Graph
 def _init_dicts():
+    """Initialize mapping dictionaries to prevent circular imports of Tensor and Graph."""
     global _ONNX_ATTR_TYPE_TO_GS_TYPE
     global _GS_TYPE_TO_ONNX_ATTR_TYPE
     if _ONNX_ATTR_TYPE_TO_GS_TYPE and _GS_TYPE_TO_ONNX_ATTR_TYPE:
@@ -118,11 +123,13 @@ def _init_dicts():
 
 
 def convert_from_onnx_attr_type(onnx_attr_type):
+    """Converts an ONNX attribute type to its corresponding GS attribute type."""
     _init_dicts()
     return _ONNX_ATTR_TYPE_TO_GS_TYPE[onnx_attr_type]
 
 
 def convert_to_onnx_attr_type(any_type):
+    """Converts a given type to its corresponding ONNX attribute type."""
     _init_dicts()
     if any_type in _GS_TYPE_TO_ONNX_ATTR_TYPE:
         return _GS_TYPE_TO_ONNX_ATTR_TYPE[any_type]
@@ -141,69 +148,83 @@ def convert_to_onnx_attr_type(any_type):
 # See test_ir.TestNodeIO for functional tests
 class SynchronizedList(list):
     def __init__(self, parent_obj, field_name, initial):
+        """Initialize a SynchronizedList with a parent object, a field name, and an initial set of elements."""
         self.parent_obj = parent_obj
         self.field_name = field_name
         self.extend(initial)
 
     def _add_to_elem(self, elem):
-        # Explicitly avoid SynchronizedList overrides to prevent infinite recursion
+        """Append the parent_obj to the list attribute defined by field_name in the provided elem object."""
         list.append(getattr(elem, self.field_name), self.parent_obj)
 
     def _remove_from_elem(self, elem):
-        # Explicitly avoid SynchronizedList overrides to prevent infinite recursion
+        """Remove the parent_obj from the list attribute defined by field_name in the provided elem object."""
         list.remove(getattr(elem, self.field_name), self.parent_obj)
 
     def __delitem__(self, index):
+        """Remove the element at the specified index and update the corresponding list attribute in the parent object."""
         self._remove_from_elem(self[index])
         super().__delitem__(index)
 
     def __setitem__(self, index, elem):
+        """Update the element at the specified index and modify the corresponding list attribute in the parent object."""
         self._remove_from_elem(self[index])
         super().__setitem__(index, elem)
         self._add_to_elem(elem)
 
     def append(self, x):
+        """Append an element to the list and update the parent object's corresponding list attribute."""
         super().append(x)
         self._add_to_elem(x)
 
     def extend(self, iterable: Sequence[object]):
+        """Extend the list with elements from an iterable and update the parent object's corresponding list attribute."""
         super().extend(iterable)
         for elem in iterable:
             self._add_to_elem(elem)
 
     def insert(self, i, x):
+        """Insert an element at a given position and update the parent object's corresponding list attribute."""
         super().insert(i, x)
         self._add_to_elem(x)
 
     def remove(self, x):
+        """Remove an element from the list and update the parent object's corresponding list attribute."""
         super().remove(x)
         self._remove_from_elem(x)
 
     def pop(self, i=-1):
+        """Remove and return the element at index i (default last) from the list and update the parent object's corresponding list attribute."""
         elem = super().pop(i)
         self._remove_from_elem(elem)
         return elem
 
     def clear(self):
+        """Clear all elements from the list and update the parent object's corresponding list attribute."""
         for elem in self:
             self._remove_from_elem(elem)
         super().clear()
 
     def __add__(self, other_list: List[object]):
+        """Concatenate the current list with another list and return the resulting list."""
         return list(self) + list(other_list)
 
     def __iadd__(self, other_list: List[object]):
+        """Append elements from another list to the current list and return the modified list."""
         self.extend(other_list)
         return self
 
     def __copy__(self):
+        """Return a shallow copy of the current list."""
         return list(self)
 
     def __deepcopy__(self, memo):
+        """Return a deep copy of the current list."""
         return list(self)
 
 
 def sequences_equal(seq1, seq2):
+    """Check if two sequences are equal by comparing their lengths and elements."""
     length_match = len(seq1) == len(seq2)
     if not length_match:
         return False

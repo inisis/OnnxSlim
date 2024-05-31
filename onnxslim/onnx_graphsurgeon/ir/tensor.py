@@ -33,6 +33,7 @@ class Tensor(object):
         raise NotImplementedError("Tensor is an abstract class")
 
     def __setattr__(self, name, value):
+        """Set an attribute, ensuring special handling for "inputs" and "outputs" properties."""
         if name in ["inputs", "outputs"]:
             try:
                 attr = getattr(self, name)
@@ -153,9 +154,11 @@ class Tensor(object):
         return self.outputs[consumer_idx].outputs[tensor_idx]
 
     def __str__(self):
+        """Returns a string representation of the object including its type, name, shape, and data type."""
         return "{:} ({:}): (shape={:}, dtype={:})".format(type(self).__name__, self.name, self.shape, self.dtype)
 
     def __repr__(self):  # Hack to make logging output pretty.
+        """Returns a string representation of the object for logging output."""
         return self.__str__()
 
     def __eq__(self, other):
@@ -170,6 +173,7 @@ class Tensor(object):
 class Variable(Tensor):
     @staticmethod
     def empty():
+        """Create and return an empty Variable tensor with an empty name."""
         return Variable(name="")
 
     def __init__(
@@ -278,9 +282,11 @@ class LazyValues(object):
         return np.array(onnx.numpy_helper.to_array(self.tensor))
 
     def __str__(self):
+        """Returns a formatted string representation of the LazyValues object indicating its shape and dtype."""
         return "LazyValues (shape={:}, dtype={:})".format(self.shape, self.dtype)
 
     def __repr__(self):  # Hack to make logging output pretty.
+        """Returns an unambiguous string representation of the LazyValues object for logging purposes."""
         return self.__str__()
 
     def __eq__(self, other):
@@ -346,6 +352,7 @@ class SparseValues(LazyValues):
         return values
 
     def __str__(self):
+        """Return a string representation of the SparseValues object with its shape and data type."""
         return "SparseValues (shape={:}, dtype={:})".format(self.shape, self.dtype)
 
 
@@ -391,6 +398,7 @@ class Constant(Tensor):
         self._export_dtype = export_dtype
 
     def to_variable(self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = []):
+        """Convert instance values to an appropriate variable with specified dtype and shape."""
         var_dtype = self.export_dtype
 
         del self._export_dtype
@@ -411,25 +419,29 @@ class Constant(Tensor):
 
     @property
     def values(self):
-        # Load values when they are first accessed
+        """Return the values of the tensor, loading them if they are accessed for the first time."""
         if isinstance(self._values, LazyValues):
             self._values = self._values.load()
         return self._values
 
     @values.setter
     def values(self, values: Union[np.ndarray, LazyValues]):
+        """Return the values of the tensor, loading them if accessed for the first time."""
         self._values = values
 
     @property
     def shape(self):
+        """Return the shape of the tensor values."""
         return self._values.shape
 
     @property
     def dtype(self):
+        """Return the data type (dtype) of the tensor values."""
         return self._values.dtype
 
     @property
     def export_dtype(self):
+        """Return the export data type (export_dtype) of the tensor values if specified, otherwise None."""
         if self._export_dtype is not None:
             return self._export_dtype
 
@@ -437,9 +449,11 @@ class Constant(Tensor):
 
     @export_dtype.setter
     def export_dtype(self, export_dtype):
+        """Return the export data type of tensor values if specified, otherwise return the default data type."""
         self._export_dtype = export_dtype
 
     def __repr__(self):  # Hack to make logging output pretty.
+        """Return a string representation of the object, including its values, for improved logging readability."""
         ret = self.__str__()
         ret += "\n{:}".format(self._values)
         return ret

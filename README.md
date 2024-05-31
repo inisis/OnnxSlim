@@ -48,5 +48,4 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 
 # Contact
 
-Discord: https://discord.gg/nRw2Fd3VUS
-QQ Group: 873569894
+Discord: https://discord.gg/nRw2Fd3VUS QQ Group: 873569894

@@ -63,7 +63,7 @@ class Graph(object):
 
             @Graph.register()
             def add(self, a, b):
-                """Registers a function with the Graph class for the specified group of opsets for dynamic access as a member function."""
+                '''Registers a function with the Graph class for the specified group of opsets for dynamic access as a member function.'''
                 return self.layer(op="Add", inputs=[a, b], outputs=["add_out_gs"])
 
             graph.add(a, b)

@@ -78,7 +78,9 @@ class Graph(object):
         """
 
         def register_func(func):
-            """Registers a function for different opsets, overwriting any previously registered function with the same name."""
+            """Registers a function for different opsets, overwriting any previously registered function with the same
+            name.
+            """
             if hasattr(Graph, func.__name__):
                 G_LOGGER.warning(
                     "Registered function: {:} is hidden by a Graph attribute or function with the same name. "
@@ -254,7 +256,9 @@ class Graph(object):
 
     # A tensor is local if it is produced in this graph, or is explicitly a graph input.
     def _local_tensors(self):
-        """Return a dictionary of tensors that are local to the graph, including nodes' outputs, graph inputs, and constants."""
+        """Return a dictionary of tensors that are local to the graph, including nodes' outputs, graph inputs, and
+        constants.
+        """
         local_tensors = {t.name: t for node in self.nodes for t in node.outputs if not t.is_empty()}
         local_tensors.update({t.name: t for t in self.inputs})
         local_tensors.update({t.name: t for t in self.tensors().values() if isinstance(t, Constant)})
@@ -398,7 +402,9 @@ class Graph(object):
         """
 
         def cleanup_subgraphs():
-            """Clean up subgraphs by removing unused node outputs and graph inputs, optionally recursing into subgraphs and local functions."""
+            """Clean up subgraphs by removing unused node outputs and graph inputs, optionally recursing into subgraphs
+            and local functions.
+            """
             for subgraph in self.subgraphs():
                 subgraph.cleanup(
                     remove_unused_node_outputs=remove_unused_node_outputs,
@@ -452,7 +458,9 @@ class Graph(object):
                 for node in nodes:
 
                     def is_hanging_tensor(tensor):
-                        """Checks if a tensor is hanging by verifying it is non-empty, has no outputs, and is not a graph output."""
+                        """Checks if a tensor is hanging by verifying it is non-empty, has no outputs, and is not a
+                        graph output.
+                        """
                         return (
                             not tensor.is_empty() and len(tensor.outputs) == 0 and tensor.name not in graph_output_names
                         )
@@ -517,7 +525,9 @@ class Graph(object):
         # 0 corresponds to an input node, N corresponds to a node with N layers of inputs.
         class HierarchyDescriptor(object):
             def __init__(self, node_or_func, level=None):
-                """Initializes a HierarchyDescriptor with a node or function and an optional level in the graph hierarchy."""
+                """Initializes a HierarchyDescriptor with a node or function and an optional level in the graph
+                hierarchy.
+                """
                 self.node_or_func = node_or_func
                 self.level = level
 
@@ -551,6 +561,7 @@ class Graph(object):
 
             def get_inputs(node_or_func):
                 """Find all nodes used by a given node or function."""
+
                 def get_used_nodes(node):
                     inputs = {}
 
@@ -915,6 +926,7 @@ class Graph(object):
 
         def update_foldable_outputs(graph_constants):
             """Updates the graph's outputs to ensure certain operations remain foldable."""
+
             def is_foldable(node):
                 NO_FOLD_OPS = [
                     "QuantizeLinear",
@@ -1090,6 +1102,7 @@ class Graph(object):
 
         def partition_and_infer(subgraph):
             """Evaluates and partitions the subgraph to infer constant values using ONNX-Runtime."""
+
             def get_out_node_ids():
                 # Gets the final output nodes - producer nodes of graph output tensors without other outputs.
                 with subgraph.node_ids():
@@ -1297,7 +1310,9 @@ class Graph(object):
         return self
 
     def _generate_name(self, prefix: str, existing_names: set):
-        """Generate a unique name by appending an index to the given prefix, ensuring it does not clash with existing names."""
+        """Generate a unique name by appending an index to the given prefix, ensuring it does not clash with existing
+        names.
+        """
         # Generation is done by appending an index to the prefix.
         while True:
             name = "{}_{}".format(prefix, self.name_idx)
@@ -1342,7 +1357,9 @@ class Graph(object):
         outputs = misc.default_value(outputs, [])
 
         def process_io(io, existing_names):
-            """Processes input/output elements, converting them to Tensor, Variable, or Constant, and ensuring unique names."""
+            """Processes input/output elements, converting them to Tensor, Variable, or Constant, and ensuring unique
+            names.
+            """
             new_io = []
             for elem in io:
                 if isinstance(elem, Tensor):
@@ -1441,7 +1458,9 @@ class Graph(object):
         )
 
     def __str__(self):
-        """Return a string representation of the graph including its name, opset, local functions, inputs, nodes, and outputs."""
+        """Return a string representation of the graph including its name, opset, local functions, inputs, nodes, and
+        outputs.
+        """
         nodes_str = "\n".join([str(node) for node in self.nodes])
         functions_str = ",".join([str(func.name) for func in self.functions])
         out = f"Graph {self.name} (Opset {self.opset})"

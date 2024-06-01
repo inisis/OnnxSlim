@@ -105,7 +105,9 @@ def check_shape(shapes):
 
 
 def graph_constant_fold_inplace(graph):
-    """Perform in-place constant folding optimizations on the given computational graph by eliminating redundant nodes."""
+    """Perform in-place constant folding optimizations on the given computational graph by eliminating redundant
+    nodes.
+    """
     for node in graph.nodes:
         if node.op == "Identity" or node.op == "Dropout":
             delete_node(node)
@@ -160,7 +162,9 @@ def graph_constant_fold_inplace(graph):
 
 @register_fusion_pattern("FusionPadConv")
 def find_conv_nodes(node, opset):
-    """Identify and match convolution nodes following a padding operation to update padding attributes for fusion purposes."""
+    """Identify and match convolution nodes following a padding operation to update padding attributes for fusion
+    purposes.
+    """
     """
              x
              |
@@ -388,7 +392,9 @@ def find_slice_nodes(node, opset):
 
 @register_fusion_pattern("EliminationReshape")
 def find_reshape_nodes(node, opset):
-    """Identify consecutive 'Reshape' nodes in the computational graph for potential fusion, returning a matching dictionary when criteria are met."""
+    """Identify consecutive 'Reshape' nodes in the computational graph for potential fusion, returning a matching
+    dictionary when criteria are met.
+    """
     """
              x
              |
@@ -486,7 +492,9 @@ def find_slice_nodes(node, opset):
 
 @register_fusion_pattern("FusionGemm")
 def find_matmul_add_nodes(node, opset):
-    """Identifies and returns a pattern match for MatMul followed by Add operations for optimization in a computational graph."""
+    """Identifies and returns a pattern match for MatMul followed by Add operations for optimization in a computational
+    graph.
+    """
     """
              x
              |
@@ -645,7 +653,9 @@ def find_matmul_add_nodes(node, opset):
 
 # @register_fusion_pattern("FusionGelu")
 def find_gelu_nodes(node, opset):
-    """Identifies GELU (Gaussian Error Linear Unit) activation pattern nodes in a computational graph based on given conditions."""
+    """Identifies GELU (Gaussian Error Linear Unit) activation pattern nodes in a computational graph based on given
+    conditions.
+    """
     """
              x
          /      \
@@ -693,7 +703,9 @@ def find_gelu_nodes(node, opset):
 
 @register_fusion_pattern("FusionReduce")
 def find_slice_nodes(node, opset):
-    """Find and return a dictionary of matching 'ReduceSum' followed by 'Unsqueeze' nodes that match specific conditions in the graph."""
+    """Find and return a dictionary of matching 'ReduceSum' followed by 'Unsqueeze' nodes that match specific conditions
+    in the graph.
+    """
     """
              x
              |

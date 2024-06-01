@@ -28,7 +28,9 @@ def model_file(request):
 
 
 def test_model_file(model_file):
-    """Tests the slimming of an ONNX model file using the onnxslim command, and validates the process by checking the command output."""
+    """Tests the slimming of an ONNX model file using the onnxslim command, and validates the process by checking the
+    command output.
+    """
     slim_model_file = model_file.replace(".onnx", "_slim.onnx")
     command = f"onnxslim {model_file} {slim_model_file}"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)

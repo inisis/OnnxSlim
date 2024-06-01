@@ -195,7 +195,9 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
 class OnnxImporter(BaseImporter):
     @staticmethod
     def get_opset(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
-        """Return the ONNX opset version for the given ONNX model or function, or None if the information is unavailable."""
+        """Return the ONNX opset version for the given ONNX model or function, or None if the information is
+        unavailable.
+        """
         class_name = "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
         try:
             for importer in OnnxImporter.get_import_domains(model_or_func):
@@ -248,7 +250,9 @@ class OnnxImporter(BaseImporter):
         for attr in onnx_attributes:
 
             def process_attr(attr_str: str):
-                """Process an ONNX attribute based on its type, handling strings, tensors, graphs, and numeric sequences."""
+                """Process an ONNX attribute based on its type, handling strings, tensors, graphs, and numeric
+                sequences.
+                """
                 if attr.ref_attr_name:
                     attr_type = misc.convert_from_onnx_attr_type(attr.type)
                     return Node.AttributeRef(attr.ref_attr_name, attr_type)
@@ -296,7 +300,9 @@ class OnnxImporter(BaseImporter):
     ) -> Node:
         # Optional inputs/outputs are represented by empty tensors. All other tensors should already have been populated during shape inference.
         def get_tensor(name: str, check_outer_graph=True):
-            """Retrieve a tensor by its name, prioritizing the subgraph tensor map and optionally checking the outer graph."""
+            """Retrieve a tensor by its name, prioritizing the subgraph tensor map and optionally checking the outer
+            graph.
+            """
             if name in subgraph_tensor_map:
                 return subgraph_tensor_map[name]
 

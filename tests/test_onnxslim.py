@@ -61,7 +61,9 @@ class TestFeat:
         assert result.returncode == 0
 
     def test_output_modification(self, request):
-        """Tests output modification of an ONNX model by running a slimming command and checking for successful execution."""
+        """Tests output modification of an ONNX model by running a slimming command and checking for successful
+        execution.
+        """
         filename = download_onnx_from_url(f"http://120.224.26.32:15030/aifarm/onnx/yolov5m.onnx")
         command = f"onnxslim {filename} yolov5m_slim.onnx --outputs 591 739 443"
         result = subprocess.run(command, shell=True, capture_output=True, text=True)

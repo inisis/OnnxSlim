@@ -202,7 +202,9 @@ def _moin_row_with_attrs(celltag, cell_values, colwidths, colaligns, header=""):
 
 
 def _latex_line_begin_tabular(colwidths, colaligns, booktabs=False, longtable=False):
-    """Generate LaTeX tabular or longtable environment with specified column widths, alignments, and optional booktabs formatting."""
+    """Generate LaTeX tabular or longtable environment with specified column widths, alignments, and optional booktabs
+    formatting.
+    """
     alignment = {"left": "l", "right": "r", "center": "c", "decimal": "r"}
     tabular_columns_fmt = "".join([alignment.get(a, "l") for a in colaligns])
     return "\n".join(
@@ -279,7 +281,9 @@ LATEX_ESCAPE_RULES = {
 
 
 def _latex_row(cell_values, colwidths, colaligns, escrules=LATEX_ESCAPE_RULES):
-    """Generates a LaTeX table row with escaped special characters based on provided cell values, column widths, and alignments."""
+    """Generates a LaTeX table row with escaped special characters based on provided cell values, column widths, and
+    alignments.
+    """
 
     def escape_char(c):
         return escrules.get(c, c)
@@ -1056,7 +1060,9 @@ def _choose_width_fn(has_invisible, enable_widechars, is_multiline):
 
 
 def _align_column_choose_padfn(strings, alignment, has_invisible):
-    """Selects the appropriate padding function based on alignment and visibility of invisible characters for given strings."""
+    """Selects the appropriate padding function based on alignment and visibility of invisible characters for given
+    strings.
+    """
     if alignment == "right":
         if not PRESERVE_WHITESPACE:
             strings = [s.strip() for s in strings]
@@ -1083,7 +1089,9 @@ def _align_column_choose_padfn(strings, alignment, has_invisible):
 
 
 def _align_column_choose_width_fn(has_invisible, enable_widechars, is_multiline):
-    """Choose the appropriate width function for aligning text columns based on visibility, wide characters support, and multiline status."""
+    """Choose the appropriate width function for aligning text columns based on visibility, wide characters support, and
+    multiline status.
+    """
     if has_invisible:
         line_width_fn = _visible_width
     elif enable_widechars:  # optional wide-character support if available
@@ -1260,7 +1268,9 @@ def _align_header(header, alignment, width, visible_width, is_multiline=False, w
 
 
 def _remove_separating_lines(rows):
-    """Removes separating lines from a list of rows, returning the filtered rows and the indexes of the removed lines."""
+    """Removes separating lines from a list of rows, returning the filtered rows and the indexes of the removed
+    lines.
+    """
     if type(rows) == list:
         separating_lines = []
         sans_rows = []
@@ -2310,7 +2320,9 @@ def _align_cell_veritically(text_lines, num_lines, column_width, row_alignment):
 
 
 def _append_multiline_row(lines, padded_multiline_cells, padded_widths, colaligns, rowfmt, pad, rowalign=None):
-    """Append a multiline row to the table, vertically aligning and padding cells based on the provided widths and alignments."""
+    """Append a multiline row to the table, vertically aligning and padding cells based on the provided widths and
+    alignments.
+    """
     colwidths = [w - 2 * pad for w in padded_widths]
     cells_lines = [c.splitlines() for c in padded_multiline_cells]
     nlines = max(map(len, cells_lines))  # number of lines in the row
@@ -2328,7 +2340,9 @@ def _append_multiline_row(lines, padded_multiline_cells, padded_widths, colalign
 
 
 def _build_line(colwidths, colaligns, linefmt):
-    """Return a string representing a horizontal line formatted with column widths and alignments using the specified format."""
+    """Return a string representing a horizontal line formatted with column widths and alignments using the specified
+    format.
+    """
     "Return a string which represents a horizontal line."
     if not linefmt:
         return None

@@ -237,7 +237,9 @@ def _check_module_exists(name):
 
 
 def _check_dependencies(m):
-    """Verify that all dependencies defined in the specified module are installed, raising a RuntimeError if any are missing."""
+    """Verify that all dependencies defined in the specified module are installed, raising a RuntimeError if any are
+    missing.
+    """
     dependencies = _load_attr_from_module(m, VAR_DEPENDENCY)
 
     if dependencies is not None:

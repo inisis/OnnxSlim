@@ -162,12 +162,16 @@ class SynchronizedList(list):
         list.remove(getattr(elem, self.field_name), self.parent_obj)
 
     def __delitem__(self, index):
-        """Remove the element at the specified index and update the corresponding list attribute in the parent object."""
+        """Remove the element at the specified index and update the corresponding list attribute in the parent
+        object.
+        """
         self._remove_from_elem(self[index])
         super().__delitem__(index)
 
     def __setitem__(self, index, elem):
-        """Update the element at the specified index and modify the corresponding list attribute in the parent object."""
+        """Update the element at the specified index and modify the corresponding list attribute in the parent
+        object.
+        """
         self._remove_from_elem(self[index])
         super().__setitem__(index, elem)
         self._add_to_elem(elem)
@@ -178,7 +182,9 @@ class SynchronizedList(list):
         self._add_to_elem(x)
 
     def extend(self, iterable: Sequence[object]):
-        """Extend the list with elements from an iterable and update the parent object's corresponding list attribute."""
+        """Extend the list with elements from an iterable and update the parent object's corresponding list
+        attribute.
+        """
         super().extend(iterable)
         for elem in iterable:
             self._add_to_elem(elem)
@@ -194,7 +200,9 @@ class SynchronizedList(list):
         self._remove_from_elem(x)
 
     def pop(self, i=-1):
-        """Remove and return the element at index i (default last) from the list and update the parent object's corresponding list attribute."""
+        """Remove and return the element at index i (default last) from the list and update the parent object's
+        corresponding list attribute.
+        """
         elem = super().pop(i)
         self._remove_from_elem(elem)
         return elem

@@ -264,7 +264,9 @@ class Function(Graph):
         )
 
     def __str__(self):
-        """Returns a string representation of the function including its name, domain, opset, inputs, nodes, and outputs."""
+        """Returns a string representation of the function including its name, domain, opset, inputs, nodes, and
+        outputs.
+        """
         nodes_str = "\n".join([str(node) for node in self.nodes])
         out = f"Function {self.name}, Domain {self.domain}, Opset {self.opset}"
         out += f"\nInputs: {self.inputs}"

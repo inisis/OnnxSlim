@@ -11,7 +11,9 @@ class Model(torch.nn.Module):
         self.layer_norm = nn.LayerNorm(embedding_dim)
 
     def forward(self, x):
-        """Applies LayerNorm to the input tensor and adds it to an independently computed LayerNorm of the same tensor."""
+        """Applies LayerNorm to the input tensor and adds it to an independently computed LayerNorm of the same
+        tensor.
+        """
         return self.layer_norm(x) + F.layer_norm(x, [10])
 
 

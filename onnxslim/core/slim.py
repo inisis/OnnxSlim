@@ -327,7 +327,9 @@ def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
 
 
 def check_result(raw_onnx_output, slimmed_onnx_output):
-    """Verify the consistency of outputs between the raw and slimmed ONNX models, logging warnings if discrepancies are detected."""
+    """Verify the consistency of outputs between the raw and slimmed ONNX models, logging warnings if discrepancies are
+    detected.
+    """
     if set(raw_onnx_output.keys()) != set(slimmed_onnx_output.keys()):
         logger.warning("Model output mismatch after slimming.")
         logger.warning("Raw model output keys: {}".format(raw_onnx_output.keys()))

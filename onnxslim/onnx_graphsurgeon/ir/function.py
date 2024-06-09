@@ -70,7 +70,7 @@ class Function(Graph):
                 of that attribute (in other words, it is a required attribute).
         """
         self.domain = misc.default_value(domain, Function.DEFAULT_DOMAIN)
-        self.attrs = misc.default_value(attrs, dict())
+        self.attrs = misc.default_value(attrs, {})
 
         super().__init__(
             nodes,
@@ -217,9 +217,7 @@ class Function(Graph):
 
         def get_tensor(name):
             """Retrieve a tensor by name from a deep-copied dictionary of tensors."""
-            if not name:
-                return Variable.empty()
-            return local_tensor_copies[name]
+            return local_tensor_copies[name] if name else Variable.empty()
 
         # Next, copy nodes, and update inputs/outputs
         new_nodes = []
@@ -252,7 +250,9 @@ class Function(Graph):
         """Checks equality of self with another Function object based on their attributes."""
 
         def sequences_equal(seq1, seq2):
-            return len(seq1) == len(seq2) and all([elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)])
+            return len(seq1) == len(seq2) and all(
+                elem1 == elem2 for elem1, elem2 in zip(seq1, seq2)
+            )
 
         return (
             self.unique_id == other.unique_id

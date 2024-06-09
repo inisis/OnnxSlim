@@ -75,12 +75,7 @@ def unique_dicts(dict0, dict1):
 
     Values in the second will be subtracted from the first.
     """
-    if not dict1:
-        return dict0
-
-    unique_dict = {k: v for k, v in dict0.items() if k not in dict1}
-
-    return unique_dict
+    return {k: v for k, v in dict0.items() if k not in dict1} if dict1 else dict0
 
 
 def is_dynamic_dimension(dim):
@@ -251,8 +246,4 @@ def sequences_equal(seq1, seq2):
     if not length_match:
         return False
 
-    for elem1, elem2 in zip(seq1, seq2):
-        if elem1 != elem2:
-            return False
-
-    return True
+    return all(elem1 == elem2 for elem1, elem2 in zip(seq1, seq2))

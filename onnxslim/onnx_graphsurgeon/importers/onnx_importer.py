@@ -55,18 +55,17 @@ ONNX_PYTHON_ATTR_MAPPING = {
 
 def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> List[int]:
     shape = None
-    if isinstance(onnx_tensor, onnx.TensorProto) or isinstance(onnx_tensor, onnx.SparseTensorProto):
+    if isinstance(onnx_tensor, (onnx.TensorProto, onnx.SparseTensorProto)):
         shape = onnx_tensor.dims
-    else:
-        if onnx_tensor.type.tensor_type.HasField("shape"):
-            shape = []
-            for dim in onnx_tensor.type.tensor_type.shape.dim:
-                if dim.HasField("dim_param"):
-                    shape.append(dim.dim_param)
-                elif dim.HasField("dim_value"):
-                    shape.append(dim.dim_value)
-                else:
-                    shape.append(None)
+    elif onnx_tensor.type.tensor_type.HasField("shape"):
+        shape = []
+        for dim in onnx_tensor.type.tensor_type.shape.dim:
+            if dim.HasField("dim_param"):
+                shape.append(dim.dim_param)
+            elif dim.HasField("dim_value"):
+                shape.append(dim.dim_value)
+            else:
+                shape.append(None)
     return shape
 
 
@@ -122,19 +121,18 @@ def get_onnx_tensor_dtype(
         onnx_dtype = onnx_tensor.data_type
     elif isinstance(onnx_tensor, onnx.SparseTensorProto):
         onnx_dtype = onnx_tensor.values.data_type
+    elif onnx_tensor.type.HasField("tensor_type"):
+        onnx_dtype = onnx_tensor.type.tensor_type.elem_type
+    elif onnx_tensor.type.HasField("sequence_type"):
+        onnx_dtype = onnx_tensor.type.sequence_type.elem_type.tensor_type.elem_type
+    elif onnx_tensor.type.HasField("map_type"):
+        onnx_dtype = onnx_tensor.type.map_type.value_type
+    elif onnx_tensor.type.HasField("optional_type"):
+        onnx_dtype = onnx_tensor.type.optional_type.elem_type
+    elif onnx_tensor.type.HasField("sparse_tensor_type"):
+        onnx_dtype = onnx_tensor.type.sparse_tensor_type.elem_type
     else:
-        if onnx_tensor.type.HasField("tensor_type"):
-            onnx_dtype = onnx_tensor.type.tensor_type.elem_type
-        elif onnx_tensor.type.HasField("sequence_type"):
-            onnx_dtype = onnx_tensor.type.sequence_type.elem_type.tensor_type.elem_type
-        elif onnx_tensor.type.HasField("map_type"):
-            onnx_dtype = onnx_tensor.type.map_type.value_type
-        elif onnx_tensor.type.HasField("optional_type"):
-            onnx_dtype = onnx_tensor.type.optional_type.elem_type
-        elif onnx_tensor.type.HasField("sparse_tensor_type"):
-            onnx_dtype = onnx_tensor.type.sparse_tensor_type.elem_type
-        else:
-            onnx_dtype = onnx_tensor.type.opaque_type
+        onnx_dtype = onnx_tensor.type.opaque_type
 
     dtype = get_numpy_type(onnx_dtype)
     if dtype is not None:
@@ -150,46 +148,40 @@ def get_onnx_tensor_dtype(
 
 def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
     if isinstance(onnx_tensor, onnx.TensorProto):
-        onnx_type = "tensor_type"
+        return "tensor_type"
+    elif onnx_tensor.type.HasField("tensor_type"):
+        return "tensor_type"
+    elif onnx_tensor.type.HasField("sequence_type"):
+        return "sequence_type"
+    elif onnx_tensor.type.HasField("map_type"):
+        return "map_type"
+    elif onnx_tensor.type.HasField("optional_type"):
+        return "optional_type"
+    elif onnx_tensor.type.HasField("opaque_type"):
+        return "opaque_type"
+    elif onnx_tensor.type.HasField("sparse_tensor_type"):
+        return "sparse_tensor_type"
     else:
-        if onnx_tensor.type.HasField("tensor_type"):
-            onnx_type = "tensor_type"
-        elif onnx_tensor.type.HasField("sequence_type"):
-            onnx_type = "sequence_type"
-        elif onnx_tensor.type.HasField("map_type"):
-            onnx_type = "map_type"
-        elif onnx_tensor.type.HasField("optional_type"):
-            onnx_type = "optional_type"
-        elif onnx_tensor.type.HasField("opaque_type"):
-            onnx_type = "opaque_type"
-        elif onnx_tensor.type.HasField("sparse_tensor_type"):
-            onnx_type = "sparse_tensor_type"
-        else:
-            onnx_type = None
-
-    return onnx_type
+        return None
 
 
 def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
     if isinstance(onnx_tensor, onnx.TensorProto):
-        onnx_type = "tensor_type"
+        return "tensor_type"
+    elif onnx_tensor.type.HasField("tensor_type"):
+        return "tensor_type"
+    elif onnx_tensor.type.HasField("sequence_type"):
+        return "sequence_type"
+    elif onnx_tensor.type.HasField("map_type"):
+        return "map_type"
+    elif onnx_tensor.type.HasField("optional_type"):
+        return "optional_type"
+    elif onnx_tensor.type.HasField("opaque_type"):
+        return "opaque_type"
+    elif onnx_tensor.type.HasField("sparse_tensor_type"):
+        return "sparse_tensor_type"
     else:
-        if onnx_tensor.type.HasField("tensor_type"):
-            onnx_type = "tensor_type"
-        elif onnx_tensor.type.HasField("sequence_type"):
-            onnx_type = "sequence_type"
-        elif onnx_tensor.type.HasField("map_type"):
-            onnx_type = "map_type"
-        elif onnx_tensor.type.HasField("optional_type"):
-            onnx_type = "optional_type"
-        elif onnx_tensor.type.HasField("opaque_type"):
-            onnx_type = "opaque_type"
-        elif onnx_tensor.type.HasField("sparse_tensor_type"):
-            onnx_type = "sparse_tensor_type"
-        else:
-            onnx_type = None
-
-    return onnx_type
+        return None
 
 
 class OnnxImporter(BaseImporter):
@@ -201,11 +193,11 @@ class OnnxImporter(BaseImporter):
         class_name = "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
         try:
             for importer in OnnxImporter.get_import_domains(model_or_func):
-                if importer.domain == "" or importer.domain == "ai.onnx":
+                if importer.domain in ["", "ai.onnx"]:
                     return importer.version
             G_LOGGER.warning(f"{class_name} does not contain ONNX domain opset information! Using default opset.")
             return None
-        except:
+        except Exception:
             G_LOGGER.warning(f"{class_name} does not contain opset information! Using default opset.")
             return None
 
@@ -268,7 +260,7 @@ class OnnxImporter(BaseImporter):
                         opset=opset,
                         import_domains=import_domains,
                     )
-                elif attr_str == "FLOATS" or attr_str == "INTS":
+                elif attr_str in {"FLOATS", "INTS"}:
                     processed = list(processed)
                 elif attr_str == "STRINGS":
                     processed = [p.decode() for p in processed]
@@ -367,11 +359,11 @@ class OnnxImporter(BaseImporter):
         function_inputs = [make_tensor(inp) for inp in onnx_function.input]
         function_outputs = [make_tensor(out) for out in onnx_function.output]
         nodes = [
-            OnnxImporter.import_node(onnx_node, dict(), subgraph_tensor_map, opset, import_domains)
+            OnnxImporter.import_node(onnx_node, {}, subgraph_tensor_map, opset, import_domains)
             for onnx_node in onnx_function.node
         ]
 
-        attributes = dict()
+        attributes = {}
         if onnx_function.attribute:
             attributes = {attr_name: None for attr_name in onnx_function.attribute}
         if onnx_function.attribute_proto:

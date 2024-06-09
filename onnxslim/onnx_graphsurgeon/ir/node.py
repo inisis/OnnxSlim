@@ -165,11 +165,7 @@ class Node(object):
 
         new_attrs = OrderedDict()
         for name, attr in self.attrs.items():
-            if isinstance(attr, Graph):
-                new_attrs[name] = attr.copy(tensor_map)
-            else:
-                new_attrs[name] = attr
-
+            new_attrs[name] = attr.copy(tensor_map) if isinstance(attr, Graph) else attr
         return Node(
             self.op,
             self.name,
@@ -218,11 +214,4 @@ class Node(object):
             return False
 
         outputs_match = misc.sequences_equal(self.outputs, other.outputs)
-        if not outputs_match:
-            return False
-
-        domain_match = self.domain == other.domain
-        if not domain_match:
-            return False
-
-        return True
+        return self.domain == other.domain if outputs_match else False

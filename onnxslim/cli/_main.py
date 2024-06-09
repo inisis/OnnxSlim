@@ -83,7 +83,7 @@ def slim(
 
     init_logging(verbose)
 
-    MAX_ITER = 10 if not os.getenv("ONNXSLIM_MAX_ITER") else int(os.getenv("ONNXSLIM_MAX_ITER"))
+    MAX_ITER = int(os.getenv("ONNXSLIM_MAX_ITER")) if os.getenv("ONNXSLIM_MAX_ITER") else 10
 
     if isinstance(model, str):
         model_name = Path(model).name
@@ -145,20 +145,19 @@ def slim(
 
     if not output_model:
         return model
-    else:
-        slimmed_info = summarize_model(model)
-        save(model, output_model, model_check)
-        if slimmed_info["model_size"] >= onnx.checker.MAXIMUM_PROTOBUF:
-            model_size = model.ByteSize()
-            slimmed_info["model_size"] = [model_size, slimmed_info["model_size"]]
-        end_time = time.time()
-        elapsed_time = end_time - start_time
+    slimmed_info = summarize_model(model)
+    save(model, output_model, model_check)
+    if slimmed_info["model_size"] >= onnx.checker.MAXIMUM_PROTOBUF:
+        model_size = model.ByteSize()
+        slimmed_info["model_size"] = [model_size, slimmed_info["model_size"]]
+    end_time = time.time()
+    elapsed_time = end_time - start_time
 
-        print_model_info_as_table(
-            model_name,
-            [float_info, slimmed_info],
-            elapsed_time,
-        )
+    print_model_info_as_table(
+        model_name,
+        [float_info, slimmed_info],
+        elapsed_time,
+    )
 
 
 def main():

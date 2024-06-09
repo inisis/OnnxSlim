@@ -102,33 +102,29 @@ def _remove_if_exists(path):
 
 def _git_archive_link(repo_owner, repo_name, branch):
     """Generate a GitHub archive link for a specific repository owner, name, and branch."""
-    return "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+    return f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
 
 
 def _load_attr_from_module(module, func_name):
     """Load an attribute or function from a module if it exists."""
-    if func_name not in dir(module):
-        return None
-    return getattr(module, func_name)
+    return None if func_name not in dir(module) else getattr(module, func_name)
 
 
 def _get_torch_home():
     """Return the path to the torch home directory, using environment variables or default cache settings."""
-    torch_home = os.path.expanduser(
+    return os.path.expanduser(
         os.getenv(
             ENV_TORCH_HOME,
-            os.path.join(os.getenv(ENV_XDG_CACHE_HOME, DEFAULT_CACHE_DIR), "torch"),
+            os.path.join(
+                os.getenv(ENV_XDG_CACHE_HOME, DEFAULT_CACHE_DIR), "torch"
+            ),
         )
     )
-    return torch_home
 
 
 def _parse_repo_info(github):
     """Parse GitHub repository information from a string and determine the default branch if not specified."""
-    if ":" in github:
-        repo_info, branch = github.split(":")
-    else:
-        repo_info, branch = github, None
+    repo_info, branch = github.split(":") if ":" in github else (github, None)
     repo_owner, repo_name = repo_info.split("/")
 
     if branch is None:
@@ -202,17 +198,17 @@ def _get_cache_or_reload(github, force_reload, verbose=True, skip_validation=Fal
 
     if use_cache:
         if verbose:
-            sys.stderr.write("Using cache found in {}\n".format(repo_dir))
+            sys.stderr.write(f"Using cache found in {repo_dir}\n")
     else:
         # Validate the tag/branch is from the original repo instead of a forked repo
         if not skip_validation:
             _validate_not_a_forked_repo(repo_owner, repo_name, branch)
 
-        cached_file = os.path.join(hub_dir, normalized_br + ".zip")
+        cached_file = os.path.join(hub_dir, f"{normalized_br}.zip")
         _remove_if_exists(cached_file)
 
         url = _git_archive_link(repo_owner, repo_name, branch)
-        sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
+        sys.stderr.write(f'Downloading: "{url}" to {cached_file}\n')
         download_url_to_file(url, cached_file, progress=False)
 
         with zipfile.ZipFile(cached_file) as cached_zipfile:
@@ -245,7 +241,7 @@ def _check_dependencies(m):
     if dependencies is not None:
         missing_deps = [pkg for pkg in dependencies if not _check_module_exists(pkg)]
         if len(missing_deps):
-            raise RuntimeError("Missing dependencies: {}".format(", ".join(missing_deps)))
+            raise RuntimeError(f'Missing dependencies: {", ".join(missing_deps)}')
 
 
 def _load_entry_from_hubconf(m, model):
@@ -262,7 +258,7 @@ def _load_entry_from_hubconf(m, model):
     func = _load_attr_from_module(m, model)
 
     if func is None or not callable(func):
-        raise RuntimeError("Cannot find callable {} in hubconf".format(model))
+        raise RuntimeError(f"Cannot find callable {model} in hubconf")
 
     return func
 
@@ -323,10 +319,11 @@ def list(github, force_reload=False, skip_validation=False):
 
     sys.path.remove(repo_dir)
 
-    # We take functions starts with '_' as internal helper functions
-    entrypoints = [f for f in dir(hub_module) if callable(getattr(hub_module, f)) and not f.startswith("_")]
-
-    return entrypoints
+    return [
+        f
+        for f in dir(hub_module)
+        if callable(getattr(hub_module, f)) and not f.startswith("_")
+    ]
 
 
 def help(github, model, force_reload=False, skip_validation=False):
@@ -521,7 +518,9 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
         if hash_prefix is not None:
             digest = sha256.hexdigest()
             if digest[: len(hash_prefix)] != hash_prefix:
-                raise RuntimeError('invalid hash value (expected "{}", got "{}")'.format(hash_prefix, digest))
+                raise RuntimeError(
+                    f'invalid hash value (expected "{hash_prefix}", got "{digest}")'
+                )
         shutil.move(f.name, dst)
     finally:
         f.close()
@@ -579,10 +578,7 @@ def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False,
     try:
         os.makedirs(model_dir)
     except OSError as e:
-        if e.errno == errno.EEXIST:
-            # Directory already exists, ignore.
-            pass
-        else:
+        if e.errno != errno.EEXIST:
             # Unexpected OSError, re-raise.
             raise
 
@@ -592,7 +588,7 @@ def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False,
         filename = file_name
     cached_file = os.path.join(model_dir, filename)
     if not os.path.exists(cached_file):
-        sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
+        sys.stderr.write(f'Downloading: "{url}" to {cached_file}\n')
         hash_prefix = None
         if check_hash:
             r = HASH_REGEX.search(filename)  # r is Optional[Match[str]]

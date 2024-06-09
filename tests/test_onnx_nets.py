@@ -27,7 +27,7 @@ class TestTorchVisionClass:
         """Test various TorchVision models with random input tensors of a specified shape."""
         model = model(pretrained=PRETRAINED)
         x = torch.rand(shape)
-        os.makedirs("tmp/" + request.node.name, exist_ok=True)
+        os.makedirs(f"tmp/{request.node.name}", exist_ok=True)
 
         filename = f"tmp/{request.node.name}/{request.node.name}.onnx"
         slim_filename = f"tmp/{request.node.name}/{request.node.name}_slim.onnx"
@@ -57,7 +57,7 @@ class TestTimmClass:
         x = torch.randn((1,) + input_size)
 
         try:
-            os.makedirs("tmp/" + request.node.name, exist_ok=True)
+            os.makedirs(f"tmp/{request.node.name}", exist_ok=True)
 
             filename = f"tmp/{request.node.name}/{request.node.name}.onnx"
             slim_filename = f"tmp/{request.node.name}/{request.node.name}_slim.onnx"

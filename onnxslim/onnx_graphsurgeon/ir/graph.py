@@ -50,7 +50,7 @@ class Graph(object):
 
     DEFAULT_OPSET = 11
     OPSET_FUNC_MAP = defaultdict(dict)  # Ops registered for specific opsets.
-    GLOBAL_FUNC_MAP = dict()  # Ops registered for ALL opsets.
+    GLOBAL_FUNC_MAP = {}  # Ops registered for ALL opsets.
 
     @staticmethod
     def register(opsets=None):
@@ -171,8 +171,10 @@ class Graph(object):
 
             if methods:
                 if len(methods) > 1:
-                    msg_template = "Method name {} is overloaded with the following candidates: {}. "
-                    msg_template += "Choosing candidate {}"
+                    msg_template = (
+                        "Method name {} is overloaded with the following candidates: {}. "
+                        + "Choosing candidate {}"
+                    )
                     G_LOGGER.warning(
                         message=msg_template.format(name, method_descs, method_descs[0]),
                         mode=LogMode.ONCE,
@@ -222,11 +224,10 @@ class Graph(object):
         if not outputs_match:
             return False
 
-        opset_matches = self.opset == other.opset and self.import_domains == other.import_domains
-        if not opset_matches:
-            return False
-
-        return True
+        return (
+            self.opset == other.opset
+            and self.import_domains == other.import_domains
+        )
 
     def node_ids(self):
         """
@@ -292,13 +293,13 @@ class Graph(object):
         """Returns a dictionary of tensors that are used by node IDs in the current subgraph."""
         local_tensors = self._local_tensors()
 
-        # We only want to consider tensors that are local to this graph, because we can't
-        # remove external tensors (e.g. from outer graphs) anyway.
+
+
         class IgnoreDupAndForeign(object):
             def __init__(self, initial_tensors=None):
                 """Initialize IgnoreDupAndForeign with an optional list of initial tensors."""
                 tensors = misc.default_value(initial_tensors, [])
-                self.seen_tensors = set([tensor.name for tensor in tensors])
+                self.seen_tensors = {tensor.name for tensor in tensors}
 
             def __call__(self, tensor):
                 """Check if a tensor should be included based on its name and whether it has been seen before."""
@@ -311,6 +312,7 @@ class Graph(object):
                     self.seen_tensors.add(tensor.name)
                     return True
                 return False
+
 
         # Traverse backwards from outputs to find all used nodes.
         ignore_tensors = IgnoreDupAndForeign()
@@ -366,8 +368,7 @@ class Graph(object):
             A generator which iterates over the subgraphs contained in this graph.
         """
         for node in self.nodes:
-            for subgraph in node.subgraphs(recursive=recursive):
-                yield subgraph
+            yield from node.subgraphs(recursive=recursive)
 
     def cleanup(
         self,
@@ -454,7 +455,7 @@ class Graph(object):
 
             # Remove any hanging tensors - tensors without outputs
             if remove_unused_node_outputs:
-                graph_output_names = set([tensor.name for tensor in self.outputs])
+                graph_output_names = {tensor.name for tensor in self.outputs}
                 for node in nodes:
 
                     def is_hanging_tensor(tensor):
@@ -538,7 +539,7 @@ class Graph(object):
         hierarchy_levels = {}  # Dict[int, HierarchyDescriptor]
 
         local_tensors = self._local_tensors()
-        func_id_to_func = dict()
+        func_id_to_func = {}
 
         def get_id(node_or_func):
             """Returns the unique ID for a Node object or a function."""
@@ -551,12 +552,11 @@ class Graph(object):
             from onnxslim.onnx_graphsurgeon.ir.function import Function
 
             visited = misc.default_value(visited, set())
-            if get_id(node_or_func) in visited:
-                if len(node_or_func.outputs) == 1:
-                    if isinstance(node_or_func, Function):
-                        G_LOGGER.critical("Cycle detected in function definitions!")
-
-                    G_LOGGER.critical("Cycle detected in graph! Are there tensors with duplicate names in the graph?")
+            if get_id(node_or_func) in visited and len(node_or_func.outputs) == 1:
+                if isinstance(node_or_func, Function):
+                    G_LOGGER.critical("Cycle detected in function definitions!")
+            
+                G_LOGGER.critical("Cycle detected in graph! Are there tensors with duplicate names in the graph?")
             visited.add(get_id(node_or_func))
 
             def get_inputs(node_or_func):
@@ -649,7 +649,10 @@ class Graph(object):
         def add_to_tensor_map(tensor):
             """Add a tensor to the tensor_map if it is not empty and ensure no duplicate tensor names exist."""
             if not tensor.is_empty():
-                if tensor.name in tensor_map and not (tensor_map[tensor.name] is tensor):
+                if (
+                    tensor.name in tensor_map
+                    and tensor_map[tensor.name] is not tensor
+                ):
                     msg = "Found distinct tensors that share the same name:\n[id: {:}] {:}\n[id: {:}] {:}\n".format(
                         id(tensor_map[tensor.name]),
                         tensor_map[tensor.name],
@@ -938,7 +941,7 @@ class Graph(object):
 
                 def all_tensors_const(tensors):
                     """Check if all tensors in a given list are constants in the graph."""
-                    return all([t.name in graph_constants for t in tensors if not t.is_empty()])
+                    return all(t.name in graph_constants for t in tensors if not t.is_empty())
 
                 if not all_tensors_const(node.inputs):
                     return False
@@ -960,7 +963,8 @@ class Graph(object):
         graph_constants = {
             name: tensor
             for name, tensor in clone_tensors.items()
-            if (isinstance(tensor, Constant) and not any([t.op == "Gather" for t in tensor.outputs]))
+            if isinstance(tensor, Constant)
+            and all(t.op != "Gather" for t in tensor.outputs)
         }
         graph_constants = update_foldable_outputs(graph_constants)
 
@@ -972,9 +976,7 @@ class Graph(object):
                 return None
 
             node = tensor.inputs[0]
-            if node.op != op:
-                return None
-            return node
+            return None if node.op != op else node
 
         def get_input(node, index=0):
             """Get the input tensor of a node iff the input tensor is not already marked a graph constant."""
@@ -984,17 +986,11 @@ class Graph(object):
             inp = node.inputs[index]
 
             # If the input was already found to be a constant, it will be folded anyway.
-            if inp.name in graph_constants:
-                return None
-
-            return inp
+            return None if inp.name in graph_constants else inp
 
         def get_scalar_value(tensor):
             """Gets the scalar value of a constant tensor with a single item."""
-            if not tensor.shape:
-                return tensor.values
-            else:
-                return list(tensor.values)[0]
+            return list(tensor.values)[0] if tensor.shape else tensor.values
 
         def fold_shape(tensor):
             """Returns the input tensor shape if available, otherwise returns None."""
@@ -1155,7 +1151,7 @@ class Graph(object):
 
                     constant_values.update(partition_and_infer(part))
                 else:
-                    constant_values.update({name: val for name, val in zip(names, values)})
+                    constant_values.update(dict(zip(names, values)))
 
             return constant_values
 
@@ -1199,7 +1195,7 @@ class Graph(object):
                         providers=ORT_PROVIDERS,
                     )
                     values = sess.run(names, {})
-                    constant_values.update({name: val for name, val in zip(names, values)})
+                    constant_values.update(dict(zip(names, values)))
                 except Exception as err:
                     G_LOGGER.warning(
                         "Inference failed. You may want to try enabling partitioning to see better results. "
@@ -1319,7 +1315,7 @@ class Graph(object):
         """
         # Generation is done by appending an index to the prefix.
         while True:
-            name = "{}_{}".format(prefix, self.name_idx)
+            name = f"{prefix}_{self.name_idx}"
             self.name_idx += 1
             if name not in existing_names:  # Ensure generated name is unique
                 break
@@ -1375,9 +1371,9 @@ class Graph(object):
                 elif isinstance(elem, np.ndarray):
                     name = self._generate_name("onnx_graphsurgeon_constant", existing_names)
                     new_io.append(Constant(name=name, values=elem))
-                elif isinstance(elem, list) or isinstance(elem, tuple) or isinstance(elem, numbers.Number):
-                    if isinstance(elem, list) or isinstance(elem, tuple):
-                        dtype = np.float32 if any([isinstance(x, float) for x in elem]) else np.int64
+                elif isinstance(elem, (list, tuple, numbers.Number)):
+                    if isinstance(elem, (list, tuple)):
+                        dtype = np.float32 if any(isinstance(x, float) for x in elem) else np.int64
                     else:
                         dtype = np.float32 if isinstance(elem, float) else np.int64
                     arr = np.array(elem, dtype=dtype)
@@ -1434,9 +1430,7 @@ class Graph(object):
 
         def get_tensor(name):
             """Retrieve a tensor by its name from local copies, or return an empty variable if no name is provided."""
-            if not name:
-                return Variable.empty()
-            return local_tensor_copies[name]
+            return local_tensor_copies[name] if name else Variable.empty()
 
         # Next, copy nodes, and update inputs/outputs
         new_nodes = []

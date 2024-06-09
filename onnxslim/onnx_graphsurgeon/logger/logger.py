@@ -161,10 +161,7 @@ class Logger(object):
         def process_message(message, stack_depth):
             def get_prefix():
                 def get_line_info():
-                    module = inspect.getmodule(sys._getframe(stack_depth + 3))
-                    # Handle logging from the top-level of a module.
-                    if not module:
-                        module = inspect.getmodule(sys._getframe(stack_depth + 2))
+                    module = inspect.getmodule(sys._getframe(stack_depth + 3)) or inspect.getmodule(sys._getframe(stack_depth + 2))
                     filename = module.__file__
                     filename = os.path.relpath(filename, self.root_dir)
                     # If the file is not located in trt_smeagol, use its basename instead.
@@ -174,7 +171,7 @@ class Logger(object):
 
                 prefix = ""
                 if self.letter:
-                    prefix += Logger.SEVERITY_LETTER_MAPPING[severity] + " "
+                    prefix += f"{Logger.SEVERITY_LETTER_MAPPING[severity]} "
                 if self.timestamp:
                     prefix += "({:}) ".format(time.strftime("%X"))
                 if self.line_info:
@@ -194,7 +191,7 @@ class Logger(object):
 
                         color = Logger.SEVERITY_COLOR_MAPPING[severity]
                         return colored.stylize(message, [colored.fg(color)])
-                    except (ImportError, ModuleNotFoundError):
+                    except ImportError:
                         self.colors = False
                         self.warning(
                             "colored module is not installed, will not use colors when logging. To enable colors, please install the colored module: python3 -m pip install colored"

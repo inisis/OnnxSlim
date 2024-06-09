@@ -61,7 +61,7 @@ def output_modification(model: onnx.ModelProto, outputs: str) -> onnx.ModelProto
             if key not in tensors.keys():
                 raise Exception(f"Output name {key} not found in model, available keys: {' '.join(tensors.keys())}")
             dtype = tensors[key].dtype
-            if dtype == None:
+            if dtype is None:
                 dtype = np.float32
                 logger.warning(f"Output layer {key} has no dtype, set to default {dtype}")
         else:
@@ -91,7 +91,7 @@ def shape_infer(model: onnx.ModelProto):
     try:
         logger.debug("try onnxruntime shape infer.")
         model = SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
-    except:
+    except Exception:
         logger.debug("onnxruntime shape infer failed, try onnx shape infer.")
         if model.ByteSize() >= checker.MAXIMUM_PROTOBUF:
             tmp_dir = tempfile.TemporaryDirectory()
@@ -136,7 +136,7 @@ def convert_data_format(model: onnx.ModelProto, dtype: str) -> onnx.ModelProto:
         for node in graph.nodes:
             if node.op == "Cast":
                 inp_dtype = [input.dtype for input in node.inputs][0]
-                if inp_dtype == np.float16 or inp_dtype == np.float32:
+                if inp_dtype in [np.float16, np.float32]:
                     delete_node(node)
 
         for tensor in graph.tensors().values():
@@ -156,7 +156,7 @@ def freeze(model: onnx.ModelProto):
     inputs = model.graph.input
     name_to_input = {}
     for input in inputs:
-        if input.name in name_to_input.keys():
+        if input.name in name_to_input:
             logger.warning(f"Duplicate input name: {input.name}")
         name_to_input[input.name] = input
 

@@ -89,11 +89,7 @@ class Tensor(object):
 
         return self
 
-    def to_variable(
-        self,
-        dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
-        shape: Sequence[Union[int, str]] = [],
-    ):
+    def to_variable(self, dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None, shape: Sequence[Union[int, str]] = None):
         """
         Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor
         will see the update.
@@ -106,6 +102,8 @@ class Tensor(object):
             self
         """
 
+        if shape is None:
+            shape = []
         variable_dtype = dtype if dtype is not None else self.export_dtype
 
         self.__class__ = Variable
@@ -224,10 +222,12 @@ class Variable(Tensor):
 
         name_match = self.name == other.name
         inputs_match = len(self.inputs) == len(other.inputs) and all(
-            [inp.name == other_inp.name for inp, other_inp in zip(self.inputs, other.inputs)]
+            inp.name == other_inp.name
+            for inp, other_inp in zip(self.inputs, other.inputs)
         )
         outputs_match = len(self.outputs) == len(other.outputs) and all(
-            [out.name == other_out.name for out, other_out in zip(self.outputs, other.outputs)]
+            out.name == other_out.name
+            for out, other_out in zip(self.outputs, other.outputs)
         )
 
         dtype_match = self.dtype == other.dtype
@@ -397,15 +397,17 @@ class Constant(Tensor):
         self.data_location = data_location
         self._export_dtype = export_dtype
 
-    def to_variable(self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = []):
+    def to_variable(self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = None):
         """Convert instance values to an appropriate variable with specified dtype and shape."""
-        var_dtype = self.export_dtype
-
+        if shape is None:
+            shape = []
         del self._export_dtype
         del self._values
 
         if dtype is not None:
             return super().to_variable(dtype, shape)
+
+        var_dtype = self.export_dtype
 
         return super().to_variable(var_dtype, shape)
 
@@ -442,10 +444,7 @@ class Constant(Tensor):
     @property
     def export_dtype(self):
         """Return the export data type (export_dtype) of the tensor values if specified, otherwise None."""
-        if self._export_dtype is not None:
-            return self._export_dtype
-
-        return self.dtype
+        return self._export_dtype if self._export_dtype is not None else self.dtype
 
     @export_dtype.setter
     def export_dtype(self, export_dtype):
@@ -463,9 +462,9 @@ class Constant(Tensor):
         if not isinstance(other, Constant):
             return False
 
-        if isinstance(self._values, LazyValues) and isinstance(other._values, LazyValues):
-            value_match = self._values == other._values
-        else:
-            value_match = np.array_equal(self.values, other.values)
-
-        return value_match
+        return (
+            self._values == other._values
+            if isinstance(self._values, LazyValues)
+            and isinstance(other._values, LazyValues)
+            else np.array_equal(self.values, other.values)
+        )

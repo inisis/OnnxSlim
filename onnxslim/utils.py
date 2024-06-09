@@ -167,8 +167,7 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
     final_op_info.extend(
         (
             [SEPARATING_LINE],
-            ["Model Info", "Original Model"]
-            + ["Slimmed Model"] * (len(model_info_list) - 1),
+            ["Model Info", "Original Model"] + ["Slimmed Model"] * (len(model_info_list) - 1),
             [SEPARATING_LINE] * (len(model_info_list) + 1),
         )
     )
@@ -181,11 +180,7 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
             input_info_list.append(inputs_shape)
         final_op_info.append(input_info_list)
 
-    all_outputs = {
-        op_type
-        for model_info in model_info_list
-        for op_type in model_info.get("op_output_info", {})
-    }
+    all_outputs = {op_type for model_info in model_info_list for op_type in model_info.get("op_output_info", {})}
 
     for outputs in all_outputs:
         output_info_list = [f"OUT: {outputs}"]
@@ -196,11 +191,7 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
 
     final_op_info.append([SEPARATING_LINE] * (len(model_info_list) + 1))
 
-    all_ops = {
-        op_type
-        for model_info in model_info_list
-        for op_type in model_info.get("op_type_counts", {})
-    }
+    all_ops = {op_type for model_info in model_info_list for op_type in model_info.get("op_type_counts", {})}
     sorted_ops = sorted(all_ops)
     for op in sorted_ops:
         op_info_list = [op]
@@ -216,11 +207,7 @@ def print_model_info_as_table(model_name: str, model_info_list: List[Dict], elap
     final_op_info.extend(
         (
             [SEPARATING_LINE] * (len(model_info_list) + 1),
-            ["Model Size"]
-            + [
-                format_bytes(model_info["model_size"])
-                for model_info in model_info_list
-            ],
+            ["Model Size"] + [format_bytes(model_info["model_size"]) for model_info in model_info_list],
         )
     )
     if elapsed_time:
@@ -417,9 +404,7 @@ def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
             logger.warning("Model too large and cannot be checked.")
 
     if model_path:  # model larger than 2GB can be saved, but compiler like trtexec won't parse it
-        if (
-            model.ByteSize() <= checker.MAXIMUM_PROTOBUF
-        ):
+        if model.ByteSize() <= checker.MAXIMUM_PROTOBUF:
             onnx.save(model, model_path)
         else:
             import os

@@ -89,7 +89,9 @@ class Tensor(object):
 
         return self
 
-    def to_variable(self, dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None, shape: Sequence[Union[int, str]] = None):
+    def to_variable(
+        self, dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None, shape: Sequence[Union[int, str]] = None
+    ):
         """
         Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor
         will see the update.
@@ -222,12 +224,10 @@ class Variable(Tensor):
 
         name_match = self.name == other.name
         inputs_match = len(self.inputs) == len(other.inputs) and all(
-            inp.name == other_inp.name
-            for inp, other_inp in zip(self.inputs, other.inputs)
+            inp.name == other_inp.name for inp, other_inp in zip(self.inputs, other.inputs)
         )
         outputs_match = len(self.outputs) == len(other.outputs) and all(
-            out.name == other_out.name
-            for out, other_out in zip(self.outputs, other.outputs)
+            out.name == other_out.name for out, other_out in zip(self.outputs, other.outputs)
         )
 
         dtype_match = self.dtype == other.dtype
@@ -464,7 +464,6 @@ class Constant(Tensor):
 
         return (
             self._values == other._values
-            if isinstance(self._values, LazyValues)
-            and isinstance(other._values, LazyValues)
+            if isinstance(self._values, LazyValues) and isinstance(other._values, LazyValues)
             else np.array_equal(self.values, other.values)
         )

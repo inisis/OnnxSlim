@@ -108,8 +108,7 @@ def _is_separating_line(row):
     """Determine if a row is a separating line based on its type and specific content conditions."""
     row_type = type(row)
     return row_type in [list, str] and (
-        (len(row) >= 1 and row[0] == SEPARATING_LINE)
-        or (len(row) >= 2 and row[1] == SEPARATING_LINE)
+        (len(row) >= 1 and row[0] == SEPARATING_LINE) or (len(row) >= 2 and row[1] == SEPARATING_LINE)
     )
 
 
@@ -196,8 +195,7 @@ def _moin_row_with_attrs(celltag, cell_values, colwidths, colaligns, header=""):
         "decimal": '<style="text-align: right;">',
     }
     values_with_attrs = [
-        f'{celltag}{alignment.get(a, "")} {header + c + header} '
-        for c, a in zip(cell_values, colaligns)
+        f'{celltag}{alignment.get(a, "")} {header + c + header} ' for c, a in zip(cell_values, colaligns)
     ]
     return "".join(values_with_attrs) + "||"
 
@@ -939,9 +937,7 @@ def _afterpoint(string):
     >>> _afterpoint("123,456.78")
     2
     """
-    if not _isnumber(string) and not _isnumber_with_thousands_separator(
-        string
-    ):
+    if not _isnumber(string) and not _isnumber_with_thousands_separator(string):
         return -1  # not a number
     if _isint(string):
         return -1
@@ -1044,11 +1040,7 @@ def _choose_width_fn(has_invisible, enable_widechars, is_multiline):
         line_width_fn = wcwidth.wcswidth
     else:
         line_width_fn = len
-    return (
-        (lambda s: _multiline_width(s, line_width_fn))
-        if is_multiline
-        else line_width_fn
-    )
+    return (lambda s: _multiline_width(s, line_width_fn)) if is_multiline else line_width_fn
 
 
 def _align_column_choose_padfn(strings, alignment, has_invisible):
@@ -1090,11 +1082,7 @@ def _align_column_choose_width_fn(has_invisible, enable_widechars, is_multiline)
         line_width_fn = wcwidth.wcswidth
     else:
         line_width_fn = len
-    return (
-        (lambda s: _align_column_multiline_width(s, line_width_fn))
-        if is_multiline
-        else line_width_fn
-    )
+    return (lambda s: _align_column_multiline_width(s, line_width_fn)) if is_multiline else line_width_fn
 
 
 def _align_column_multiline_width(multiline_s, line_width_fn=len):
@@ -1216,12 +1204,7 @@ def _format(val, valtype, floatfmt, intfmt, missingval="", has_invisible=True):
     if val is None:
         return missingval
 
-    if (
-        valtype is str
-        or valtype is not int
-        and valtype is not bytes
-        and valtype is not float
-    ):
+    if valtype is str or valtype is not int and valtype is not bytes and valtype is not float:
         return f"{val}"
     elif valtype is int:
         return format(val, intfmt)
@@ -2408,11 +2391,7 @@ def _format_table(fmt, headers, headersaligns, rows, colwidths, colaligns, is_mu
     if not headers and not rows:
         return ""
     output = "\n".join(lines)
-    return (
-        JupyterHTMLStr(output)
-        if fmt.lineabove == _html_begin_table_without_header
-        else output
-    )
+    return JupyterHTMLStr(output) if fmt.lineabove == _html_begin_table_without_header else output
 
 
 class _CustomTextWrap(textwrap.TextWrapper):

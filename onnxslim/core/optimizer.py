@@ -297,17 +297,10 @@ def find_slice_nodes(node, opset):
     if node.op == "Slice" and node.i(0).op == "Slice":
         first_slice_node = node.i(0)
         first_slice_node_inputs = list(first_slice_node.inputs)
-        if all(
-            isinstance(input, Constant)
-            for input in first_slice_node_inputs[1:]
-        ):
+        if all(isinstance(input, Constant) for input in first_slice_node_inputs[1:]):
             first_slice_node_users = get_node_users(first_slice_node)
             if all(
-                user.op == "Slice"
-                and all(
-                    isinstance(input, Constant)
-                    for input in list(user.inputs)[1:]
-                )
+                user.op == "Slice" and all(isinstance(input, Constant) for input in list(user.inputs)[1:])
                 for user in first_slice_node_users
             ):
                 first_slice_node_starts = first_slice_node_inputs[1].values.tolist()
@@ -408,8 +401,7 @@ def find_reshape_nodes(node, opset):
                     reshape_shape = reshape_node.inputs[1].values
                     if input_shape != None and np.any(reshape_shape == 0):
                         shape = [
-                            input_shape[i] if dim_size == 0 else dim_size
-                            for i, dim_size in enumerate(reshape_shape)
+                            input_shape[i] if dim_size == 0 else dim_size for i, dim_size in enumerate(reshape_shape)
                         ]
                         if not all(isinstance(item, int) for item in shape):
                             return False
@@ -488,14 +480,13 @@ def find_matmul_add_nodes(node, opset):
     """
     # fmt: on
     match = {}
-    if node.op == "Add" and ((isinstance(node.inputs[1], Constant) and node.i(0).op == "MatMul") or (
-                isinstance(node.inputs[0], Constant) and node.i(1).op == "MatMul"
-            )):
+    if node.op == "Add" and (
+        (isinstance(node.inputs[1], Constant) and node.i(0).op == "MatMul")
+        or (isinstance(node.inputs[0], Constant) and node.i(1).op == "MatMul")
+    ):
         matmul_node = node.i(0) if isinstance(node.inputs[1], Constant) else node.i(1)
         matmul_bias_variable = get_constant_variable(matmul_node)
-        input_variable = (
-            matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], Constant) else matmul_node.inputs[1]
-        )
+        input_variable = matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], Constant) else matmul_node.inputs[1]
         users = get_node_users(matmul_node)
         if len(users) == 1 and matmul_bias_variable:
             if (
@@ -510,13 +501,13 @@ def find_matmul_add_nodes(node, opset):
                 inputs = []
                 inputs.append(input_variable)
                 inputs.append(pre_reshape_const)
-    
+
                 reshape_out_variable = gs.Variable(
                     matmul_node.name + "_pre_reshape_out",
                     dtype=input_variable.dtype,
                 )
                 outputs = [reshape_out_variable]
-    
+
                 match.update(
                     {
                         matmul_node.name + "_pre_reshape": {
@@ -528,25 +519,25 @@ def find_matmul_add_nodes(node, opset):
                         }
                     }
                 )
-    
+
                 add_node = node
                 add_bias_variable = get_constant_variable(add_node)
-    
+
                 output_variable = add_node.inputs[0]
                 output_variable.outputs.remove(add_node)
-    
+
                 matmul_bias_transpose_constant = gs.Constant(
                     matmul_bias_variable.name, values=matmul_bias_variable.values.T
                 )
-    
+
                 inputs = []
                 inputs.append(reshape_out_variable)
                 inputs.append(matmul_bias_transpose_constant)
                 inputs.append(add_bias_variable)
-    
+
                 gemm_out_variable = gs.Variable(matmul_node.name + "_gemm_out", dtype=output_variable.dtype)
                 outputs = [gemm_out_variable]
-    
+
                 match.update(
                     {
                         matmul_node.name: {
@@ -564,22 +555,22 @@ def find_matmul_add_nodes(node, opset):
                         }
                     }
                 )
-    
+
                 values = input_variable.shape[:-1] + [matmul_bias_variable.values.shape[-1]]
                 post_reshape_const = gs.Constant(
                     matmul_node.name + "_post_reshape_in",
                     values=np.array(values, dtype=np.int64),
                 )
-    
+
                 inputs = []
                 inputs.append(gemm_out_variable)
                 inputs.append(post_reshape_const)
                 outputs = list(add_node.outputs)
-    
+
                 matmul_node.outputs.clear()
                 add_node.inputs.clear()
                 add_node.outputs.clear()
-    
+
                 match.update(
                     {
                         matmul_node.name + "_post_reshape": {
@@ -598,19 +589,19 @@ def find_matmul_add_nodes(node, opset):
             ):
                 add_node = node
                 add_bias_variable = get_constant_variable(add_node)
-    
+
                 output_variable = add_node.inputs[0]
                 output_variable.outputs.remove(add_node)
-    
+
                 matmul_bias_transpose_constant = gs.Constant(
                     matmul_bias_variable.name, values=matmul_bias_variable.values.T
                 )
-    
+
                 inputs = []
                 inputs.append(input_variable)
                 inputs.append(matmul_bias_transpose_constant)
                 inputs.append(add_bias_variable)
-    
+
                 outputs = list(add_node.outputs)
                 add_node.inputs.clear()
                 add_node.outputs.clear()
@@ -655,11 +646,11 @@ def find_gelu_nodes(node, opset):
     # fmt: on
     match = {}
     if node.op == "Mul" and (
-                node.i(0).op == "Mul"
-                and node.i(0).i(1).op == "Add"
-                and node.i(0).i(1).i(0).op == "Erf"
-                and node.i(0).i(1).i(0).i(0).op == "Div"
-            ):
+        node.i(0).op == "Mul"
+        and node.i(0).i(1).op == "Add"
+        and node.i(0).i(1).i(0).op == "Erf"
+        and node.i(0).i(1).i(0).i(0).op == "Div"
+    ):
         input_variable = node.i(0).i(1).i(0).i(0).inputs[0]
         mul_node = node.i(0)
         div_node = node.i(0).i(1).i(0).i(0)
@@ -703,12 +694,7 @@ def find_slice_nodes(node, opset):
             reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
             unsqueeze_node_axes = unsqueeze_node.attrs.get("axes", None)
 
-            if (
-                opset < 13
-                and reduce_node_axes == [-1]
-                and unsqueeze_node_axes == [-1]
-                and reduce_node_keepdims == 0
-            ):
+            if opset < 13 and reduce_node_axes == [-1] and unsqueeze_node_axes == [-1] and reduce_node_keepdims == 0:
                 inputs = list(reduce_node.inputs)
                 outputs = list(unsqueeze_node.outputs)
                 attrs = reduce_node.attrs

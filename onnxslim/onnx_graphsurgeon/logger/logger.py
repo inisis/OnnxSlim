@@ -161,7 +161,9 @@ class Logger(object):
         def process_message(message, stack_depth):
             def get_prefix():
                 def get_line_info():
-                    module = inspect.getmodule(sys._getframe(stack_depth + 3)) or inspect.getmodule(sys._getframe(stack_depth + 2))
+                    module = inspect.getmodule(sys._getframe(stack_depth + 3)) or inspect.getmodule(
+                        sys._getframe(stack_depth + 2)
+                    )
                     filename = module.__file__
                     filename = os.path.relpath(filename, self.root_dir)
                     # If the file is not located in trt_smeagol, use its basename instead.

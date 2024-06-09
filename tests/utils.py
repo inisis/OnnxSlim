@@ -115,9 +115,7 @@ def _get_torch_home():
     return os.path.expanduser(
         os.getenv(
             ENV_TORCH_HOME,
-            os.path.join(
-                os.getenv(ENV_XDG_CACHE_HOME, DEFAULT_CACHE_DIR), "torch"
-            ),
+            os.path.join(os.getenv(ENV_XDG_CACHE_HOME, DEFAULT_CACHE_DIR), "torch"),
         )
     )
 
@@ -319,11 +317,7 @@ def list(github, force_reload=False, skip_validation=False):
 
     sys.path.remove(repo_dir)
 
-    return [
-        f
-        for f in dir(hub_module)
-        if callable(getattr(hub_module, f)) and not f.startswith("_")
-    ]
+    return [f for f in dir(hub_module) if callable(getattr(hub_module, f)) and not f.startswith("_")]
 
 
 def help(github, model, force_reload=False, skip_validation=False):
@@ -518,9 +512,7 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
         if hash_prefix is not None:
             digest = sha256.hexdigest()
             if digest[: len(hash_prefix)] != hash_prefix:
-                raise RuntimeError(
-                    f'invalid hash value (expected "{hash_prefix}", got "{digest}")'
-                )
+                raise RuntimeError(f'invalid hash value (expected "{hash_prefix}", got "{digest}")')
         shutil.move(f.name, dst)
     finally:
         f.close()

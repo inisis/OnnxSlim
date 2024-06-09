@@ -273,10 +273,7 @@ class SymbolicShapeInference:
         """Add suggested merges for input symbols, prioritizing literals, input symbolic dims, or existing symbolic
         dims.
         """
-        assert all(
-            (type(s) == str and s in self.symbolic_dims_) or is_literal(s)
-            for s in symbols
-        )
+        assert all((type(s) == str and s in self.symbolic_dims_) or is_literal(s) for s in symbols)
         symbols = set(symbols)
         for k, v in self.suggested_merge_.items():
             if k in symbols:
@@ -302,9 +299,7 @@ class SymbolicShapeInference:
         # when nothing to map to, use the shorter one
         if map_to is None:
             if self.verbose_ > 0:
-                logger.warning(
-                    f'Potential unsafe merge between symbolic expressions: ({",".join(symbols)})'
-                )
+                logger.warning(f'Potential unsafe merge between symbolic expressions: ({",".join(symbols)})')
             symbols_list = list(symbols)
             lens = [len(s) for s in symbols_list]
             map_to = symbols_list[lens.index(min(lens))]
@@ -528,23 +523,25 @@ class SymbolicShapeInference:
                     if (name in self.initializers_ and name not in self.graph_inputs_)
                 ]
 
-            if node.op_type in [
-                            "Add",
-                            "Sub",
-                            "Mul",
-                            "Div",
-                            "MatMul",
-                            "MatMulInteger",
-                            "MatMulInteger16",
-                            "Where",
-                            "Sum",
-                        ] and node.output[0] in self.known_vi_:
+            if (
+                node.op_type
+                in [
+                    "Add",
+                    "Sub",
+                    "Mul",
+                    "Div",
+                    "MatMul",
+                    "MatMulInteger",
+                    "MatMulInteger16",
+                    "Where",
+                    "Sum",
+                ]
+                and node.output[0] in self.known_vi_
+            ):
                 vi = self.known_vi_[node.output[0]]
                 out_rank = len(get_shape_from_type_proto(vi.type))
                 in_shapes = [self._get_shape(node, i) for i in range(len(node.input))]
-                for d in range(
-                    out_rank - (2 if node.op_type in ["MatMul", "MatMulInteger", "MatMulInteger16"] else 0)
-                ):
+                for d in range(out_rank - (2 if node.op_type in ["MatMul", "MatMulInteger", "MatMulInteger16"] else 0)):
                     in_dims = [s[len(s) - out_rank + d] for s in in_shapes if len(s) + d >= out_rank]
                     if len(in_dims) > 1:
                         self._check_merged_dims(in_dims, allow_broadcast=True)
@@ -959,11 +956,9 @@ class SymbolicShapeInference:
             )
         )
 
-    def _infer_Concat(self, node):    # noqa: N802
+    def _infer_Concat(self, node):  # noqa: N802
         """Infer the output shape and type for the Concat operation based on input node values."""
-        if any(
-            i in self.sympy_data_ or i in self.initializers_ for i in node.input
-        ):
+        if any(i in self.sympy_data_ or i in self.initializers_ for i in node.input):
             values = self._get_int_or_float_values(node)
             if all(v is not None for v in values):
                 assert get_attribute(node, "axis") == 0
@@ -1028,7 +1023,7 @@ class SymbolicShapeInference:
         t = get_attribute(node, "value")
         self.sympy_data_[node.output[0]] = numpy_helper.to_array(t)
 
-    def _infer_ConstantOfShape(self, node):    # noqa: N802
+    def _infer_ConstantOfShape(self, node):  # noqa: N802
         """Infer the constant tensor of a given shape from a node and update sympy_data_."""
         sympy_shape = self._get_int_or_float_values(node)[0]
         vi = self.known_vi_[node.output[0]]
@@ -1037,9 +1032,7 @@ class SymbolicShapeInference:
                 sympy_shape = [sympy_shape]
             self._update_computed_dims(sympy_shape)
             # update sympy data if output type is int, and shape is known
-            if vi.type.tensor_type.elem_type == onnx.TensorProto.INT64 and all(
-                is_literal(x) for x in sympy_shape
-            ):
+            if vi.type.tensor_type.elem_type == onnx.TensorProto.INT64 and all(is_literal(x) for x in sympy_shape):
                 self.sympy_data_[node.output[0]] = np.ones(
                     [int(x) for x in sympy_shape], dtype=np.int64
                 ) * numpy_helper.to_array(get_attribute(node, "value", 0))
@@ -1107,7 +1100,7 @@ class SymbolicShapeInference:
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
-    def _infer_Einsum(self, node):    # noqa: N802
+    def _infer_Einsum(self, node):  # noqa: N802
         """Infer the output shape and type for the Einsum operation as per ONNX standards: https://github.com/onnx/onnx/blob/623dfaa/onnx/defs/math/defs.cc#L3275."""
         equation = get_attribute(node, "equation")
         equation = equation.replace(b" ", b"")
@@ -1184,7 +1177,7 @@ class SymbolicShapeInference:
                 )
             )
 
-    def _infer_Gather(self, node):    # noqa: N802
+    def _infer_Gather(self, node):  # noqa: N802
         """Infer the output shape of the Gather operation based on the input data and indices shapes."""
         data_shape = self._get_shape(node, 0)
         axis = handle_negative_axis(get_attribute(node, "axis", 0), len(data_shape))
@@ -1269,10 +1262,14 @@ class SymbolicShapeInference:
                     self._fuse_tensor_type(node, i_out, vi.type, subgraph.output[i_out].type)
 
                 # pass on sympy data from subgraph, if cond is constant
-                if cond is not None and i_sub == (0 if as_scalar(cond) > 0 else 1) and subgraph.output[i_out].name in subgraph_infer.sympy_data_:
+                if (
+                    cond is not None
+                    and i_sub == (0 if as_scalar(cond) > 0 else 1)
+                    and subgraph.output[i_out].name in subgraph_infer.sympy_data_
+                ):
                     self.sympy_data_[vi.name] = subgraph_infer.sympy_data_[subgraph.output[i_out].name]
 
-    def _infer_Loop(self, node):    # noqa: N802
+    def _infer_Loop(self, node):  # noqa: N802
         """Infer the shape and type of variables produced by the 'Loop' operation in an ONNX graph."""
         subgraph = get_attribute(node, "body")
         assert len(subgraph.input) == len(node.input)
@@ -1437,9 +1434,7 @@ class SymbolicShapeInference:
         dim1 = handle_negative_axis(dim1, rank)
         dim2 = handle_negative_axis(dim2, rank)
 
-        new_shape = [
-            val for dim, val in enumerate(sympy_shape) if dim not in [dim1, dim2]
-        ]
+        new_shape = [val for dim, val in enumerate(sympy_shape) if dim not in [dim1, dim2]]
         shape1 = sympy_shape[dim1]
         shape2 = sympy_shape[dim2]
         if offset >= 0:
@@ -1631,7 +1626,7 @@ class SymbolicShapeInference:
                 # all of these parameters have the same shape as the 1st input
                 self._propagate_shape_and_type(node, input_index=1, output_index=i)
 
-    def _infer_Range(self, node):    # noqa: N802
+    def _infer_Range(self, node):  # noqa: N802
         """Infers the shape and type for Range nodes based on the provided start, limit, and delta values."""
         vi = self.known_vi_[node.output[0]]
         input_data = self._get_int_or_float_values(node)
@@ -1708,7 +1703,7 @@ class SymbolicShapeInference:
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, new_shape))
 
-    def _infer_Reshape(self, node):    # noqa: N802
+    def _infer_Reshape(self, node):  # noqa: N802
         """Infer the output shape for the Reshape operation based on the provided input shape and reshape parameters."""
         shape_value = self._try_get_value(node, 1)
         vi = self.known_vi_[node.output[0]]
@@ -1856,7 +1851,7 @@ class SymbolicShapeInference:
             )
         )
 
-    def _infer_SequenceAt(self, node):    # noqa: N802
+    def _infer_SequenceAt(self, node):  # noqa: N802
         """Infers the shape and type for the output of the 'SequenceAt' ONNX operation, handling symbolic dimensions if
         necessary.
         """
@@ -1895,7 +1890,7 @@ class SymbolicShapeInference:
             helper.make_tensor_value_info(node.output[0], onnx.TensorProto.INT64, [])
         )
 
-    def _infer_Slice(self, node):    # noqa: N802
+    def _infer_Slice(self, node):  # noqa: N802
         """Infer the shape and value information for the Slice node using SymPy and ONNX helper methods."""
 
         # even when the relation holds for both `a` and `b`.
@@ -2117,7 +2112,7 @@ class SymbolicShapeInference:
         """Infers the output shapes and types for the SplitToSequence operation node."""
         self._infer_Split_Common(node, helper.make_sequence_value_info)
 
-    def _infer_Squeeze(self, node):    # noqa: N802
+    def _infer_Squeeze(self, node):  # noqa: N802
         """Infers the output shapes and types for the Squeeze operation node."""
         input_shape = self._get_shape(node, 0)
         op_set = get_opset(self.out_mp_)
@@ -2189,7 +2184,7 @@ class SymbolicShapeInference:
             )
         )
 
-    def _infer_TopK(self, node):    # noqa: N802
+    def _infer_TopK(self, node):  # noqa: N802
         """Infers the output shape for the TopK operation in an ONNX graph node based on input shape and specified
         axis.
         """
@@ -2281,7 +2276,7 @@ class SymbolicShapeInference:
         vi = self.known_vi_[node.output[0]]
         vi.CopyFrom(new_vi)
 
-    def _infer_Attention(self, node):    # noqa: N802
+    def _infer_Attention(self, node):  # noqa: N802
         """Infer shape and data type for ONNX Attention node outputs given input shapes and attributes."""
         shape = self._get_shape(node, 0)
         shape_weights = self._get_shape(node, 1)
@@ -2572,7 +2567,7 @@ class SymbolicShapeInference:
         """Infers the output shapes and types for the GemmFloat8 node using matrix multiplication shape computation."""
         self._compute_matmul_shape(node)
 
-    def _infer_LayerNormalization(self, node):    # noqa: N802
+    def _infer_LayerNormalization(self, node):  # noqa: N802
         """Infers the output shapes and types for the LayerNormalization node, including handling mean and variance
         outputs.
         """
@@ -2963,10 +2958,10 @@ class SymbolicShapeInference:
                         ]:
                             shapes = [self._get_shape(node, i) for i in range(len(node.input))]
                             if node.op_type in [
-                                                            "MatMul",
-                                                            "MatMulInteger",
-                                                            "MatMulInteger16",
-                                                        ] and (None in out_shape or self._is_shape_contains_none_dim(out_shape)):
+                                "MatMul",
+                                "MatMulInteger",
+                                "MatMulInteger16",
+                            ] and (None in out_shape or self._is_shape_contains_none_dim(out_shape)):
                                 if None in out_shape:
                                     idx = out_shape.index(None)
                                 else:
@@ -3006,11 +3001,7 @@ class SymbolicShapeInference:
                         self.run_ = False
 
                     # create new dynamic dims for ops not handled by symbolic shape inference
-                    if (
-                        not self.run_
-                        and node.op_type not in self.dispatcher_
-                        and not known_aten_op
-                    ):
+                    if not self.run_ and node.op_type not in self.dispatcher_ and not known_aten_op:
                         is_unknown_op = out_type_undefined and (out_shape is None or len(out_shape) == 0)
                         if is_unknown_op:
                             # unknown op to ONNX, maybe from higher opset or other domain

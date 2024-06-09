@@ -172,8 +172,7 @@ class Graph(object):
             if methods:
                 if len(methods) > 1:
                     msg_template = (
-                        "Method name {} is overloaded with the following candidates: {}. "
-                        + "Choosing candidate {}"
+                        "Method name {} is overloaded with the following candidates: {}. " + "Choosing candidate {}"
                     )
                     G_LOGGER.warning(
                         message=msg_template.format(name, method_descs, method_descs[0]),
@@ -224,10 +223,7 @@ class Graph(object):
         if not outputs_match:
             return False
 
-        return (
-            self.opset == other.opset
-            and self.import_domains == other.import_domains
-        )
+        return self.opset == other.opset and self.import_domains == other.import_domains
 
     def node_ids(self):
         """
@@ -293,8 +289,6 @@ class Graph(object):
         """Returns a dictionary of tensors that are used by node IDs in the current subgraph."""
         local_tensors = self._local_tensors()
 
-
-
         class IgnoreDupAndForeign(object):
             def __init__(self, initial_tensors=None):
                 """Initialize IgnoreDupAndForeign with an optional list of initial tensors."""
@@ -312,7 +306,6 @@ class Graph(object):
                     self.seen_tensors.add(tensor.name)
                     return True
                 return False
-
 
         # Traverse backwards from outputs to find all used nodes.
         ignore_tensors = IgnoreDupAndForeign()
@@ -555,7 +548,7 @@ class Graph(object):
             if get_id(node_or_func) in visited and len(node_or_func.outputs) == 1:
                 if isinstance(node_or_func, Function):
                     G_LOGGER.critical("Cycle detected in function definitions!")
-            
+
                 G_LOGGER.critical("Cycle detected in graph! Are there tensors with duplicate names in the graph?")
             visited.add(get_id(node_or_func))
 
@@ -649,10 +642,7 @@ class Graph(object):
         def add_to_tensor_map(tensor):
             """Add a tensor to the tensor_map if it is not empty and ensure no duplicate tensor names exist."""
             if not tensor.is_empty():
-                if (
-                    tensor.name in tensor_map
-                    and tensor_map[tensor.name] is not tensor
-                ):
+                if tensor.name in tensor_map and tensor_map[tensor.name] is not tensor:
                     msg = "Found distinct tensors that share the same name:\n[id: {:}] {:}\n[id: {:}] {:}\n".format(
                         id(tensor_map[tensor.name]),
                         tensor_map[tensor.name],
@@ -963,8 +953,7 @@ class Graph(object):
         graph_constants = {
             name: tensor
             for name, tensor in clone_tensors.items()
-            if isinstance(tensor, Constant)
-            and all(t.op != "Gather" for t in tensor.outputs)
+            if isinstance(tensor, Constant) and all(t.op != "Gather" for t in tensor.outputs)
         }
         graph_constants = update_foldable_outputs(graph_constants)
 

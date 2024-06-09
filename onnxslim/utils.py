@@ -1,8 +1,8 @@
+import logging
 import os
 import sys
-import logging
-from typing import Dict, List, Optional, Tuple, Union
 from collections import defaultdict
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import onnx
@@ -362,6 +362,7 @@ def model_save_as_external_data(model: onnx.ModelProto, model_path: str):
         location=location,
     )
 
+
 def check_onnx(model: onnx.ModelProto, model_check_inputs=None):
     """Validates an ONNX model by generating input data and performing inference to check outputs."""
     input_data_dict = gen_onnxruntime_input_data(model, model_check_inputs)
@@ -467,8 +468,8 @@ def get_model_size_and_initializer_size(model):
         tensor_size = calculate_tensor_size(tensor)
         initializer_size += tensor_size
 
-    print('model size', model.ByteSize())
-    print('initializer size', initializer_size)
+    print("model size", model.ByteSize())
+    print("initializer size", initializer_size)
 
 
 def get_model_subgraph_size(model):
@@ -479,4 +480,4 @@ def get_model_subgraph_size(model):
             if attr.type in ATTR_TYPE_MAPPING:
                 attr_str = ATTR_TYPE_MAPPING[attr.type]
                 if attr_str == "GRAPH":
-                    print('subgraph', attr.g.ByteSize())
+                    print("subgraph", attr.g.ByteSize())

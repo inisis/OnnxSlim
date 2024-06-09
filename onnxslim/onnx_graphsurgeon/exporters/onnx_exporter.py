@@ -259,10 +259,12 @@ class OnnxExporter(BaseExporter):
         )
 
     @staticmethod
-    def export_graph(graph: Graph,
-                     tensor_map:"OrderedDict[str, Tensor]" = None,
-                     subgraph_tensor_map: "OrderedDict[str, Tensor]" = None,
-                     do_type_check=True) -> onnx.GraphProto:
+    def export_graph(
+        graph: Graph,
+        tensor_map: "OrderedDict[str, Tensor]" = None,
+        subgraph_tensor_map: "OrderedDict[str, Tensor]" = None,
+        do_type_check=True,
+    ) -> onnx.GraphProto:
         """
         Export an onnx-graphsurgeon Graph to an ONNX GraphProto.
 
@@ -344,9 +346,15 @@ def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto"
     if len(graph_constants_list) == 0:
         intersection = None
     else:
-        intersection = {k: graph_constants_list[0][k] for k in graph_constants_list[0] if all(k in d for d in graph_constants_list[1:])}
+        intersection = {
+            k: graph_constants_list[0][k]
+            for k in graph_constants_list[0]
+            if all(k in d for d in graph_constants_list[1:])
+        }
 
-    onnx_graph = OnnxExporter.export_graph(graph, tensor_map=intersection, subgraph_tensor_map=intersection, do_type_check=do_type_check)
+    onnx_graph = OnnxExporter.export_graph(
+        graph, tensor_map=intersection, subgraph_tensor_map=intersection, do_type_check=do_type_check
+    )
     onnx_functions = [OnnxExporter.export_function(func) for func in graph.functions]
     kwargs["functions"] = onnx_functions
 

@@ -957,7 +957,11 @@ class Graph(object):
                     graph_constants.update({out.name: out for out in node.outputs})
             return graph_constants
 
-        graph_constants = {name: tensor for name, tensor in clone_tensors.items() if (isinstance(tensor, Constant) and not any([t.op == "Gather" for t in tensor.outputs]))}
+        graph_constants = {
+            name: tensor
+            for name, tensor in clone_tensors.items()
+            if (isinstance(tensor, Constant) and not any([t.op == "Gather" for t in tensor.outputs]))
+        }
         graph_constants = update_foldable_outputs(graph_constants)
 
         # Pass 4: Shape Folding

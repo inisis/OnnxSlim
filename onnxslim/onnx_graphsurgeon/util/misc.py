@@ -71,7 +71,9 @@ def combine_dicts(dict0, dict1):
 
 def unique_dicts(dict0, dict1):
     """
-    Substract two dictionaries. Values in the second will be substracted from the first.
+    Subtract two dictionaries.
+
+    Values in the second will be subtracted from the first.
     """
     if not dict1:
         return dict0

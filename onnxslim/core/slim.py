@@ -9,8 +9,9 @@ import onnx
 from onnx import checker
 
 import onnxslim.onnx_graphsurgeon as gs
+from onnxslim.core.optimizer import delete_node, optimize_model
+from onnxslim.core.symbolic_shape_infer import SymbolicShapeInference
 from onnxslim.onnx_graphsurgeon.ir.tensor import Constant
-
 from onnxslim.utils import (
     dump_model_info_to_disk,
     gen_onnxruntime_input_data,
@@ -18,8 +19,6 @@ from onnxslim.utils import (
     onnxruntime_inference,
     print_model_info_as_table,
 )
-from onnxslim.core.optimizer import delete_node, optimize_model
-from onnxslim.core.symbolic_shape_infer import SymbolicShapeInference
 
 DEBUG = bool(os.getenv("ONNXSLIM_DEBUG"))
 AUTO_MERGE = True if os.getenv("ONNXSLIM_AUTO_MERGE") is None else bool(int(os.getenv("ONNXSLIM_AUTO_MERGE")))

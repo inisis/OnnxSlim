@@ -18,7 +18,6 @@ OnnxSlim can help you slim your onnx model, with less operators, but same accura
 - 🚀 Rank 1st in the [AICAS 2024 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532170/customize440) held by Arm and T-head
 - 🚀 OnnxSlim is merged into [ultralytics](https://github.com/ultralytics/ultralytics) ❤️❤️❤️
 
-
 # Installation
 
 ## Using Prebuilt

@@ -194,7 +194,7 @@ class Graph(object):
 
     def __setattr__(self, name, value):
         """Sets an attribute to the given value, converting 'inputs' and 'outputs' to lists if applicable."""
-        if name in ["inputs", "outputs"]:
+        if name in {"inputs", "outputs"}:
             value = list(value)
         return super().__setattr__(name, value)
 
@@ -502,8 +502,8 @@ class Graph(object):
         if mode not in ALLOWED_MODES:
             G_LOGGER.critical(f'Mode "{mode}" not in {ALLOWED_MODES}')
 
-        sort_nodes = mode in ["full", "nodes"]
-        sort_functions = mode in ["full", "functions"]
+        sort_nodes = mode in {"full", "nodes"}
+        sort_functions = mode in {"full", "functions"}
 
         if sort_nodes and recurse_functions:
             for func in self.functions:
@@ -812,7 +812,7 @@ class Graph(object):
             # Search for Cast(s) (from int -> float) -> intermediate operator (with float constants) -> Cast(s) (back to int)
             # This pattern is problematic for TensorRT since these operations may be performed on Shape Tensors, which
             # are not allowed to be floating point type. Attempt to fold the pattern here
-            VALID_CAST_ELISION_OPS = [
+            VALID_CAST_ELISION_OPS = {
                 "Add",
                 "Sub",
                 "Mul",
@@ -823,7 +823,7 @@ class Graph(object):
                 "Greater",
                 "Less",
                 "Concat",
-            ]
+            }
 
             if node.op not in VALID_CAST_ELISION_OPS:
                 return
@@ -862,7 +862,7 @@ class Graph(object):
                 for out_tensor in node.outputs
                 for out_node in out_tensor.outputs
                 if out_node.op == "Cast"
-                and out_node.attrs["to"] in [onnx.TensorProto.DataType.INT32, onnx.TensorProto.DataType.INT64]
+                and out_node.attrs["to"] in {onnx.TensorProto.DataType.INT32, onnx.TensorProto.DataType.INT64}
             ]
 
             # No cast node found on outputs, return early
@@ -1029,7 +1029,7 @@ class Graph(object):
 
             if len(slice.inputs) >= 3:
                 starts, ends = slice.inputs[1:3]
-                if any(not isinstance(t, Constant) for t in [starts, ends]):
+                if any(not isinstance(t, Constant) for t in {starts, ends}):
                     return None
                 starts, ends = get_scalar_value(starts), get_scalar_value(ends)
             elif "starts" in slice.attrs and "ends" in slice.attrs:
@@ -1070,7 +1070,7 @@ class Graph(object):
 
         if fold_shapes:
             # NOTE: The order of shape folding passes is important to maximize how much we fold (phase-ordering problem).
-            SHAPE_FOLD_FUNCS = [fold_shape_gather, fold_shape_slice, fold_shape]
+            SHAPE_FOLD_FUNCS = {fold_shape_gather, fold_shape_slice, fold_shape}
             for shape_fold_func in SHAPE_FOLD_FUNCS:
                 try:
                     for tensor in clone_tensors.values():

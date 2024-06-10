@@ -106,8 +106,7 @@ TableFormat = namedtuple(
 
 def _is_separating_line(row):
     """Determine if a row is a separating line based on its type and specific content conditions."""
-    row_type = type(row)
-    return row_type in [list, str] and (
+    return type(row) in {list, str} and (
         (len(row) >= 1 and row[0] == SEPARATING_LINE) or (len(row) >= 2 and row[1] == SEPARATING_LINE)
     )
 
@@ -117,7 +116,7 @@ def _pipe_segment_with_colons(align, colwidth):
     format).
     """
     w = colwidth
-    if align in ["right", "decimal"]:
+    if align in {"right", "decimal"}:
         return ("-" * (w - 1)) + ":"
     elif align == "center":
         return ":" + ("-" * (w - 2)) + ":"
@@ -854,7 +853,7 @@ def _isnumber(string):
     if not _isconvertible(float, string):
         return False
     elif isinstance(string, (str, bytes)) and (math.isinf(float(string)) or math.isnan(float(string))):
-        return string.lower() in ["inf", "-inf", "nan"]
+        return string.lower() in {"inf", "-inf", "nan"}
     return True
 
 
@@ -884,7 +883,7 @@ def _isbool(string):
     >>> _isbool(1)
     False
     """
-    return type(string) is bool or (isinstance(string, (bytes, str)) and string in ("True", "False"))
+    return type(string) is bool or (isinstance(string, (bytes, str)) and string in {"True", "False"})
 
 
 def _type(string, has_invisible=True, numparse=True):
@@ -1343,7 +1342,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
         elif hasattr(tabular_data, "index"):
             # values is a property, has .index => it's likely a pandas.DataFrame (pandas 0.11.0)
             keys = list(tabular_data)
-            if showindex in ["default", "always", True] and tabular_data.index.name is not None:
+            if showindex in {"default", "always", True} and tabular_data.index.name is not None:
                 if isinstance(tabular_data.index.name, list):
                     keys[:0] = tabular_data.index.name
                 else:
@@ -1440,7 +1439,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
     rows = list(map(lambda r: r if _is_separating_line(r) else list(r), rows))
 
     # add or remove an index column
-    showindex_is_a_str = type(showindex) in [str, bytes]
+    showindex_is_a_str = type(showindex) in {str, bytes}
     if showindex == "default" and index is not None:
         rows = _prepend_row_index(rows, index)
     elif isinstance(showindex, Sized) and not showindex_is_a_str:
@@ -2129,7 +2128,7 @@ def tabulate(
     if colglobalalign is not None:  # if global alignment provided
         aligns = [colglobalalign] * len(cols)
     else:  # default
-        aligns = [numalign if ct in [int, float] else stralign for ct in coltypes]
+        aligns = [numalign if ct in {int, float} else stralign for ct in coltypes]
     # then specific alignments
     if colalign is not None:
         assert isinstance(colalign, Iterable)
@@ -2611,25 +2610,25 @@ def _main():
     sep = r"\s+"
     outfile = "-"
     for opt, value in opts:
-        if opt in ["-1", "--header"]:
+        if opt in {"-1", "--header"}:
             headers = "firstrow"
-        elif opt in ["-o", "--output"]:
+        elif opt in {"-o", "--output"}:
             outfile = value
-        elif opt in ["-F", "--float"]:
+        elif opt in {"-F", "--float"}:
             floatfmt = value
-        elif opt in ["-I", "--int"]:
+        elif opt in {"-I", "--int"}:
             intfmt = value
-        elif opt in ["-C", "--colalign"]:
+        elif opt in {"-C", "--colalign"}:
             colalign = value.split()
-        elif opt in ["-f", "--format"]:
+        elif opt in {"-f", "--format"}:
             if value not in tabulate_formats:
                 print(f"{value} is not a supported table format")
                 print(usage)
                 sys.exit(3)
             tablefmt = value
-        elif opt in ["-s", "--sep"]:
+        elif opt in {"-s", "--sep"}:
             sep = value
-        elif opt in ["-h", "--help"]:
+        elif opt in {"-h", "--help"}:
             print(usage)
             sys.exit(0)
     files = args or [sys.stdin]

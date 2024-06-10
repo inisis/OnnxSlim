@@ -126,7 +126,7 @@ def gen_onnxruntime_input_data(
             shapes = shapes or [1]
             dtype = info["dtype"]
 
-            if dtype in [np.int32, np.int64]:
+            if dtype in {np.int32, np.int64}:
                 random_data = np.random.randint(10, size=shapes).astype(dtype)
             else:
                 random_data = np.random.rand(*shapes).astype(dtype)
@@ -300,7 +300,7 @@ def dump_model_info_to_disk(model_name: str, model_info: Dict):
 def get_opset(model: onnx.ModelProto) -> int:
     try:
         for importer in model.opset_import:
-            if importer.domain in ["", "ai.onnx"]:
+            if importer.domain in {"", "ai.onnx"}:
                 return importer.version
 
         return None

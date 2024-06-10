@@ -83,12 +83,12 @@ def get_itemsize(dtype):
     if dtype == onnx.TensorProto.BFLOAT16:
         return 2
 
-    if dtype in [
+    if dtype in {
         onnx.TensorProto.FLOAT8E4M3FN,
         onnx.TensorProto.FLOAT8E4M3FNUZ,
         onnx.TensorProto.FLOAT8E5M2,
         onnx.TensorProto.FLOAT8E5M2FNUZ,
-    ]:
+    }:
         return 1
     G_LOGGER.critical(f"Unsupported type: {dtype}")
 
@@ -193,7 +193,7 @@ class OnnxImporter(BaseImporter):
         class_name = "Function" if isinstance(model_or_func, onnx.FunctionProto) else "Model"
         try:
             for importer in OnnxImporter.get_import_domains(model_or_func):
-                if importer.domain in ["", "ai.onnx"]:
+                if importer.domain in {"", "ai.onnx"}:
                     return importer.version
             G_LOGGER.warning(f"{class_name} does not contain ONNX domain opset information! Using default opset.")
             return None

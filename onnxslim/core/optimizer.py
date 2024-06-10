@@ -58,11 +58,10 @@ def get_previous_node_by_type(node, op_type, trajectory=None):
         trajectory = []
     node_feeds = get_node_feeds(node)
     for node_feed in node_feeds:
+        trajectory.append(node_feed)
         if node_feed.op == op_type:
-            trajectory.append(node_feed)
             return trajectory
         else:
-            trajectory.append(node_feed)
             return get_previous_node_by_type(node_feed, op_type, trajectory)
 
 
@@ -112,7 +111,7 @@ def graph_constant_fold_inplace(graph):
         graph_constant_fold_inplace(subgraph)
 
     for node in graph.nodes:
-        if node.op in ["Identity", "Dropout"]:
+        if node.op in {"Identity", "Dropout"}:
             delete_node(node)
 
         elif node.op == "Pad":
@@ -229,10 +228,10 @@ def find_conv_transpose_nodes(node, opset):
     """X | Conv/ConvTranspose | BatchNormalization."""
     # fmt: on
     match = {}
-    if node.op == "BatchNormalization" and node.i(0).op in [
+    if node.op == "BatchNormalization" and node.i(0).op in {
         "ConvTranspose",
         "Conv",
-    ]:
+    }:
         conv_transpose_node = node.i(0)
         conv_transpose_node_users = get_node_users(conv_transpose_node)
         if len(conv_transpose_node_users) == 1:
@@ -802,7 +801,7 @@ def find_and_remove_replaceable_nodes(nodes):
                 if keep_nodes[i]:
                     for j in range(i + 1, len(bucketed_nodes)):
                         if keep_nodes[j]:
-                            logger.debug(f"node.op {bucketed_nodes[0].op} idx i: {i}, idx j: {j}")
+                            logger.debug(f"node.op {bucketed_nodes[i].op} idx i: {i}, idx j: {j}")
                             if can_be_replaced(node, bucketed_nodes[j]):
                                 keep_nodes[j] = False
                                 existing_node = node
@@ -846,7 +845,7 @@ def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns
     graph = model if isinstance(model, gs.Graph) else gs.import_onnx(model)
     fusion_patterns = get_fusion_patterns(skip_fusion_patterns)
     fusion_pairs = find_matches(graph, fusion_patterns)
-    for _, match in fusion_pairs.items():
+    for match in fusion_pairs.values():
         graph.replace_custom_layer(**match)
     graph.cleanup(remove_unused_graph_inputs=True).toposort()
     graph_constant_fold_inplace(graph)

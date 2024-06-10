@@ -135,7 +135,7 @@ class Node(object):
 
     def __setattr__(self, name, value):
         """Sets the attribute 'name' to 'value', handling special cases for 'inputs' and 'outputs' attributes."""
-        if name in ["inputs", "outputs"]:
+        if name in {"inputs", "outputs"}:
             try:
                 attr = getattr(self, name)
                 if value is attr:

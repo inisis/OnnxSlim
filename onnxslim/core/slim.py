@@ -30,7 +30,7 @@ def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.
             raise Exception(f"Input name {key} not found in model, available keys: {' '.join(input_names)}")
         tensors[key].shape = values_list
 
-    for _, tensor in tensors.items():
+    for tensor in tensors.values():
         if tensor.name not in input_names:
             if isinstance(tensor, Constant):
                 continue
@@ -127,7 +127,7 @@ def convert_data_format(model: onnx.ModelProto, dtype: str) -> onnx.ModelProto:
         for node in graph.nodes:
             if node.op == "Cast":
                 inp_dtype = [input.dtype for input in node.inputs][0]
-                if inp_dtype in [np.float16, np.float32]:
+                if inp_dtype in {np.float16, np.float32}:
                     delete_node(node)
 
         for tensor in graph.tensors().values():

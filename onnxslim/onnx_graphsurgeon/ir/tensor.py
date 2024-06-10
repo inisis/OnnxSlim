@@ -34,7 +34,7 @@ class Tensor(object):
 
     def __setattr__(self, name, value):
         """Set an attribute, ensuring special handling for "inputs" and "outputs" properties."""
-        if name in ["inputs", "outputs"]:
+        if name in {"inputs", "outputs"}:
             try:
                 attr = getattr(self, name)
                 if value is attr:
@@ -344,8 +344,8 @@ class SparseValues(LazyValues):
             values = np.zeros(self.tensor.dims)
             indices_data = np.asarray(indices_data).reshape(self.tensor.indices.dims)
 
-            for i in range(len(values_data)):
-                values[tuple(indices_data[i])] = values_data[i]
+            for value_data, index_data in zip(values_data, indices_data):
+                values[tuple(index_data)] = value_data
         else:
             G_LOGGER.critical(f"Unsupported index data dims {self.tensor.indices.dims} in {self.tensor.values.name}")
 

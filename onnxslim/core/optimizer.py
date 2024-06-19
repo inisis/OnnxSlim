@@ -157,6 +157,7 @@ def graph_constant_fold_inplace(graph):
                     delete_node(node, idx)
                     logger.debug(f"removing Add op: {node.name}")
         elif node.op == "Expand":
+            idx, constant_variable = get_constant_variable(node, return_idx=True)
             if len(node.inputs) > 1 and isinstance(node.inputs[1], Constant) and np.all(node.inputs[1].values == 1):
                 idx = 0 if idx == 1 else 1
                 delete_node(node, idx)

@@ -26,10 +26,7 @@ def get_node_feeds(node):
             feeds.append(input)
         else:
             for feed in input.inputs:
-                if feed.op == "Split":
-                    feeds.append(input)
-                else:
-                    feeds.append(feed)
+                feeds.append(input if feed.op == "Split" else feed)
     return feeds
 
 
@@ -37,7 +34,7 @@ def get_name(name):
     _illegal_char_regex = re.compile("[^0-9a-zA-Z_]+")
     sanitized_name = _illegal_char_regex.sub("_", name)
     if sanitized_name.isdigit():
-        sanitized_name = "_" + sanitized_name
+        sanitized_name = f"_{sanitized_name}"
 
     return sanitized_name
 

@@ -2,32 +2,32 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: model zoo test
-      run: |
-        python -m pip install --upgrade pip wheel setuptools
-        pip install .
-        pip install pytest onnxruntime
-        python tests/test_folder.py --model-dir /root/data/modelzoo
+      - name: model zoo test
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install .
+          pip install pytest onnxruntime
+          python tests/test_folder.py --model-dir /root/data/modelzoo
 
-    - name: pattern matcher test
-      run: |
-        python tests/test_pattern_matcher.py
+      - name: pattern matcher test
+        run: |
+          python tests/test_pattern_matcher.py
 
-    - name: pattern generator test
-      run: |
-        python tests/test_pattern_generator.py
+      - name: pattern generator test
+        run: |
+          python tests/test_pattern_generator.py

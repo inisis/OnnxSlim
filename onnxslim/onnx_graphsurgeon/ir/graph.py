@@ -556,6 +556,7 @@ class Graph(object):
                 """Find all nodes used by a given node or function."""
 
                 def get_used_nodes(node):
+                    """Find all nodes that are used as inputs by a given node."""
                     inputs = {}
 
                     def add_local_producers(tensor):
@@ -921,6 +922,7 @@ class Graph(object):
             """Updates the graph's outputs to ensure certain operations remain foldable."""
 
             def is_foldable(node):
+                """Determines if a given node operation is foldable based on its type."""
                 NO_FOLD_OPS = [
                     "QuantizeLinear",
                     "DequantizeLinear",
@@ -1093,7 +1095,9 @@ class Graph(object):
             """Evaluates and partitions the subgraph to infer constant values using ONNX-Runtime."""
 
             def get_out_node_ids():
-                # Gets the final output nodes - producer nodes of graph output tensors without other outputs.
+                """Gets the final output nodes, identifying producer nodes of graph output tensors with no other
+                outputs.
+                """
                 with subgraph.node_ids():
                     out_node_ids = set()
                     for out in subgraph.outputs:
@@ -1187,7 +1191,7 @@ class Graph(object):
                     if onnx_model.ByteSize() >= onnx.checker.MAXIMUM_PROTOBUF:
                         tmp_dir = tempfile.TemporaryDirectory()
                         tmp_path = os.path.join(tmp_dir.name, "tmp.onnx")
-                        location = os.path.basename(tmp_path) + ".data"
+                        location = f"{os.path.basename(tmp_path)}.data"
                         if os.path.exists(location):
                             os.remove(location)
                         onnx.save(

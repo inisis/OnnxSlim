@@ -398,7 +398,7 @@ class SymbolicShapeInference:
                     if self.auto_merge_:
                         self._add_suggested_merge([dim1, dim2], apply=True)
                     else:
-                        logger.warning(f"unsupported broadcast between {str(dim1)} " + str(dim2))
+                        logger.warning(f"unsupported broadcast between {str(dim1)} {str(dim2)}")
             new_shape = [new_dim, *new_shape]
         return new_shape
 
@@ -635,7 +635,7 @@ class SymbolicShapeInference:
         """Extracts integer or float values from a node, with options for broadcasting and allowing float values."""
 
         def int_or_float(value, allow_float_values):
-            # If casting into int has precision loss: keep float output
+            """Converts a value to an integer unless precision loss occurs and allow_float_values is True."""
             return value if allow_float_values and value % 1 != 0 else int(value)
 
         values = [self._try_get_value(node, i) for i in range(len(node.input))]
@@ -1900,6 +1900,9 @@ class SymbolicShapeInference:
         #
         # If the number of `min(...)` subexpressions is not exactly one, this function just returns `[expr]`.
         def flatten_min(expr):
+            """Returns a list with expressions split by min() for inequality proof or original expr if no single min()
+            found.
+            """
             assert isinstance(expr, sympy.Add), f"Expected a sum of two arguments, got {expr}"
             min_positions = [idx for idx in range(len(expr.args)) if isinstance(expr.args[idx], sympy.Min)]
             if len(min_positions) == 1:
@@ -2810,11 +2813,11 @@ class SymbolicShapeInference:
         # topological sort nodes, note there might be dead nodes so we check if all graph outputs are reached to terminate
         sorted_nodes = []
         sorted_known_vi = {i.name for i in list(self.out_mp_.graph.input) + list(self.out_mp_.graph.initializer)}
-        if any([o.name in sorted_known_vi for o in self.out_mp_.graph.output]):
+        if any(o.name in sorted_known_vi for o in self.out_mp_.graph.output):
             # Loop/Scan will have some graph output in graph inputs, so don't do topological sort
             sorted_nodes = self.out_mp_.graph.node
         else:
-            while not all([o.name in sorted_known_vi for o in self.out_mp_.graph.output]):
+            while not all(o.name in sorted_known_vi for o in self.out_mp_.graph.output):
                 old_sorted_nodes_len = len(sorted_nodes)
                 for node in self.out_mp_.graph.node:
                     if (node.output[0] not in sorted_known_vi) and all(
@@ -2986,7 +2989,7 @@ class SymbolicShapeInference:
                                 # note that the broadcasting rule aligns from right to left
                                 # if a tensor has a lower rank (dim_idx[idx] < 0), it would automatically broadcast and need no merge
                                 dim_idx = [len(s) - len(out_shape) + idx for s in shapes]
-                                if len(dim_idx) > 0:
+                                if dim_idx:
                                     self._add_suggested_merge(
                                         [
                                             s[i] if is_literal(s[i]) else str(s[i])

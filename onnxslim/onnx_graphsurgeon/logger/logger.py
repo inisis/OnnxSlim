@@ -159,6 +159,8 @@ class Logger(object):
         """
 
         def process_message(message, stack_depth):
+            """Generates a log message prefix with file name and line number based on the specified stack depth."""
+
             def get_prefix():
                 def get_line_info():
                     module = inspect.getmodule(sys._getframe(stack_depth + 3)) or inspect.getmodule(

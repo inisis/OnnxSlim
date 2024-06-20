@@ -9,6 +9,8 @@ from onnxslim import slim
 
 class TestPatternMatcher:
     def test_gelu(self, request):
+        """Test the GELU activation function in a neural network model using an instance of nn.Module."""
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
@@ -17,6 +19,9 @@ class TestPatternMatcher:
                 self.relu1 = nn.ReLU()
 
             def forward(self, x):
+                """Performs a forward pass through the model applying ReLU, GELU, and ReLU activations sequentially to
+                the input tensor x.
+                """
                 x = self.relu0(x)
                 x = self.gelu(x)
                 x = self.relu1(x)
@@ -24,7 +29,7 @@ class TestPatternMatcher:
 
         input = torch.randn(2)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -33,6 +38,8 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_pad_conv(self, request):
+        """Test padding followed by 2D convolution within a neural network module."""
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
@@ -43,6 +50,7 @@ class TestPatternMatcher:
                 self.conv_1 = nn.Conv2d(1, 1, 3, bias=False)
 
             def forward(self, x):
+                """Applies padding and convolutional layers to the input tensor x."""
                 x0 = self.pad_0(x)
                 x0 = self.conv_0(x0)
 
@@ -53,7 +61,7 @@ class TestPatternMatcher:
 
         input = torch.randn(1, 1, 24, 24)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -62,6 +70,8 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_conv_bn(self, request):
+        """Test the convolutional layer followed by batch normalization export and re-import via ONNX."""
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
@@ -69,13 +79,14 @@ class TestPatternMatcher:
                 self.bn = nn.BatchNorm2d(1)
 
             def forward(self, x):
+                """Perform convolution followed by batch normalization on input tensor x."""
                 x = self.conv(x)
                 x = self.bn(x)
                 return x
 
         input = torch.randn(1, 1, 24, 24)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -84,6 +95,10 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_consecutive_slice(self, request):
+        """Tests consecutive slicing operations on a model by exporting it to ONNX format and then slimming the ONNX
+        file.
+        """
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
@@ -91,11 +106,12 @@ class TestPatternMatcher:
                 self.bn = nn.BatchNorm2d(1)
 
             def forward(self, x):
+                """Performs slicing operation on the input tensor x by returning the section x[1:2, :2]."""
                 return x[1:2, :2]
 
         input = torch.randn(3, 4)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -104,16 +120,19 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_consecutive_reshape(self, request):
+        """Test the functionality of consecutive reshape operations in a model and export it to ONNX format."""
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
 
             def forward(self, x):
+                """Reshape tensor sequentially to (2, 6) and then to (12, 1)."""
                 return x.view(2, 6).view(12, 1)
 
         input = torch.randn(3, 4)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -122,19 +141,22 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_matmul_add(self, request):
+        """Tests matrix multiplication followed by an addition operation within a neural network model."""
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
                 self.data = torch.randn(4, 3)
 
             def forward(self, x):
+                """Performs matrix multiplication of input 'x' with pre-defined data, adds 1, and returns the result."""
                 x = torch.matmul(x, self.data)
                 x += 1
                 return x
 
         input = torch.randn(3, 4)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -143,18 +165,25 @@ class TestPatternMatcher:
         slim(filename, filename)
 
     def test_reduce(self, request):
+        """Tests model reduction by exporting a PyTorch model to ONNX format, slimming it, and saving to a specified
+        directory.
+        """
+
         class Model(nn.Module):
             def __init__(self):
                 super(Model, self).__init__()
 
             def forward(self, x):
+                """Performs a reduction summing over the last dimension of the input tensor and then unsqueezes the
+                tensor along the same dimension.
+                """
                 x = torch.sum(x, dim=[-1], keepdim=False)
                 x = x.unsqueeze(-1)
                 return x
 
         input = torch.randn(3, 4)
         m = Model()
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"

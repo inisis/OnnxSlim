@@ -145,7 +145,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
     if model.ByteSize() >= onnx.checker.MAXIMUM_PROTOBUF:
         tmp_dir = tempfile.TemporaryDirectory()
         tmp_path = os.path.join(tmp_dir.name, "tmp.onnx")
-        location = os.path.basename(tmp_path) + ".data"
+        location = f"{os.path.basename(tmp_path)}.data"
         if os.path.exists(location):
             os.remove(location)
         onnx.save(
@@ -484,6 +484,7 @@ data_type_sizes = {
 
 
 def calculate_tensor_size(tensor):
+    """Calculates the size of an ONNX tensor in bytes based on its shape and data type size."""
     shape = tensor.dims
     num_elements = np.prod(shape) if shape else 0
     element_size = data_type_sizes.get(tensor.data_type, 0)
@@ -491,6 +492,7 @@ def calculate_tensor_size(tensor):
 
 
 def get_model_size_and_initializer_size(model):
+    """Calculates and prints the model size and initializer size for an ONNX model in bytes."""
     initializer_size = 0
     for tensor in model.graph.initializer:
         tensor_size = calculate_tensor_size(tensor)
@@ -501,6 +503,7 @@ def get_model_size_and_initializer_size(model):
 
 
 def get_model_subgraph_size(model):
+    """Calculate and print the size of subgraphs in an ONNX model in bytes."""
     graph = model.graph
     for node in graph.node:
         for attr in node.attribute:

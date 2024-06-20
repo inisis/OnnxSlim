@@ -2,23 +2,22 @@ name: nightly-test
 
 on:
   schedule:
-    - cron: '0 18 * * *' # Runs at 6:00 PM UTC every day, which is 2:00 AM Beijing Time the next day
-
+    - cron: "0 18 * * *" # Runs at 6:00 PM UTC every day, which is 2:00 AM Beijing Time the next day
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: model test
-      run: |
-        python -m pip install --upgrade pip wheel setuptools
-        pip install .
-        pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
-        python tests/test_onnx_nets.py
+      - name: model test
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install .
+          pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
+          python tests/test_onnx_nets.py

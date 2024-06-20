@@ -189,17 +189,21 @@ class PadConvMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the fusion pattern used."""
         return "FusionPadConv"
 
     def parameter_check(self):
+        """Validates if the padding parameter for a convolutional node is a constant."""
         pad_node = self.pad_0
-        if not isinstance(pad_node.inputs[1], Constant):
-            return False
 
-        return True
+
+def parameter_check(self) -> bool:
+    return isinstance(pad_node.inputs[1], Constant)
 
     def rewrite(self):
-        match_case = {}
+        """Rewrites the padding parameter for a convolutional node to use a constant if the current parameter is not a
+        constant.
+        """
         node = self.conv_0
         pad_node = self.pad_0
         input_variable = self.pad_0.inputs[0]
@@ -229,16 +233,16 @@ class PadConvMatcher(PatternMatcher):
         pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
         attrs["pads"] = pads
 
-        match_case[node.name] = {
-            "op": "Conv",
-            "inputs": inputs,
-            "outputs": outputs,
-            "name": node.name,
-            "attrs": node.attrs,
-            "domain": None,
+        return {
+            node.name: {
+                "op": "Conv",
+                "inputs": inputs,
+                "outputs": outputs,
+                "name": node.name,
+                "attrs": node.attrs,
+                "domain": None,
+            }
         }
-
-        return match_case
 
 
 register_fusion_pattern(PadConvMatcher(1))
@@ -258,9 +262,11 @@ class ConvBatchNormMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the FusionConvBN pattern."""
         return "FusionConvBN"
 
     def rewrite(self):
+        """Rewrites the weights and biases of a BatchNormalization layer fused with a convolution layer."""
         match_case = {}
         conv_transpose_node = self.conv_0
         conv_transpose_node_users = get_node_users(conv_transpose_node)
@@ -281,7 +287,7 @@ class ConvBatchNormMatcher(PatternMatcher):
 
             bn_var_rsqrt = 1.0 / np.sqrt(bn_running_var + bn_eps)
             shape = [1] * len(conv_transpose_weight.shape)
-            if node.i(0).op == "Conv":
+            if bn_node.i(0).op == "Conv":
                 shape[0] = -1
             else:
                 shape[1] = -1
@@ -294,7 +300,7 @@ class ConvBatchNormMatcher(PatternMatcher):
             if weight_name.endswith("weight"):
                 bias_name = f"{weight_name[:-6]}bias"
             else:
-                bias_name = weight_name + "_bias"
+                bias_name = f"{weight_name}_bias"
             inputs.extend(
                 (
                     gs.Constant(weight_name, values=conv_w),
@@ -336,9 +342,11 @@ class SlicePatternMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the elimination pattern, 'EliminationSlice'."""
         return "EliminationSlice"
 
     def rewrite(self):
+        """Rewrites an elimination pattern for slice nodes by optimizing nested slice operations."""
         match_case = {}
         first_slice_node = self.slice_0
         first_slice_node_inputs = list(first_slice_node.inputs)
@@ -436,9 +444,13 @@ class ReshapePatternMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name 'EliminationReshape'."""
         return "EliminationReshape"
 
     def rewrite(self):
+        """Rewrite the computational graph by eliminating redundant reshape operations when certain conditions are
+        met.
+        """
         match_case = {}
         node = self.reshape_1
         first_reshape_node = node.i(0)
@@ -448,10 +460,13 @@ class ReshapePatternMatcher(PatternMatcher):
             second_reshape_node = node
 
             def check_constant_mergeable(reshape_node):
+                """Check if a reshape node's shape input, containing zero dimensions, can be merged with its input
+                node's shape.
+                """
                 if isinstance(reshape_node.inputs[1], Constant):
                     input_shape = reshape_node.inputs[0].shape
                     reshape_shape = reshape_node.inputs[1].values
-                    if input_shape != None and np.any(reshape_shape == 0):
+                    if input_shape is not None and np.any(reshape_shape == 0):
                         shape = [
                             input_shape[i] if dim_size == 0 else dim_size for i, dim_size in enumerate(reshape_shape)
                         ]
@@ -497,9 +512,13 @@ class MatMulAddPatternMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the fusion pattern as a string 'FusionGemm'."""
         return "FusionGemm"
 
     def rewrite(self):
+        """Rewrites the graph for the fusion pattern 'FusionGemm' based on matching criteria and constant variables in
+        matmul nodes.
+        """
         match_case = {}
         node = self.add_0
         matmul_node = self.matmul_0
@@ -663,10 +682,11 @@ class GeluPatternMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the fusion pattern, 'FusionGelu'."""
         return "FusionGelu"
 
     def rewrite(self):
-        match_case = {}
+        """Rewrite the computation graph pattern to fuse GELU operations."""
         input_variable = self.div_0.inputs[0]
         mul_node = self.mul_0
         div_node = self.div_0
@@ -677,14 +697,14 @@ class GeluPatternMatcher(PatternMatcher):
         output_variable = self.mul_1.outputs[0]
         output_variable.inputs.clear()
 
-        match_case[self.mul_1.name] = {
-            "op": "Gelu",
-            "inputs": [input_variable],
-            "outputs": [output_variable],
-            "domain": None,
+        return {
+            self.mul_1.name: {
+                "op": "Gelu",
+                "inputs": [input_variable],
+                "outputs": [output_variable],
+                "domain": None,
+            }
         }
-
-        return match_case
 
 
 # register_fusion_pattern(GeluPatternMatcher(1))
@@ -704,9 +724,11 @@ class ReducePatternMatcher(PatternMatcher):
 
     @property
     def name(self):
+        """Returns the name of the fusion pattern 'FusionReduce'."""
         return "FusionReduce"
 
     def rewrite(self, opset=11):
+        """Rewrites the graph pattern based on opset version; reuses Reduce and Unsqueeze nodes if possible."""
         match_case = {}
         node = self.unsqueeze_0
         reduce_node = self.reduce_0
@@ -763,7 +785,6 @@ def replace_custom_layer(
 
 def find_matches(graph: Graph, fusion_patterns: dict):
     """Find matching patterns in the graph based on provided fusion patterns."""
-    opset = graph.opset
     match_map = {}
     counter = Counter()
     for node in reversed(graph.nodes):

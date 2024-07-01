@@ -37,6 +37,7 @@ from onnxslim.onnx_graphsurgeon.util import misc
 
 
 def dtype_to_onnx(dtype: Union[np.dtype, "onnx.TensorProto.DataType"]) -> int:
+    """Converts a numpy dtype or ONNX data type to its integer representation."""
     if isinstance(dtype, int):
         return dtype
     return onnx.helper.np_dtype_to_tensor_dtype(np.dtype(dtype))
@@ -113,6 +114,7 @@ class OnnxExporter(BaseExporter):
     @staticmethod
     def export_tensor_proto(tensor: Constant) -> onnx.TensorProto:
         # Do *not* load LazyValues into an intermediate numpy array - instead, use
+        """Converts a gs.Constant tensor to an onnx.TensorProto with type and data location handling."""
         # the original onnx.TensorProto directly.
         if isinstance(tensor._values, LazyValues):
             onnx_tensor = tensor._values.tensor
@@ -137,10 +139,12 @@ class OnnxExporter(BaseExporter):
 
     @staticmethod
     def export_sparse_tensor_proto(tensor: Constant) -> onnx.SparseTensorProto:
+        """Exports a given Constant tensor as an ONNX SparseTensorProto."""
         return tensor._values.tensor
 
     @staticmethod
     def export_value_info_proto(tensor: Tensor, do_type_check: bool) -> onnx.ValueInfoProto:
+        """Creates an ONNX ValueInfoProto from a Tensor, optionally checking for dtype information."""
         if do_type_check and tensor.dtype is None:
             G_LOGGER.critical(
                 "Graph input and output tensors must include dtype information. Please set the dtype attribute for: {:}".format(
@@ -164,6 +168,7 @@ class OnnxExporter(BaseExporter):
 
     @staticmethod
     def export_attributes(attrs: dict, subgraph_tensor_map) -> List[onnx.AttributeProto]:
+        """Convert function attributes to ONNX AttributeProtos for model export."""
         onnx_attrs: List[onnx.AttributeProto] = []
         for key, val in attrs.items():
             if isinstance(val, Tensor):
@@ -197,6 +202,7 @@ class OnnxExporter(BaseExporter):
     @staticmethod
     def export_node(node: Node, subgraph_tensor_map) -> onnx.NodeProto:
         # Cannot pass in attrs directly as make_node will change the order
+        """Static method to convert an internal node to an ONNX node representation."""
         onnx_node = onnx.helper.make_node(
             node.op,
             inputs=[t.name for t in node.inputs],

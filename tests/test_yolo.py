@@ -13,6 +13,7 @@ class TestYolo:
         "task, dynamic, int8, half, batch", product(TASKS, [True, False], [False], [False], [1, 2])
     )
     def test_yolov8_export_onnx_matrix(self, request, task, dynamic, int8, half, batch):
+        """Tests YOLOv8 ONNX export functionality with various parameter configurations for different tasks."""
         file = YOLO(TASK2MODEL[task]).export(
             format="onnx",
             imgsz=32,
@@ -29,6 +30,7 @@ class TestYolo:
         product(["yolov10n", "yolov10s", "yolov10m", "yolov10l", "yolov10x"], [True, False], [False], [False], [1, 2]),
     )
     def test_yolov10_export_onnx_matrix(self, request, task, dynamic, int8, half, batch):
+        """Exports YOLOv10 models to ONNX and tests inference with varying configurations."""
         file = YOLO(task).export(
             format="onnx",
             imgsz=32,

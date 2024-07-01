@@ -54,6 +54,7 @@ ONNX_PYTHON_ATTR_MAPPING = {
 
 
 def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> List[int]:
+    """Returns the shape of an ONNX tensor as a list of dimensions."""
     shape = None
     if isinstance(onnx_tensor, (onnx.TensorProto, onnx.SparseTensorProto)):
         shape = onnx_tensor.dims
@@ -117,6 +118,7 @@ def get_numpy_type(onnx_type):
 def get_onnx_tensor_dtype(
     onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto],
 ) -> Union[np.dtype, "onnx.TensorProto.DataType"]:
+    """Determine the NumPy dtype or ONNX tensor data type from an ONNX tensor."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         onnx_dtype = onnx_tensor.data_type
     elif isinstance(onnx_tensor, onnx.SparseTensorProto):
@@ -147,6 +149,7 @@ def get_onnx_tensor_dtype(
 
 
 def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
+    """Determine the ONNX tensor type from a given ONNX TensorProto or ValueInfoProto."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         return "tensor_type"
     elif onnx_tensor.type.HasField("tensor_type"):
@@ -166,6 +169,7 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
 
 
 def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
+    """Identifies and returns the specific data type category of a given ONNX tensor."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         return "tensor_type"
     elif onnx_tensor.type.HasField("tensor_type"):
@@ -208,6 +212,7 @@ class OnnxImporter(BaseImporter):
 
     @staticmethod
     def import_tensor(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto]) -> Tensor:
+        """Converts an ONNX tensor into a corresponding internal Tensor representation."""
         if isinstance(onnx_tensor, onnx.SparseTensorProto):
             return Constant(
                 name=onnx_tensor.values.name,
@@ -238,6 +243,7 @@ class OnnxImporter(BaseImporter):
         opset: int,
         import_domains: onnx.OperatorSetIdProto,
     ) -> "OrderedDict[str, Any]":
+        """Import ONNX attribute values into Python dictionary format, handling various ONNX attribute types."""
         attr_dict = OrderedDict()
         for attr in onnx_attributes:
 
@@ -291,6 +297,8 @@ class OnnxImporter(BaseImporter):
         import_domains: onnx.OperatorSetIdProto,
     ) -> Node:
         # Optional inputs/outputs are represented by empty tensors. All other tensors should already have been populated during shape inference.
+        """Parse ONNX node, mapping its attributes and tensors for model integration."""
+
         def get_tensor(name: str, check_outer_graph=True):
             """Retrieve a tensor by its name, prioritizing the subgraph tensor map and optionally checking the outer
             graph.
@@ -347,6 +355,7 @@ class OnnxImporter(BaseImporter):
         model_opset: int = None,
         model_import_domains: onnx.OperatorSetIdProto = None,
     ) -> Function:
+        """Imports an ONNX function to a Function object using the model opset and import domains."""
         opset = OnnxImporter.get_opset(onnx_function) or model_opset
         import_domains = OnnxImporter.get_import_domains(onnx_function) or model_import_domains
         subgraph_tensor_map = OrderedDict()  # Tensors in this function

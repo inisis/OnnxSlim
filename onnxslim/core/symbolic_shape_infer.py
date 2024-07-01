@@ -2817,16 +2817,16 @@ class SymbolicShapeInference:
             # Loop/Scan will have some graph output in graph inputs, so don't do topological sort
             sorted_nodes = self.out_mp_.graph.node
         else:
-            while not all(o.name in sorted_known_vi for o in self.out_mp_.graph.output):
+            while any(o.name not in sorted_known_vi for o in self.out_mp_.graph.output):
                 old_sorted_nodes_len = len(sorted_nodes)
                 for node in self.out_mp_.graph.node:
-                    if (node.output[0] not in sorted_known_vi) and all(
-                        [i in sorted_known_vi for i in prereq_for_node[node.output[0]] if i]
+                    if node.output[0] not in sorted_known_vi and all(
+                        i in sorted_known_vi for i in prereq_for_node[node.output[0]] if i
                     ):
                         sorted_known_vi.update(node.output)
                         sorted_nodes.append(node)
                 if old_sorted_nodes_len == len(sorted_nodes) and not all(
-                    [o.name in sorted_known_vi for o in self.out_mp_.graph.output]
+                    o.name in sorted_known_vi for o in self.out_mp_.graph.output
                 ):
                     raise Exception("Invalid model with cyclic graph")
 

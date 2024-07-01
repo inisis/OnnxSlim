@@ -16,6 +16,7 @@ AUTO_MERGE = True if os.getenv("ONNXSLIM_AUTO_MERGE") is None else bool(int(os.g
 
 
 def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.ModelProto:
+    """Modifies input tensor shapes in the ONNX model according to the specified input_shapes string."""
     if not input_shapes:
         return
 
@@ -42,6 +43,7 @@ def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.
 
 
 def output_modification(model: onnx.ModelProto, outputs: str) -> onnx.ModelProto:
+    """Modifies the output layers of the ONNX model based on specified output names and data types."""
     graph = gs.import_onnx(model)
     graph.outputs.clear()
     tensors = graph.tensors()
@@ -117,6 +119,7 @@ def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None):
 
 
 def convert_data_format(model: onnx.ModelProto, dtype: str) -> onnx.ModelProto:
+    """Convert ONNX model data format to specified dtype, supporting 'fp16' and 'fp32'."""
     if dtype == "fp16":
         from onnxconverter_common import float16
 

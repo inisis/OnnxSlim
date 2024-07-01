@@ -289,11 +289,7 @@ class GraphPattern:
         mapped_onnx_nodes: set,
         onnx_graph_output_tensors: set,
     ):
-        """
-        Matches an ONNX node and its subgraph to the current graph pattern.
-
-        See http://www.apache.org/licenses/LICENSE-2.0
-        """
+        """Matches an ONNX node and its subgraph to the current graph pattern."""
         if onnx_node.id in mapped_onnx_nodes:
             return None
         if self.op is not None:  # is single node

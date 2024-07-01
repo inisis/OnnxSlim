@@ -200,6 +200,7 @@ class Graph(object):
 
     @property
     def functions(self) -> "List[Function]":
+        """Returns the list of subgraph functions associated with this graph."""
         return self._functions
 
     @functions.setter

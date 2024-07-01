@@ -182,6 +182,7 @@ def graph_constant_fold_inplace(graph):
 
 class PadConvMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes the PadConvMatcher with a specified priority and defines its matching pattern."""
         pattern = Pattern(
             """
             input  input  0  1 pad_0
@@ -252,6 +253,7 @@ register_fusion_pattern(PadConvMatcher(1))
 
 class ConvBatchNormMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes the ConvBatchNormMatcher for fusing Conv and BatchNormalization layers in an ONNX graph."""
         pattern = Pattern(
             """
             input              input  0  1 conv_0
@@ -332,6 +334,7 @@ register_fusion_pattern(ConvBatchNormMatcher(1))
 
 class SlicePatternMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes the SlicePatternMatcher with a specified priority using a predefined graph pattern."""
         pattern = Pattern(
             """
             input  input   0 1 slice_0
@@ -434,6 +437,9 @@ register_fusion_pattern(SlicePatternMatcher(1))
 
 class ReshapePatternMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes the ReshapePatternMatcher with a priority and a specific pattern for detecting nested reshape
+        operations.
+        """
         pattern = Pattern(
             """
             input    input     0 1 reshape_0
@@ -502,6 +508,7 @@ register_fusion_pattern(ReshapePatternMatcher(1))
 
 class MatMulAddPatternMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes a matcher for fusing MatMul and Add operations in ONNX graph optimization."""
         pattern = Pattern(
             """
             input    input    0 1 matmul_0
@@ -669,6 +676,7 @@ register_fusion_pattern(MatMulAddPatternMatcher(1))
 
 class GeluPatternMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes a `GeluPatternMatcher` to identify and fuse GELU patterns in a computational graph."""
         pattern = Pattern(
             """
             input  input  0 2 mul_0 div_0
@@ -714,6 +722,7 @@ class GeluPatternMatcher(PatternMatcher):
 
 class ReducePatternMatcher(PatternMatcher):
     def __init__(self, priority):
+        """Initializes the ReducePatternMatcher with a specified pattern matching priority level."""
         pattern = Pattern(
             """
             input     input       0 1 reduce_0
@@ -775,6 +784,7 @@ def replace_custom_layer(
     attrs: dict = None,
     domain: str = "ai.onnx.contrib",
 ):
+    """Replace a custom layer in the computational graph with specified parameters and domain."""
     return self.layer(
         op=op,
         inputs=inputs,
@@ -886,6 +896,7 @@ def subexpression_elimination(graph):
 
 
 def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns: str = None) -> onnx.ModelProto:
+    """Optimize and transform the given ONNX model using various fusion patterns and graph rewriting techniques."""
     graph = model if isinstance(model, gs.Graph) else gs.import_onnx(model)
     fusion_patterns = get_fusion_patterns(skip_fusion_patterns)
     fusion_pairs = find_matches(graph, fusion_patterns)

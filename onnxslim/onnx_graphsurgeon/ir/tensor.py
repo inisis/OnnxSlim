@@ -171,22 +171,22 @@ class Tensor(object):
 
     @property
     def is_input(self):
-        if hasattr(self, "_is_input"):
-            return self._is_input
-        return False
+        """Indicates whether this tensor is an input tensor in the graph."""
+        return self._is_input if hasattr(self, "_is_input") else False
 
     @is_input.setter
     def is_input(self, is_input: bool = False):
+        """Indicates whether this tensor is an input tensor in the graph."""
         self._is_input = is_input
 
     @property
     def is_output(self):
-        if hasattr(self, "_is_output"):
-            return self._is_output
-        return False
+        """Indicates if tensor is marked as an output within the computational graph."""
+        return self._is_output if hasattr(self, "_is_output") else False
 
     @is_output.setter
     def is_output(self, is_output: bool = False):
+        """Indicates if the tensor is used as an output in the graph."""
         self._is_output = is_output
 
 
@@ -224,6 +224,7 @@ class Variable(Tensor):
         values: np.ndarray,
         export_dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
     ):
+        """Converts the Variable to a Constant with given values and optional export data type."""
         del self.dtype
         del self.shape
 

@@ -131,7 +131,7 @@ def sympy_reduce_product(x):
     if type(x) == list:  # noqa: E721
         value = sympy.Integer(1)
         for v in x:
-            value = value * v
+            value *= v
     else:
         value = x
     return value
@@ -386,7 +386,7 @@ class SymbolicShapeInference:
         for i in range(new_rank):
             dim1 = shape1[rank1 - 1 - i] if i < rank1 else 1
             dim2 = shape2[rank2 - 1 - i] if i < rank2 else 1
-            if dim1 in [1, dim2]:
+            if dim1 in {1, dim2}:
                 new_dim = dim2
             elif dim2 == 1:
                 new_dim = dim1

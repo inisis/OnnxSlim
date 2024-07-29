@@ -15,13 +15,13 @@ def find_and_remove_replaceable_nodes(nodes):
         return "_".join(input_names) if input_names else None
 
     def replace_node_references(existing_node, to_be_removed_node):
-        users = get_node_users(to_be_removed_node)
-        for user in users:
-            for idx, inp in enumerate(user.inputs):
-                if inp in to_be_removed_node.outputs:
-                    index = user.inputs.index(inp)
-                    user.inputs.pop(index)
-                    user.inputs.insert(index, existing_node.outputs[0])
+        for user in get_node_users(to_be_removed_node):
+            for inp in enumerate(user.inputs):
+                if inp not in to_be_removed_node.outputs:
+                    continue
+                index = user.inputs.index(inp)
+                user.inputs.pop(index)
+                user.inputs.insert(index, existing_node.outputs[0])
 
         to_be_removed_node.inputs.clear()
         to_be_removed_node.outputs.clear()
@@ -29,26 +29,30 @@ def find_and_remove_replaceable_nodes(nodes):
     node_dict = {}
     for node in nodes:
         key = get_node_key(node)
-        if key:
-            if key in node_dict:
-                node_dict[key].append(node)
-            else:
-                node_dict[key] = [node]
+        if not key:
+            continue
+        if key in node_dict:
+            node_dict[key].append(node)
+        else:
+            node_dict[key] = [node]
 
     for key, bucketed_nodes in node_dict.items():
         if len(bucketed_nodes) > 1:
             keep_nodes = [True] * len(bucketed_nodes)
             for i, node in enumerate(bucketed_nodes):
-                if keep_nodes[i]:
-                    for j in range(i + 1, len(bucketed_nodes)):
-                        if keep_nodes[j]:
-                            logger.debug(f"node.op {bucketed_nodes[i].op} idx i: {i}, idx j: {j}")
-                            if can_be_replaced(node, bucketed_nodes[j]):
-                                keep_nodes[j] = False
-                                existing_node = node
-                                to_be_removed_node = bucketed_nodes[j]
-                                replace_node_references(existing_node, to_be_removed_node)
-                                logger.debug(f"Node {to_be_removed_node.name} can be replaced by {existing_node.name}")
+                if not keep_nodes[i]:
+                    continue
+                for j in range(i + 1, len(bucketed_nodes)):
+                    if not keep_nodes[j]:
+                        continue
+                    logger.debug(f"node.op {bucketed_nodes[i].op} idx i: {i}, idx j: {j}")
+                    if not can_be_replaced(node, bucketed_nodes[j]):
+                        continue
+                    keep_nodes[j] = False
+                    existing_node = node
+                    to_be_removed_node = bucketed_nodes[j]
+                    replace_node_references(existing_node, to_be_removed_node)
+                    logger.debug(f"Node {to_be_removed_node.name} can be replaced by {existing_node.name}")
 
 
 def sequences_equal(seq1, seq2):

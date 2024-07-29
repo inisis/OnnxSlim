@@ -54,19 +54,21 @@ def find_matches(graph: Graph, fusion_patterns: dict):
     match_map = {}
     counter = Counter()
     for node in reversed(graph.nodes):
-        if node.name not in match_map:
-            for layer_type, pattern_matcher in fusion_patterns.items():
-                match = pattern_matcher.match(node)
-                if match:
-                    match_case = pattern_matcher.rewrite(opset=graph.opset)
-                    logger.debug(f"matched pattern {layer_type}")
-                    for _, match in match_case.items():
-                        if "op" not in match:
-                            match.update({"op": layer_type})
-                        if "name" not in match:
-                            match.update({"name": f"{layer_type.lower()}_{counter[layer_type]}"})
-                        counter.update([layer_type])
-                    match_map.update(match_case)
+        if node.name in match_map:
+            continue
+        for layer_type, pattern_matcher in fusion_patterns.items():
+            match = pattern_matcher.match(node)
+            if not match:
+                continue
+            match_case = pattern_matcher.rewrite(opset=graph.opset)
+            logger.debug(f"matched pattern {layer_type}")
+            for _, match in match_case.items():
+                if "op" not in match:
+                    match.update({"op": layer_type})
+                if "name" not in match:
+                    match.update({"name": f"{layer_type.lower()}_{counter[layer_type]}"})
+                counter.update([layer_type])
+            match_map.update(match_case)
 
     return match_map
 
@@ -88,7 +90,7 @@ def tie_weights(graph, threshold=1 * 1024 * 1024):
     def replace_constant_references(existing_constant, to_be_removed_constant):
         users = to_be_removed_constant.outputs
         for user in users:
-            for idx, inp in enumerate(user.inputs):
+            for inp in user.inputs:
                 if inp in to_be_removed_constant.outputs:
                     index = user.inputs.index(inp)
                     user.inputs.pop(index)
@@ -102,15 +104,17 @@ def tie_weights(graph, threshold=1 * 1024 * 1024):
     if len(filtered_constant_tensors) > 1:
         keep_constants = [True] * len(filtered_constant_tensors)
         for i, constant_tensor in enumerate(filtered_constant_tensors):
-            if keep_constants[i]:
-                for j in range(i + 1, len(filtered_constant_tensors)):
-                    if keep_constants[j]:
-                        if constant_tensor == filtered_constant_tensors[j]:
-                            keep_constants[j] = False
-                            replace_constant_references(constant_tensor, filtered_constant_tensors[j])
-                            logger.debug(
-                                f"Constant {filtered_constant_tensors[j].name} can be replaced by {constant_tensor.name}"
-                            )
+            if not keep_constants[i]:
+                continue
+            for j in range(i + 1, len(filtered_constant_tensors)):
+                if not keep_constants[j]:
+                    continue
+                if constant_tensor == filtered_constant_tensors[j]:
+                    keep_constants[j] = False
+                    replace_constant_references(constant_tensor, filtered_constant_tensors[j])
+                    logger.debug(
+                        f"Constant {filtered_constant_tensors[j].name} can be replaced by {constant_tensor.name}"
+                    )
 
 def get_previous_node_by_type(node, op_type, trajectory=None):
     """Recursively find and return the first preceding node of a specified type in the computation graph."""

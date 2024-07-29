@@ -499,7 +499,7 @@ class Graph(object):
             self
         """
 
-        ALLOWED_MODES = ["full", "nodes", "functions"]
+        ALLOWED_MODES = {"full", "nodes", "functions"}
         if mode not in ALLOWED_MODES:
             G_LOGGER.critical(f'Mode "{mode}" not in {ALLOWED_MODES}')
 

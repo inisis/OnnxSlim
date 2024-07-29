@@ -33,10 +33,11 @@ def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.
         tensors[key].shape = values_list
 
     for tensor in tensors.values():
-        if tensor.name not in input_names:
-            if isinstance(tensor, Constant):
-                continue
-            tensor.shape = None
+        if tensor.name in input_names:
+            continue
+        if isinstance(tensor, Constant):
+            continue
+        tensor.shape = None
 
     model = gs.export_onnx(graph)
 

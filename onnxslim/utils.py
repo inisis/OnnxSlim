@@ -57,7 +57,7 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
     if isinstance(size, int):
         size = (size,)
 
-    units = ["B", "KB", "MB", "GB"]
+    units = {"B", "KB", "MB", "GB"}
     formatted_sizes = []
 
     for size_in_bytes in size:

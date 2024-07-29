@@ -528,10 +528,10 @@ def import_onnx(onnx_model: "onnx.ModelProto") -> Graph:
 
     # Functions are identified by their name and domain.
     # Make sure that no two Functions share the same name and domain.
-    function_unqiue_ids = set()
+    function_unique_ids = set()
     for func in functions:
         unique_id = func.unique_id
-        if unique_id in function_unqiue_ids:
+        if unique_id in function_unique_ids:
             msg = "Model contains duplicate function definitions with "
             msg += f'name="{func.name}" and domain="{func.domain}"'
             G_LOGGER.warning(msg)

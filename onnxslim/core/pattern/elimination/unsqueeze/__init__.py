@@ -58,7 +58,9 @@ class UnsqueezePatternMatcher(PatternMatcher):
                     "inputs": inputs,
                     "outputs": outputs,
                     "name": node_unsqueeze_0.name,
-                    "attrs": {"axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1},
+                    "attrs": {
+                        "axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1
+                    },
                 }
 
         return match_case

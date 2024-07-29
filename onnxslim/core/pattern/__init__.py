@@ -10,8 +10,9 @@ def get_node_users(node):
     """Retrieve the list of nodes that use the outputs of the given node."""
     users = []
     for output in node.outputs:  # output is a Variable
-        if output.is_output:
-            users.append(output)
+        if not output.is_output:
+            continue
+        users.append(output)
         users.extend(iter(output.outputs))
     return users
 

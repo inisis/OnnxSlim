@@ -5,10 +5,10 @@
         <img src="https://badgen.net/pypi/v/onnxslim?color=blue" />
     </a>
     <a href="https://pypi.org/project/onnxslim">
-        <img src="https://img.shields.io/pypi/dm/onnxslim?color=blue" />
+        <img src="https://static.pepy.tech/badge/onnxslim" />
     </a>
-    <a href="https://github.com/inisis/onnxslim/actions/workflows/nightly-build.yaml">
-        <img src="https://github.com/inisis/onnxslim/actions/workflows/nightly-build.yml/badge.svg" />
+    <a href="https://github.com/inisis/onnxslim/actions/workflows/ci.yaml">
+        <img src="https://github.com/inisis/onnxslim/actions/workflows/ci.yml/badge.svg" />
     </a>
 </p>
 
@@ -17,6 +17,7 @@ OnnxSlim can help you slim your onnx model, with less operators, but same accura
 - 🚀 OnnxSlim is merged to [mnn-llm](https://github.com/wangzhaode/mnn-llm), performance increased by 5%
 - 🚀 Rank 1st in the [AICAS 2024 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532170/customize440) held by Arm and T-head
 - 🚀 OnnxSlim is merged into [ultralytics](https://github.com/ultralytics/ultralytics) ❤️❤️❤️
+- 🚀 OnnxSlim is merged into [transformers.js](https://github.com/xenova/transformers.js) 🤗🤗🤗
 
 # Installation
 
@@ -26,9 +27,16 @@ OnnxSlim can help you slim your onnx model, with less operators, but same accura
 pip install onnxslim
 ```
 
-## Build From Source
+## Install From Source
 
+```bash
+pip install git+https://github.com/inisis/OnnxSlim@main
 ```
+
+## Install From Local
+
+```bash
+git clone https://github.com/inisis/OnnxSlim && cd OnnxSlim/
 pip install .
 ```
 

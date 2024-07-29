@@ -2167,7 +2167,7 @@ def tabulate(
                 )
             for idx, align in enumerate(headersalign):
                 hidx = headers_pad + idx
-                if not hidx < len(aligns_headers):
+                if hidx >= len(aligns_headers):
                     break
                 elif align == "same" and hidx < len(aligns):  # same as column align
                     aligns_headers[hidx] = aligns[hidx]

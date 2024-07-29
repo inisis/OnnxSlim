@@ -60,7 +60,7 @@ def slim(
     import time
     from pathlib import Path
 
-    from onnxslim.core.slim import (
+    from onnxslim.core import (
         convert_data_format,
         freeze,
         input_shape_modification,
@@ -74,7 +74,6 @@ def slim(
         check_result,
         dump_model_info_to_disk,
         init_logging,
-        model_save_as_external_data,
         onnxruntime_inference,
         print_model_info_as_table,
         save,
@@ -95,10 +94,6 @@ def slim(
     freeze(model)
 
     start_time = time.time()
-
-    if save_as_external_data:
-        model_save_as_external_data(model, output_model)
-        return None
 
     if output_model or inspect:
         float_info = summarize_model(model)
@@ -126,7 +121,8 @@ def slim(
         while MAX_ITER > 0:
             logger.debug(f"iter: {MAX_ITER}")
             model = optimize(model, skip_fusion_patterns)
-            model = shape_infer(model)
+            if not no_shape_infer:
+                model = shape_infer(model)
             graph = check_point(model)
             if graph == graph_check_point:
                 logger.debug(f"converged at iter: {MAX_ITER}")
@@ -146,8 +142,8 @@ def slim(
     if not output_model:
         return model
     slimmed_info = summarize_model(model)
-    save(model, output_model, model_check)
-    if slimmed_info["model_size"] >= onnx.checker.MAXIMUM_PROTOBUF:
+    save(model, output_model, model_check, save_as_external_data)
+    if slimmed_info["model_size"] >= onnx.checker.MAXIMUM_PROTOBUF or save_as_external_data:
         model_size = model.ByteSize()
         slimmed_info["model_size"] = [model_size, slimmed_info["model_size"]]
     end_time = time.time()
@@ -265,8 +261,10 @@ def main():
     if not args.inspect and args.dump_to_disk:
         parser.error("dump_to_disk can only be used with --inspect")
 
-    if args.save_as_external_data and args.output_model:
-        parser.error("--save_as_external_data can only be used for single model")
+    if not args.no_shape_infer or args.no_constant_folding:
+        from onnxslim.utils import check_onnx_compatibility
+
+        check_onnx_compatibility()
 
     slim(
         args.input_model,

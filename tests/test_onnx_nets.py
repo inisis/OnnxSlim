@@ -1,7 +1,7 @@
 import os
+import shutil
 import subprocess
 import warnings
-import shutil
 
 import pytest
 import timm
@@ -28,7 +28,7 @@ class TestTorchVisionClass:
         """Test various TorchVision models with random input tensors of a specified shape."""
         model = model(pretrained=PRETRAINED)
         x = torch.rand(shape)
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
@@ -57,7 +57,7 @@ class TestTimmClass:
         model = timm.create_model(model_name, pretrained=PRETRAINED)
         input_size = model.default_cfg.get("input_size")
         x = torch.randn((1,) + input_size)
-        directory = "tmp/" + request.node.name
+        directory = f"tmp/{request.node.name}"
         try:
             os.makedirs(directory, exist_ok=True)
 
@@ -82,4 +82,4 @@ class TestTimmClass:
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-    pytest.main(["-p", "no:warnings", "-n", "10", "-v", "tests/test_onnx_nets.py"])
+    pytest.main(["-p", "no:warnings", "-v", "tests/test_onnx_nets.py"])

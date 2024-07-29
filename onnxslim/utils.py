@@ -8,21 +8,21 @@ import numpy as np
 import onnx
 from onnx import checker
 
-import onnxslim.onnx_graphsurgeon as gs
+import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.misc.font import GREEN, WHITE
 from onnxslim.misc.tabulate import SEPARATING_LINE, tabulate
-from onnxslim.onnx_graphsurgeon.logger.logger import G_LOGGER
+from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 
 # Configure logging
 logging.basicConfig(
     level=logging.ERROR,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+    handlers=[logging.StreamHandler()],
 )
 
 # Create a logger
-logger = logging.getLogger("ONNXSlim")
+logger = logging.getLogger("onnxslim")
 
 
 def init_logging(verbose=False):
@@ -53,6 +53,7 @@ def init_logging(verbose=False):
 
 
 def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
+    """Convert byte sizes into human-readable format with appropriate units (B, KB, MB, GB)."""
     if isinstance(size, int):
         size = (size,)
 
@@ -75,6 +76,7 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
 
 
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
+    """Maps an ONNX dtype to its corresponding NumPy dtype."""
     import onnx.mapping as mapping
 
     return np.dtype(mapping.TENSOR_TYPE_TO_NP_TYPE[onnx_dtype])
@@ -83,6 +85,7 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
 def gen_onnxruntime_input_data(
     model: onnx.ModelProto, model_check_inputs: Optional[List[str]] = None
 ) -> Dict[str, np.ndarray]:
+    """Generate random input data for an ONNX model considering potential specific input shapes and types."""
     input_info = {}
     for input_tensor in model.graph.input:
         name = input_tensor.name
@@ -136,15 +139,17 @@ def gen_onnxruntime_input_data(
 
 
 def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str, np.array]:
+    """Perform inference using ONNX Runtime on the given model and input data."""
     import os
-    import onnx
     import tempfile
+
+    import onnx
     import onnxruntime as rt
 
     if model.ByteSize() >= onnx.checker.MAXIMUM_PROTOBUF:
         tmp_dir = tempfile.TemporaryDirectory()
         tmp_path = os.path.join(tmp_dir.name, "tmp.onnx")
-        location = os.path.basename(tmp_path) + ".data"
+        location = f"{os.path.basename(tmp_path)}.data"
         if os.path.exists(location):
             os.remove(location)
         onnx.save(
@@ -298,6 +303,7 @@ def dump_model_info_to_disk(model_name: str, model_info: Dict):
 
 
 def get_opset(model: onnx.ModelProto) -> int:
+    """Returns the ONNX opset version for a given model."""
     try:
         for importer in model.opset_import:
             if importer.domain in {"", "ai.onnx"}:
@@ -309,6 +315,7 @@ def get_opset(model: onnx.ModelProto) -> int:
 
 
 def summarize_model(model: onnx.ModelProto) -> Dict:
+    """Generates a summary of the ONNX model, including model size, operations, and tensor shapes."""
     logger.debug("Start summarizing model.")
     model_info = {}
 
@@ -408,6 +415,7 @@ def check_point(model: onnx.ModelProto):
 
 
 def is_converged(model: onnx.ModelProto, graph_ckpt, iter: int) -> bool:
+    """Checks if the model optimization has converged by comparing the current graph to the checkpoint."""
     logger.debug(f"optimization iter: {iter}")
     graph = gs.import_onnx(model)
     if graph == graph_ckpt:
@@ -418,7 +426,7 @@ def is_converged(model: onnx.ModelProto, graph_ckpt, iter: int) -> bool:
         return False
 
 
-def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
+def save(model: onnx.ModelProto, model_path: str, model_check: bool = False, save_as_external_data: bool = False):
     """Save an ONNX model to a specified path, with optional model checking for validity."""
     if model_check:
         try:
@@ -427,7 +435,7 @@ def save(model: onnx.ModelProto, model_path: str, model_check: bool = False):
             logger.warning("Model too large and cannot be checked.")
 
     if model_path:  # model larger than 2GB can be saved, but compiler like trtexec won't parse it
-        if model.ByteSize() <= checker.MAXIMUM_PROTOBUF:
+        if model.ByteSize() <= checker.MAXIMUM_PROTOBUF and not save_as_external_data:
             onnx.save(model, model_path)
         else:
             import os
@@ -483,6 +491,7 @@ data_type_sizes = {
 
 
 def calculate_tensor_size(tensor):
+    """Calculates the size of an ONNX tensor in bytes based on its shape and data type size."""
     shape = tensor.dims
     num_elements = np.prod(shape) if shape else 0
     element_size = data_type_sizes.get(tensor.data_type, 0)
@@ -490,6 +499,7 @@ def calculate_tensor_size(tensor):
 
 
 def get_model_size_and_initializer_size(model):
+    """Calculates and prints the model size and initializer size for an ONNX model in bytes."""
     initializer_size = 0
     for tensor in model.graph.initializer:
         tensor_size = calculate_tensor_size(tensor)
@@ -500,6 +510,7 @@ def get_model_size_and_initializer_size(model):
 
 
 def get_model_subgraph_size(model):
+    """Calculate and print the size of subgraphs in an ONNX model in bytes."""
     graph = model.graph
     for node in graph.node:
         for attr in node.attribute:
@@ -508,3 +519,75 @@ def get_model_subgraph_size(model):
                 attr_str = ATTR_TYPE_MAPPING[attr.type]
                 if attr_str == "GRAPH":
                     print("subgraph", attr.g.ByteSize())
+
+
+def check_onnx_compatibility():
+    """Ensure ONNX Runtime and ONNX versions are compatible for model inference."""
+    compatibility_dict = {
+        "1.18": "1.16",
+        "1.17": "1.15",
+        "1.16": "1.14.1",
+        "1.15": "1.14",
+        "1.14": "1.13",
+        "1.13": "1.12",
+        "1.12": "1.12",
+        "1.11": "1.11",
+        "1.10": "1.10",
+        "1.9": "1.10",
+        "1.8": "1.9",
+        "1.7": "1.8",
+        "1.6": "1.8",
+        "1.5": "1.7",
+        "1.4": "1.7",
+        "1.3": "1.7",
+        "1.2": "1.6",
+        "1.1": "1.6",
+        "1.0": "1.6",
+        "0.5": "1.5",
+        "0.4": "1.5",
+        "0.3": "1.4",
+        "0.2": "1.3",
+        "0.1": "1.3",
+    }
+    import onnx
+    import onnxruntime
+
+    onnx_version = onnx.__version__
+    # ort_version = onnxruntime.__version__
+    ort_version = ".".join(onnxruntime.__version__.split("+")[0].split(".")[:2])
+    # Check compatibility
+    expected_onnx_version = compatibility_dict.get(ort_version)
+    if expected_onnx_version is None:
+        logger.warning(f"Onnx Runtime version {ort_version} has no specified compatible ONNX version.")
+    elif expected_onnx_version == ".".join(onnx_version.split("+")[0].split(".")[:2]):
+        logger.info(
+            f"Installed Onnx Runtime version {ort_version} is compatible with installed ONNX version {onnx_version}."
+        )
+    else:
+        print(
+            f"Warning: Installed Onnx Runtime version {ort_version} is not compatible with installed ONNX version {onnx_version}. Expected ONNX version: {expected_onnx_version}."
+        )
+
+
+def get_max_tensor(model, topk=5):
+    graph = gs.import_onnx(model)
+
+    tensor_map = graph.tensors()
+    constant_tensors = [tensor for tensor in tensor_map.values() if isinstance(tensor, gs.Constant)]
+
+    sub_graphs = graph.subgraphs(recursive=True)
+    sub_graphs_constant_tensors = [
+        [tensor for name, tensor in sub_graph.tensors().items() if isinstance(tensor, gs.Constant)]
+        for sub_graph in sub_graphs
+    ]
+
+    constant_tensors.extend([tensor for tensors in sub_graphs_constant_tensors for tensor in tensors])
+
+    sizes = [tensor.values.size for tensor in constant_tensors]
+    sorted_indices = np.argsort(sizes)[::-1][:topk]
+
+    for i in sorted_indices:
+        tensor = constant_tensors[i]
+        print(
+            f"Tensor name: {tensor.name}, shape: {tensor.values.shape}, dtype: {tensor.values.dtype} size: {tensor.values.size}"
+        )

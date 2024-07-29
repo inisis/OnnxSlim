@@ -1,12 +1,14 @@
+from collections import Counter
 from typing import List, Union
 
 import onnx
-from collections import Counter
+
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 from onnxslim.core.pattern import get_node_feeds
 from onnxslim.core.pattern.registry import get_fusion_patterns
+from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 from onnxslim.utils import logger
+
 from .dead_node_elimination import dead_node_elimination
 from .subexpression_elimination import subexpression_elimination
 
@@ -25,7 +27,7 @@ def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns
     graph.cleanup(remove_unused_graph_inputs=True).toposort()
     model = gs.export_onnx(graph)
 
-    return model    
+    return model
 
 
 @gs.Graph.register()
@@ -115,6 +117,7 @@ def tie_weights(graph, threshold=1 * 1024 * 1024):
                     logger.debug(
                         f"Constant {filtered_constant_tensors[j].name} can be replaced by {constant_tensor.name}"
                     )
+
 
 def get_previous_node_by_type(node, op_type, trajectory=None):
     """Recursively find and return the first preceding node of a specified type in the computation graph."""

@@ -207,7 +207,13 @@ class TestPatternMatcher:
         print_model_info_as_table(request.node.name, [summary])
         assert summary["op_type_counts"]["ReduceSum"] == 1
 
-    @pytest.mark.parametrize("opset",(11,13,),)
+    @pytest.mark.parametrize(
+        "opset",
+        (
+            11,
+            13,
+        ),
+    )
     def test_consecutive_unsqueeze(self, request, opset):
         class Model(nn.Module):
             def __init__(self):

@@ -30,7 +30,9 @@ class MatMulAddPatternMatcher(PatternMatcher):
         node = self.add_0
         matmul_node = self.matmul_0
         matmul_bias_variable = get_constant_variable(matmul_node)
-        input_variable = matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], gs.Constant) else matmul_node.inputs[1]
+        input_variable = (
+            matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], gs.Constant) else matmul_node.inputs[1]
+        )
         users = get_node_users(matmul_node)
         if len(users) == 1 and matmul_bias_variable:
             if (
@@ -117,7 +119,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
 
                 match_case.update(
                     {
-                         f"{matmul_node.name}_post_reshape": {
+                        f"{matmul_node.name}_post_reshape": {
                             "op": "Reshape",
                             "inputs": inputs,
                             "outputs": outputs,

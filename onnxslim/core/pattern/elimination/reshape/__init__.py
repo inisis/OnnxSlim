@@ -1,8 +1,8 @@
 import numpy as np
 
+import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
 from onnxslim.core.pattern.registry import register_fusion_pattern
-import onnxslim.third_party.onnx_graphsurgeon as gs
 
 
 class ReshapePatternMatcher(PatternMatcher):
@@ -71,5 +71,6 @@ class ReshapePatternMatcher(PatternMatcher):
                 }
 
         return match_case
+
 
 register_fusion_pattern(ReshapePatternMatcher(1))

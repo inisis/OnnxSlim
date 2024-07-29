@@ -1152,7 +1152,9 @@ class Graph(object):
         # Additionally, if we can determine tensor size, do not evaluate tensors whose sizes exceed the size threshold.
         def should_eval_foldable(tensor):
             """Determine if foldable values should be evaluated based on output nature and tensor size constraints."""
-            from onnxslim.third_party.onnx_graphsurgeon.importers.onnx_importer import get_itemsize
+            from onnxslim.third_party.onnx_graphsurgeon.importers.onnx_importer import (
+                get_itemsize,
+            )
 
             non_const = not isinstance(tensor, Constant)
             is_graph_output = not tensor.outputs

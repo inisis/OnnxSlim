@@ -918,11 +918,11 @@ class Graph(object):
 
             def is_foldable(node):
                 """Determines if a given node operation is foldable based on its type."""
-                NO_FOLD_OPS = [
+                NO_FOLD_OPS = {
                     "QuantizeLinear",
                     "DequantizeLinear",
                     "DynamicQuantizeLinear",
-                ]
+                }
                 if node.op in NO_FOLD_OPS:
                     return False
 

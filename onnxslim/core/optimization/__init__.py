@@ -88,7 +88,7 @@ def tie_weights(graph, threshold=1 * 1024 * 1024):
     def replace_constant_references(existing_constant, to_be_removed_constant):
         users = to_be_removed_constant.outputs
         for user in users:
-            for idx, inp in enumerate(user.inputs):
+            for inp in user.inputs:
                 if inp in to_be_removed_constant.outputs:
                     index = user.inputs.index(inp)
                     user.inputs.pop(index)

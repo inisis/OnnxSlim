@@ -21,7 +21,9 @@ import os
 import sys
 import time
 
-from onnxslim.third_party.onnx_graphsurgeon.util.exception import OnnxGraphSurgeonException
+from onnxslim.third_party.onnx_graphsurgeon.util.exception import (
+    OnnxGraphSurgeonException,
+)
 
 
 # Context manager to apply indentation to messages

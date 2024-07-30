@@ -1,6 +1,5 @@
 from onnxslim.core.pattern import get_node_users
-from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Variable
-
+from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Variable
 from onnxslim.utils import logger
 
 

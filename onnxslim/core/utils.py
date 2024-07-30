@@ -1,5 +1,5 @@
 from onnxslim.core.pattern import get_node_users
-from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Variable
+from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Variable
 
 
 def delete_node(node, input_var_idx=0, output_var_idx=0):

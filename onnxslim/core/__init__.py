@@ -8,8 +8,8 @@ from onnx import checker
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.optimization import optimize_model
 from onnxslim.core.utils import delete_node
-from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant
+from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference
 from onnxslim.utils import logger, save
 
 DEBUG = bool(os.getenv("ONNXSLIM_DEBUG"))

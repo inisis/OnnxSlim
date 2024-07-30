@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 DEFAULT_FUSION_PATTERNS = OrderedDict()
@@ -21,6 +20,7 @@ def get_fusion_patterns(skip_fusion_patterns: str = None):
             default_fusion_patterns.pop(pattern)
 
     return default_fusion_patterns
+
 
 from .elimination import *
 from .fusion import *

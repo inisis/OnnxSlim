@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import tempfile
 
 import numpy as np
@@ -12,7 +12,8 @@ from onnxslim.core.utils import delete_node
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant
 from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference
 from onnxslim.utils import save
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 
 
 DEBUG = bool(os.getenv("ONNXSLIM_DEBUG"))

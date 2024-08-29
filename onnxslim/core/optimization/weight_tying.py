@@ -1,11 +1,11 @@
 import logging
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 import onnxslim.third_party.onnx_graphsurgeon as gs
 
 
 def tie_weights(graph):
     """Tie weights in a computational graph to reduce the number of parameters."""
-
     tensor_map = graph.tensors()
     constant_tensors = [tensor for tensor in tensor_map.values() if isinstance(tensor, gs.Constant)]
 

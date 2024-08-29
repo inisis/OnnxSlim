@@ -1954,7 +1954,7 @@ class SymbolicShapeInference:
                 return all(d >= 0 for d in flatten_min(y - x))
 
         def handle_negative_index(index, bound):
-            """Normalizes a negative index to be in [0, bound)"""
+            """Normalizes a negative index to be in [0, bound)."""
             try:
                 if not less_equal(0, index):
                     if is_literal(index) and index <= -self.int_max_:

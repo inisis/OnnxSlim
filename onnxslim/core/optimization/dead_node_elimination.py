@@ -1,11 +1,13 @@
 import logging
+
 import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.utils import delete_node
 from onnxslim.third_party.onnx_graphsurgeon.exporters.onnx_exporter import dtype_to_onnx
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Variable
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 
 
 def dead_node_elimination(graph):

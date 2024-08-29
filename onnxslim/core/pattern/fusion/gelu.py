@@ -1,5 +1,4 @@
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
-from onnxslim.core.pattern.registry import register_fusion_pattern
+from onnxslim.core.pattern import Pattern, PatternMatcher
 
 
 class GeluPatternMatcher(PatternMatcher):

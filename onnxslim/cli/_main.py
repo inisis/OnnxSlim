@@ -2,12 +2,11 @@ from typing import Union
 
 import onnx
 
-def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
 
+def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
     import os
     import time
     from pathlib import Path
-
 
     from onnxslim.core import (
         convert_data_format,
@@ -29,19 +28,19 @@ def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
         summarize_model,
     )
 
-    output_model = args[0] if len(args) > 0 else kwargs.get('output_model', None)
-    model_check = kwargs.get('model_check', False)
-    input_shapes = kwargs.get('input_shapes', None)
-    outputs = kwargs.get('outputs', None)
-    no_shape_infer = kwargs.get('no_shape_infer', False)
-    no_constant_folding = kwargs.get('no_constant_folding', False)
-    dtype = kwargs.get('dtype', None)
-    skip_fusion_patterns = kwargs.get('skip_fusion_patterns', None)
-    inspect = kwargs.get('inspect', False)
-    dump_to_disk = kwargs.get('dump_to_disk', False)
-    save_as_external_data = kwargs.get('save_as_external_data', False)
-    model_check_inputs = kwargs.get('model_check_inputs', None)
-    verbose = kwargs.get('verbose', False)
+    output_model = args[0] if len(args) > 0 else kwargs.get("output_model", None)
+    model_check = kwargs.get("model_check", False)
+    input_shapes = kwargs.get("input_shapes", None)
+    outputs = kwargs.get("outputs", None)
+    no_shape_infer = kwargs.get("no_shape_infer", False)
+    no_constant_folding = kwargs.get("no_constant_folding", False)
+    dtype = kwargs.get("dtype", None)
+    skip_fusion_patterns = kwargs.get("skip_fusion_patterns", None)
+    inspect = kwargs.get("inspect", False)
+    dump_to_disk = kwargs.get("dump_to_disk", False)
+    save_as_external_data = kwargs.get("save_as_external_data", False)
+    model_check_inputs = kwargs.get("model_check_inputs", None)
+    verbose = kwargs.get("verbose", False)
 
     logger = init_logging(verbose)
 
@@ -119,7 +118,13 @@ def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
 
 def main():
     """Entry point for the OnnxSlim toolkit, processes command-line arguments and passes them to the slim function."""
-    from onnxslim.argparser import ArgumentParser, ModelArguments, OptimizationArguments, ModificationArguments, CheckerArguments
+    from onnxslim.argparser import (
+        ArgumentParser,
+        CheckerArguments,
+        ModelArguments,
+        ModificationArguments,
+        OptimizationArguments,
+    )
 
     argument_parser = ArgumentParser(ModelArguments, OptimizationArguments, ModificationArguments, CheckerArguments)
     model_args, optimization_args, modification_args, checker_args = argument_parser.parse_args_into_dataclasses()
@@ -135,9 +140,12 @@ def main():
 
         check_onnx_compatibility()
 
-    slim(model_args.input_model, model_args.output_model,
-         **optimization_args.__dict__,
-         **modification_args.__dict__,
-         **checker_args.__dict__)
+    slim(
+        model_args.input_model,
+        model_args.output_model,
+        **optimization_args.__dict__,
+        **modification_args.__dict__,
+        **checker_args.__dict__,
+    )
 
     return 0

@@ -8,7 +8,8 @@ import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import get_node_feeds
 from onnxslim.core.pattern.registry import get_fusion_patterns
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 
 from .dead_node_elimination import dead_node_elimination
 from .subexpression_elimination import subexpression_elimination

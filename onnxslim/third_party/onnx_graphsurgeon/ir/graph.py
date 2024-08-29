@@ -392,6 +392,7 @@ class Graph(object):
             recurse_functions (bool):
                     Whether to also clean up this graph's local functions.
                     Defaults to True.
+
         Returns:
             self
         """
@@ -498,7 +499,6 @@ class Graph(object):
         Returns:
             self
         """
-
         ALLOWED_MODES = ["full", "nodes", "functions"]
         if mode not in ALLOWED_MODES:
             G_LOGGER.critical(f'Mode "{mode}" not in {ALLOWED_MODES}')
@@ -543,7 +543,6 @@ class Graph(object):
 
         def get_hierarchy_level(node_or_func, visited=None):
             """Returns the hierarchy level of a node or function, with optional tracking of visited elements."""
-
             visited = misc.default_value(visited, set())
             visited.add(get_id(node_or_func))
 

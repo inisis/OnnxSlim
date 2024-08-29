@@ -212,7 +212,6 @@ class Function(Graph):
         Returns:
             Function: A copy of the function.
         """
-
         local_tensor_copies = {n: t.copy() for n, t in self.tensors().items()}
 
         def get_tensor(name):

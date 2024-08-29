@@ -61,8 +61,12 @@ class UnsqueezePatternMatcher(PatternMatcher):
                     attrs = {"axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1}
                 else:
                     attrs = None
-                    inputs.append(gs.Constant(name=f"{node_unsqueeze_0.name}_axes",
-                                  values=np.array(axes_node_unsqueeze_0 + axes_node_unsqueeze_1, dtype=np.int64)))
+                    inputs.append(
+                        gs.Constant(
+                            name=f"{node_unsqueeze_0.name}_axes",
+                            values=np.array(axes_node_unsqueeze_0 + axes_node_unsqueeze_1, dtype=np.int64),
+                        )
+                    )
 
                 match_case[node_unsqueeze_0.name] = {
                     "op": "Unsqueeze",

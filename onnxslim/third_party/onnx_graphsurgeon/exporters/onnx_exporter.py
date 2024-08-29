@@ -45,7 +45,6 @@ def dtype_to_onnx(dtype: Union[np.dtype, "onnx.TensorProto.DataType"]) -> int:
 
 def check_duplicate_node_names(nodes: Sequence[Node], level=G_LOGGER.WARNING):
     """Check if node names are unique and log any duplicates based on the specified severity level."""
-
     # Note:
     # Empty string or None attribute values are not considered duplicates.
     name_map = {}

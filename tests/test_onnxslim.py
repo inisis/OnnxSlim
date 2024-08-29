@@ -1,11 +1,11 @@
 import os
-import pytest
-import tempfile
 import subprocess
+import tempfile
+
+import pytest
 
 from onnxslim import slim
 from onnxslim.utils import print_model_info_as_table, summarize_model
-
 
 MODELZOO_PATH = "/data/modelzoo"
 FILENAME = f"{MODELZOO_PATH}/resnet18/resnet18.onnx"
@@ -41,7 +41,7 @@ class TestFeature:
         import numpy as np
 
         with tempfile.TemporaryDirectory() as tempdir:
-            output_name = os.path.join(tempdir, f"resnet18.onnx")
+            output_name = os.path.join(tempdir, "resnet18.onnx")
             slim(FILENAME, output_name, input_shapes=["input:1,3,224,224"], dtype="fp16")
             summary = summarize_model(output_name)
             print_model_info_as_table(request.node.name, summary)

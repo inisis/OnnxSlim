@@ -29,7 +29,7 @@ class Tensor(object):
     DYNAMIC = -1
 
     def __init__(self):
-        """**This class is abstract and cannot be constructed directly.**"""
+        """**This class is abstract and cannot be constructed directly.**."""
         raise NotImplementedError("Tensor is an abstract class")
 
     def __setattr__(self, name, value):
@@ -79,6 +79,7 @@ class Tensor(object):
                     Generally, this will come from onnx.TensorProto.DataLocation.
 
             dtype (Union[numpy.dtype, onnx.TensorProto.DataType]): The data type of the tensor.
+
         Returns:
             self
         """
@@ -103,7 +104,6 @@ class Tensor(object):
         Returns:
             self
         """
-
         if shape is None:
             shape = []
         variable_dtype = dtype if dtype is not None else self.export_dtype

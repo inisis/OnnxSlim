@@ -302,6 +302,7 @@ def list(github, force_reload=False, skip_validation=False):
             specified by the ``github`` argument properly belongs to the repo owner. This will make
             requests to the GitHub API; you can specify a non-default GitHub token by setting the
             ``GITHUB_TOKEN`` environment variable. Default is ``False``.
+
     Returns:
         list: The available callables entrypoint
 
@@ -336,6 +337,7 @@ def help(github, model, force_reload=False, skip_validation=False):
             specified by the ``github`` argument properly belongs to the repo owner. This will make
             requests to the GitHub API; you can specify a non-default GitHub token by setting the
             ``GITHUB_TOKEN`` environment variable. Default is ``False``.
+
     Example:
         >>> print(torch.hub.help('pytorch/vision', 'resnet18', force_reload=True))
     """

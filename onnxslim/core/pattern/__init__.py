@@ -1,10 +1,11 @@
-import re
 import logging
+import re
 from abc import abstractmethod
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.third_party.onnx_graphsurgeon import Constant
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 
 
 def get_node_users(node):

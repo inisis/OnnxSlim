@@ -12,7 +12,8 @@ import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.misc.font import GREEN, WHITE
 from onnxslim.misc.tabulate import SEPARATING_LINE, tabulate
 from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
-logger = logging.getLogger('onnxslim')
+
+logger = logging.getLogger("onnxslim")
 
 
 def init_logging(verbose=False):
@@ -28,7 +29,7 @@ def init_logging(verbose=False):
 
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stderr)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
@@ -424,8 +425,13 @@ def is_converged(model: onnx.ModelProto, graph_ckpt, iter: int) -> bool:
         return False
 
 
-def save(model: onnx.ModelProto, model_path: str, model_check: bool = False,
-         save_as_external_data: bool = False, model_info: Dict = None):
+def save(
+    model: onnx.ModelProto,
+    model_path: str,
+    model_check: bool = False,
+    save_as_external_data: bool = False,
+    model_info: Dict = None,
+):
     """Save an ONNX model to a specified path, with optional model checking for validity."""
     if model_check:
         try:

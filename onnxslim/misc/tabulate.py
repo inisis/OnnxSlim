@@ -776,7 +776,7 @@ _float_with_thousands_separators = re.compile(r"^(([+-]?[0-9]{1,3})(?:,([0-9]{3}
 
 
 def simple_separated_format(separator):
-    """
+    r"""
     Construct a simple TableFormat with columns separated by a separator.
 
     >>> tsv = simple_separated_format("\\t") ; \
@@ -818,7 +818,7 @@ def _isnumber_with_thousands_separator(string):
     >>> _isnumber_with_thousands_separator("+1,000.1234")
     True
     >>> _isnumber_with_thousands_separator("-1,000.1234")
-    True
+    True.
     """
     try:
         string = string.decode()
@@ -848,7 +848,7 @@ def _isnumber(string):
     >>> _isnumber("123e45678")
     False
     >>> _isnumber("inf")
-    True
+    True.
     """
     if not _isconvertible(float, string):
         return False
@@ -862,7 +862,7 @@ def _isint(string, inttype=int):
     >>> _isint("123")
     True
     >>> _isint("123.45")
-    False
+    False.
     """
     return (
         type(string) is inttype
@@ -881,13 +881,13 @@ def _isbool(string):
     >>> _isbool("False")
     True
     >>> _isbool(1)
-    False
+    False.
     """
     return type(string) is bool or (isinstance(string, (bytes, str)) and string in {"True", "False"})
 
 
 def _type(string, has_invisible=True, numparse=True):
-    """
+    r"""
     The least generic type (type(None), int, float, str, unicode).
 
     >>> _type(None) is type(None)
@@ -901,7 +901,6 @@ def _type(string, has_invisible=True, numparse=True):
     >>> _type('\x1b[31m42\x1b[0m') is type(42)
     True
     """
-
     if has_invisible and isinstance(string, (str, bytes)):
         string = _strip_ansi(string)
 
@@ -1004,7 +1003,7 @@ def _strip_ansi(s):
 
 
 def _visible_width(s):
-    """
+    r"""
     Visible width of a printed string. ANSI color codes are removed.
 
     >>> _visible_width('\x1b[31mhello\x1b[0m'), _visible_width("world")
@@ -1108,7 +1107,7 @@ def _align_column(
     enable_widechars=False,
     is_multiline=False,
 ):
-    """[string] -> [padded_string]"""
+    """[string] -> [padded_string]."""
     strings, padfn = _align_column_choose_padfn(strings, alignment, has_invisible)
     width_fn = _align_column_choose_width_fn(has_invisible, enable_widechars, is_multiline)
 
@@ -1324,7 +1323,6 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
     If showindex="never", don't show row indices for all types of data.
     If showindex is an iterable, show its values as row indices.
     """
-
     try:
         bool(headers)
         is_headers2bool_broken = False  # noqa
@@ -1532,7 +1530,7 @@ def tabulate(
     rowalign=None,
     maxheadercolwidths=None,
 ):
-    """
+    r"""
     Format a fixed width table for pretty printing.
 
     >>> print(tabulate([[1, 2.34], [-56, "8.999"], ["2", "10001"]]))
@@ -2025,7 +2023,6 @@ def tabulate(
 
     Header column width can be specified in a similar way using `maxheadercolwidth`
     """
-
     if tabular_data is None:
         tabular_data = []
 
@@ -2565,7 +2562,7 @@ class _CustomTextWrap(textwrap.TextWrapper):
 
 def _main():
     """\
-    Usage: tabulate [options] [FILE ...]
+    Usage: tabulate [options] [FILE ...].
 
     Pretty-print tabular data.
     See also https://github.com/astanin/python-tabulate

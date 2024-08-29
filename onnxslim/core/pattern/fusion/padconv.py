@@ -33,9 +33,9 @@ class PadConvMatcher(PatternMatcher):
         node = self.conv_0
         pad_node = self.pad_0
         input_variable = self.pad_0.inputs[0]
+        pad_node_users = get_node_users(pad_node)
 
         pad_value = pad_node.inputs[1].values.tolist()
-        input_variable.outputs.remove(pad_node)
 
         pad_variable = pad_node.outputs[0]  # pad output variable
         index = node.inputs.index(pad_variable)
@@ -48,8 +48,12 @@ class PadConvMatcher(PatternMatcher):
 
         node.inputs.clear()
         node.outputs.clear()
-        pad_node.inputs.clear()
-        pad_node.outputs.clear()
+        # remove pad node if it has only one user
+        if len(pad_node_users) == 1:
+            input_variable.outputs.remove(pad_node)
+            pad_node.inputs.clear()
+            pad_node.outputs.clear()
+
         conv_pads = attrs["pads"]
         len_conv_pads = len(conv_pads) // 2
 

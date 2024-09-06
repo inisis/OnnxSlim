@@ -104,7 +104,7 @@ class GraphPattern:
         self.op = None  # op (str)
         self.check_func = None  # callback function for single node
         # pattern node name -> GraphPattern nodes(single or subpattern)
-        self.nodes: Dict[str, "GraphPattern"] = {}
+        self.nodes: Dict[str, GraphPattern] = {}
         # pattern node name -> input tensors
         self.node_inputs: Dict[str, List[int]] = {}
         # pattern node name -> output tensors
@@ -119,6 +119,7 @@ class GraphPattern:
         """Assigns a unique tensor ID, tracks its input node if provided, and initializes output node tracking."""
 
     def _add_tensor(self, input_node=None) -> int:
+        """Assigns a unique tensor ID, tracks its input node if provided, and initializes output node tracking."""
         tensor_id = self.num_tensors
         self.tensor_inputs[tensor_id] = []
         if input_node is not None:
@@ -239,15 +240,13 @@ class GraphPattern:
         with G_LOGGER.indent():
             if self.op != onnx_node.op:
                 G_LOGGER.info(
-                    "No match because: Op did not match. Node op was: {:} but pattern op was: {:}.".format(
-                        onnx_node.op, self.op
-                    )
+                    f"No match because: Op did not match. Node op was: {onnx_node.op} but pattern op was: {self.op}."
                 )
                 return False
             if self.check_func is not None and not self.check_func(onnx_node):
                 G_LOGGER.info("No match because: check_func returned false.")
                 return False
-            G_LOGGER.info("Single node is matched: {:}, {:}".format(self.op, onnx_node.name))
+            G_LOGGER.info(f"Single node is matched: {self.op}, {onnx_node.name}")
         return True
 
     def _get_tensor_index_for_node(self, node: str, tensor_id: int, is_node_input: bool):
@@ -330,7 +329,7 @@ class GraphPattern:
     ) -> bool:
         """Matches ONNX nodes to the graph pattern starting from a specific node and tensor context."""
         with G_LOGGER.indent():
-            G_LOGGER.info("Checking node: {:} against pattern node: {:}.".format(onnx_node.name, node_name))
+            G_LOGGER.info(f"Checking node: {onnx_node.name} against pattern node: {node_name}.")
         tensor_index_for_node = self._get_tensor_index_for_node(node_name, from_tensor, is_node_input=from_inbound)
         subgraph_mapping = self.nodes[node_name].match(
             onnx_node,

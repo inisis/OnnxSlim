@@ -31,10 +31,7 @@ def tie_weights(graph):
         for i, constant_tensor in enumerate(constant_tensors):
             if keep_constants[i]:
                 for j in range(i + 1, len(constant_tensors)):
-                    if keep_constants[j]:
-                        if constant_tensor == constant_tensors[j]:
-                            keep_constants[j] = False
-                            replace_constant_references(constant_tensor, constant_tensors[j])
-                            logger.debug(
-                                f"Constant {constant_tensors[j].name} can be replaced by {constant_tensor.name}"
-                            )
+                    if keep_constants[j] and constant_tensor == constant_tensors[j]:
+                        keep_constants[j] = False
+                        replace_constant_references(constant_tensor, constant_tensors[j])
+                        logger.debug(f"Constant {constant_tensors[j].name} can be replaced by {constant_tensor.name}")

@@ -3,6 +3,8 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class ReducePatternMatcher(PatternMatcher):
+    """Optimizes ONNX graph patterns with ReduceSum and Unsqueeze operations for improved model performance."""
+
     def __init__(self, priority):
         """Initializes the ReducePatternMatcher with a specified pattern matching priority level."""
         pattern = Pattern(

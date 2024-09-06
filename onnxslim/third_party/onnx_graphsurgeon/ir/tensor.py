@@ -23,7 +23,7 @@ from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
 
-class Tensor(object):
+class Tensor:
     """Abstract base class for tensors in a graph."""
 
     DYNAMIC = -1
@@ -155,7 +155,7 @@ class Tensor(object):
 
     def __str__(self):
         """Returns a string representation of the object including its type, name, shape, and data type."""
-        return "{:} ({:}): (shape={:}, dtype={:})".format(type(self).__name__, self.name, self.shape, self.dtype)
+        return f"{type(self).__name__} ({self.name}): (shape={self.shape}, dtype={self.dtype})"
 
     def __repr__(self):  # Hack to make logging output pretty.
         """Returns a string representation of the object for logging output."""
@@ -191,6 +191,8 @@ class Tensor(object):
 
 
 class Variable(Tensor):
+    """Represents a tensor with unknown values until inference-time, supporting dynamic shapes and data types."""
+
     @staticmethod
     def empty():
         """Create and return an empty Variable tensor with an empty name."""
@@ -258,7 +260,7 @@ class Variable(Tensor):
         return name_match and inputs_match and outputs_match and dtype_match and shape_match and type_match
 
 
-class LazyValues(object):
+class LazyValues:
     """A special object that represents constant tensor values that should be lazily loaded."""
 
     def __init__(self, tensor):
@@ -304,7 +306,7 @@ class LazyValues(object):
 
     def __str__(self):
         """Returns a formatted string representation of the LazyValues object indicating its shape and dtype."""
-        return "LazyValues (shape={:}, dtype={:})".format(self.shape, self.dtype)
+        return f"LazyValues (shape={self.shape}, dtype={self.dtype})"
 
     def __repr__(self):  # Hack to make logging output pretty.
         """Returns an unambiguous string representation of the LazyValues object for logging purposes."""
@@ -369,10 +371,12 @@ class SparseValues(LazyValues):
 
     def __str__(self):
         """Return a string representation of the SparseValues object with its shape and data type."""
-        return "SparseValues (shape={:}, dtype={:})".format(self.shape, self.dtype)
+        return f"SparseValues (shape={self.shape}, dtype={self.dtype})"
 
 
 class Constant(Tensor):
+    """Represents a tensor with known constant values, supporting lazy loading and export data type specification."""
+
     def __init__(
         self,
         name: str,
@@ -407,7 +411,7 @@ class Constant(Tensor):
             G_LOGGER.critical(
                 "Provided `values` argument is not a NumPy array, a LazyValues instance or a"
                 "SparseValues instance. Please provide a NumPy array or LazyValues instance "
-                "to construct a Constant. Note: Provided `values` parameter was: {:}".format(values)
+                f"to construct a Constant. Note: Provided `values` parameter was: {values}"
             )
         self._values = values
         self.data_location = data_location
@@ -470,7 +474,7 @@ class Constant(Tensor):
     def __repr__(self):  # Hack to make logging output pretty.
         """Return a string representation of the object, including its values, for improved logging readability."""
         ret = self.__str__()
-        ret += "\n{:}".format(self._values)
+        ret += f"\n{self._values}"
         return ret
 
     def __eq__(self, other):

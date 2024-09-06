@@ -9,12 +9,14 @@ from onnxslim.utils import print_model_info_as_table, summarize_model
 
 
 class TestPatternMatcher:
+    """Tests various neural network operations by exporting PyTorch models to ONNX and analyzing them with onnxslim."""
+
     def test_gelu(self, request):
         """Test the GELU activation function in a neural network model using an instance of nn.Module."""
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.relu0 = nn.ReLU()
                 self.gelu = nn.GELU()
                 self.relu1 = nn.ReLU()
@@ -44,7 +46,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.pad_0 = nn.ConstantPad2d(3, 0)
                 self.conv_0 = nn.Conv2d(1, 1, 3)
 
@@ -80,7 +82,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.conv = nn.Conv2d(1, 1, 3)
                 self.bn = nn.BatchNorm2d(1)
 
@@ -109,7 +111,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.conv = nn.Conv2d(1, 1, 3)
                 self.bn = nn.BatchNorm2d(1)
 
@@ -134,7 +136,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 """Reshape tensor sequentially to (2, 6) and then to (12, 1)."""
@@ -157,7 +159,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.data = torch.randn(4, 3)
 
             def forward(self, x):
@@ -185,7 +187,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 """Performs a reduction summing over the last dimension of the input tensor and then unsqueezes the
@@ -215,9 +217,11 @@ class TestPatternMatcher:
         ),
     )
     def test_consecutive_unsqueeze(self, request, opset):
+        """Tests consecutive unsqueeze operations in a model by exporting to ONNX and summarizing the slimmed model."""
+
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 x = x.unsqueeze(-1)

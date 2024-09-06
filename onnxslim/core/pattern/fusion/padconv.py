@@ -4,6 +4,8 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class PadConvMatcher(PatternMatcher):
+    """Matches and optimizes Pad-Conv patterns in ONNX graphs by ensuring padding parameters are constants."""
+
     def __init__(self, priority):
         """Initializes the PadConvMatcher with a specified priority and defines its matching pattern."""
         pattern = Pattern(

@@ -5,6 +5,8 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class MatMulAddPatternMatcher(PatternMatcher):
+    """Matches and fuses MatMul and Add operations in ONNX graphs to optimize computational efficiency."""
+
     def __init__(self, priority):
         """Initializes a matcher for fusing MatMul and Add operations in ONNX graph optimization."""
         pattern = Pattern(

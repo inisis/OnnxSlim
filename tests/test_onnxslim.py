@@ -12,6 +12,8 @@ FILENAME = f"{MODELZOO_PATH}/resnet18/resnet18.onnx"
 
 
 class TestFunctional:
+    """Tests the functionality of the 'slim' function for optimizing ONNX models using temporary directories."""
+
     def test_basic(self, request):
         """Test the basic functionality of the slim function."""
         with tempfile.TemporaryDirectory() as tempdir:
@@ -30,6 +32,8 @@ class TestFunctional:
 
 
 class TestFeature:
+    """Tests ONNX model modifications like input shape, precision conversion, and input/output adjustments."""
+
     def test_input_shape_modification(self, request):
         """Test the modification of input shapes."""
         summary = summarize_model(slim(FILENAME, input_shapes=["input:1,3,224,224"]))
@@ -76,7 +80,9 @@ class TestFeature:
 
     def test_input_modification(self, request):
         """Tests input modification."""
-        summary = summarize_model(slim(FILENAME, inputs=["/maxpool/MaxPool_output_0", "/layer1/layer1.0/relu/Relu_output_0"]))
+        summary = summarize_model(
+            slim(FILENAME, inputs=["/maxpool/MaxPool_output_0", "/layer1/layer1.0/relu/Relu_output_0"])
+        )
         print_model_info_as_table(request.node.name, summary)
         assert "/maxpool/MaxPool_output_0" in summary["op_input_info"]
         assert "/layer1/layer1.0/relu/Relu_output_0" in summary["op_input_info"]

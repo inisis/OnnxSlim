@@ -52,12 +52,7 @@ def check_duplicate_node_names(nodes: Sequence[Node], level=G_LOGGER.WARNING):
         if not node.name:
             continue
         if node.name in name_map:
-            msg = "Found distinct Nodes that share the same name:\n[id: {:}]:\n {:}---\n[id: {:}]:\n {:}\n".format(
-                id(name_map[node.name]),
-                name_map[node.name],
-                id(node),
-                node,
-            )
+            msg = f"Found distinct Nodes that share the same name:\n[id: {id(name_map[node.name])}]:\n {name_map[node.name]}---\n[id: {id(node)}]:\n {node}\n"
             G_LOGGER.log(msg, level)
         else:
             name_map[node.name] = node
@@ -110,6 +105,8 @@ def tensor_to_onnx_bf16(tensor: Constant):
 
 
 class OnnxExporter(BaseExporter):
+    """Exports internal graph structures to ONNX format for model interoperability."""
+
     @staticmethod
     def export_tensor_proto(tensor: Constant) -> onnx.TensorProto:
         # Do *not* load LazyValues into an intermediate numpy array - instead, use
@@ -146,9 +143,7 @@ class OnnxExporter(BaseExporter):
         """Creates an ONNX ValueInfoProto from a Tensor, optionally checking for dtype information."""
         if do_type_check and tensor.dtype is None:
             G_LOGGER.critical(
-                "Graph input and output tensors must include dtype information. Please set the dtype attribute for: {:}".format(
-                    tensor
-                )
+                f"Graph input and output tensors must include dtype information. Please set the dtype attribute for: {tensor}"
             )
 
         if tensor.dtype is None:

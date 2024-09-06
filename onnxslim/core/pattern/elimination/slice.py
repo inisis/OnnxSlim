@@ -6,6 +6,8 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class SlicePatternMatcher(PatternMatcher):
+    """Matches and optimizes nested slice operations in ONNX graphs to improve computational efficiency."""
+
     def __init__(self, priority):
         """Initializes the SlicePatternMatcher with a specified priority using a predefined graph pattern."""
         pattern = Pattern(

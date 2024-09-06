@@ -4,6 +4,7 @@ import onnx
 
 
 def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
+    """Slims an ONNX model by optimizing and modifying its structure, inputs, and outputs for improved performance."""
     import os
     import time
     from pathlib import Path
@@ -11,9 +12,9 @@ def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
     from onnxslim.core import (
         convert_data_format,
         freeze,
+        input_modification,
         input_shape_modification,
         optimize,
-        input_modification,
         output_modification,
         shape_infer,
     )
@@ -29,20 +30,20 @@ def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
         summarize_model,
     )
 
-    output_model = args[0] if len(args) > 0 else kwargs.get('output_model', None)
-    model_check = kwargs.get('model_check', False)
-    input_shapes = kwargs.get('input_shapes', None)
-    inputs = kwargs.get('inputs', None)
-    outputs = kwargs.get('outputs', None)
-    no_shape_infer = kwargs.get('no_shape_infer', False)
-    no_constant_folding = kwargs.get('no_constant_folding', False)
-    dtype = kwargs.get('dtype', None)
-    skip_fusion_patterns = kwargs.get('skip_fusion_patterns', None)
-    inspect = kwargs.get('inspect', False)
-    dump_to_disk = kwargs.get('dump_to_disk', False)
-    save_as_external_data = kwargs.get('save_as_external_data', False)
-    model_check_inputs = kwargs.get('model_check_inputs', None)
-    verbose = kwargs.get('verbose', False)
+    output_model = args[0] if args else kwargs.get("output_model", None)
+    model_check = kwargs.get("model_check", False)
+    input_shapes = kwargs.get("input_shapes", None)
+    inputs = kwargs.get("inputs", None)
+    outputs = kwargs.get("outputs", None)
+    no_shape_infer = kwargs.get("no_shape_infer", False)
+    no_constant_folding = kwargs.get("no_constant_folding", False)
+    dtype = kwargs.get("dtype", None)
+    skip_fusion_patterns = kwargs.get("skip_fusion_patterns", None)
+    inspect = kwargs.get("inspect", False)
+    dump_to_disk = kwargs.get("dump_to_disk", False)
+    save_as_external_data = kwargs.get("save_as_external_data", False)
+    model_check_inputs = kwargs.get("model_check_inputs", None)
+    verbose = kwargs.get("verbose", False)
 
     logger = init_logging(verbose)
 

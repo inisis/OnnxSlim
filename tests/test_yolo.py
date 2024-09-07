@@ -59,6 +59,7 @@ class TestYolo:
         )
         YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
 
+
 if __name__ == "__main__":
     pytest.main(
         [

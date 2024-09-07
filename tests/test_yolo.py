@@ -42,6 +42,22 @@ class TestYolo:
         )
         YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
 
+    @pytest.mark.parametrize(
+        "task, dynamic, int8, half, batch",
+        product(["yolov10n"], [False], [False], [False], [1, 2]),
+    )
+    def test_yolov10_export_onnx_matrix(self, request, task, dynamic, int8, half, batch):
+        """Exports YOLOv10 models to TFLite and tests inference with varying configurations."""
+        file = YOLO(task).export(
+            format="tflite",
+            imgsz=32,
+            dynamic=dynamic,
+            int8=int8,
+            half=half,
+            batch=batch,
+            simplify=True,
+        )
+        YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
 
 if __name__ == "__main__":
     pytest.main(

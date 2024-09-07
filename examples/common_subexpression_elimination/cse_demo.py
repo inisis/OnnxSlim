@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class Model(torch.nn.Module):
     def __init__(self):
         """Initializes the Model class with a single LayerNorm layer of embedding dimension 10."""
-        super(Model, self).__init__()
+        super().__init__()
         embedding_dim = 10
         self.layer_norm = nn.LayerNorm(embedding_dim)
 

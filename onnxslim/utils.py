@@ -56,7 +56,7 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
             size_in_bytes /= 1024
             unit_index += 1
 
-        formatted_size = "{:.2f} {}".format(size_in_bytes, units[unit_index])
+        formatted_size = f"{size_in_bytes:.2f} {units[unit_index]}"
         formatted_sizes.append(formatted_size)
 
     if len(formatted_sizes) == 1:

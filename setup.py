@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-with open("VERSION", "r") as f:
+with open("VERSION") as f:
     version = f.read().strip()
 
 with open("onnxslim/version.py", "w") as f:
@@ -10,7 +10,7 @@ setup(
     name="onnxslim",
     version=version,
     description="OnnxSlim: A Toolkit to Help Optimize Large Onnx Model",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/inisis/OnnxSlim",
     author="inisis",

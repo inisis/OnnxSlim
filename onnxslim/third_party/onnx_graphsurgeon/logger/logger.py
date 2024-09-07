@@ -27,7 +27,7 @@ from onnxslim.third_party.onnx_graphsurgeon.util.exception import (
 
 
 # Context manager to apply indentation to messages
-class LoggerIndent(object):
+class LoggerIndent:
     def __init__(self, logger, indent):
         """Initialize the LoggerIndent context manager with the specified logger and indentation level."""
         self.logger = logger
@@ -45,7 +45,7 @@ class LoggerIndent(object):
 
 
 # Context manager to suppress messages
-class LoggerSuppress(object):
+class LoggerSuppress:
     def __init__(self, logger, severity):
         """Initialize a LoggerSuppress object with a logger and severity level."""
         self.logger = logger
@@ -67,7 +67,7 @@ class LogMode(enum.IntEnum):
     ONCE = 1  # Log the message only once. The same message will not be logged again.
 
 
-class Logger(object):
+class Logger:
     ULTRA_VERBOSE = -10
     VERBOSE = 0
     DEBUG = 10
@@ -173,7 +173,7 @@ class Logger(object):
                     # If the file is not located in trt_smeagol, use its basename instead.
                     if os.pardir in filename:
                         filename = os.path.basename(filename)
-                    return "[{:}:{:}] ".format(filename, sys._getframe(stack_depth).f_lineno)
+                    return f"[{filename}:{sys._getframe(stack_depth).f_lineno}] "
 
                 prefix = ""
                 if self.letter:
@@ -207,7 +207,7 @@ class Logger(object):
 
             prefix = get_prefix()
             message = apply_indentation(message)
-            return apply_color("{:}{:}".format(prefix, message))
+            return apply_color(f"{prefix}{message}")
 
         def should_log(message):
             """Determines if a message should be logged based on the severity level and logging mode."""

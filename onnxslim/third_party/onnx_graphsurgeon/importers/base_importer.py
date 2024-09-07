@@ -18,7 +18,7 @@
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 
 
-class BaseImporter(object):
+class BaseImporter:
     @staticmethod
     def import_graph(graph) -> Graph:
         """

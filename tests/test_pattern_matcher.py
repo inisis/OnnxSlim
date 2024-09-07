@@ -14,7 +14,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.relu0 = nn.ReLU()
                 self.gelu = nn.GELU()
                 self.relu1 = nn.ReLU()
@@ -44,7 +44,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.pad_0 = nn.ConstantPad2d(3, 0)
                 self.conv_0 = nn.Conv2d(1, 1, 3)
 
@@ -80,7 +80,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.conv = nn.Conv2d(1, 1, 3)
                 self.bn = nn.BatchNorm2d(1)
 
@@ -109,7 +109,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.conv = nn.Conv2d(1, 1, 3)
                 self.bn = nn.BatchNorm2d(1)
 
@@ -134,7 +134,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 """Reshape tensor sequentially to (2, 6) and then to (12, 1)."""
@@ -157,7 +157,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
                 self.data = torch.randn(4, 3)
 
             def forward(self, x):
@@ -185,7 +185,7 @@ class TestPatternMatcher:
 
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 """Performs a reduction summing over the last dimension of the input tensor and then unsqueezes the
@@ -217,7 +217,7 @@ class TestPatternMatcher:
     def test_consecutive_unsqueeze(self, request, opset):
         class Model(nn.Module):
             def __init__(self):
-                super(Model, self).__init__()
+                super().__init__()
 
             def forward(self, x):
                 x = x.unsqueeze(-1)

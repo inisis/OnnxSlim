@@ -44,8 +44,6 @@ def get_name(name):
 
 
 class NodeDescriptor:
-    """Represents a node in a computational graph, detailing its operation type, inputs, and outputs."""
-
     def __init__(self, node_spec):
         """Initialize NodeDescriptor with node_spec list requiring at least 4 elements."""
         if not isinstance(node_spec, list):
@@ -89,8 +87,6 @@ class NodeDescriptor:
 
 
 class Pattern:
-    """Parses and matches ONNX graph patterns into NodeDescriptor objects for model optimization tasks."""
-
     def __init__(self, pattern):
         """Initialize the Pattern class with a given pattern and parse its nodes."""
         self.pattern = pattern
@@ -113,8 +109,6 @@ class Pattern:
 
 
 class PatternMatcher:
-    """Matches computational graph nodes to predefined patterns for optimization and transformation tasks."""
-
     def __init__(self, pattern, priority):
         """Initialize the PatternMatcher with a given pattern and priority, and prepare node references and output
         names.
@@ -190,8 +184,6 @@ class PatternMatcher:
 
 
 class PatternGenerator:
-    """Generates pattern templates from an ONNX model by processing its graph structure and node connections."""
-
     def __init__(self, onnx_model):
         """Initialize the PatternGenerator class with an ONNX model and process its graph."""
         self.graph = gs.import_onnx(onnx_model)

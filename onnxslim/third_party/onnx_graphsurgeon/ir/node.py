@@ -24,9 +24,7 @@ from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
 
-class Node:
-    """Represents an operation node in a computational graph, managing inputs, outputs, and attributes."""
-
+class Node(object):
     @dataclass
     class AttributeRef:
         """
@@ -179,24 +177,24 @@ class Node:
 
     def __str__(self):
         """Return a string representation of the object showing its name and operation."""
-        ret = f"{self.name} ({self.op})"
+        ret = "{:} ({:})".format(self.name, self.op)
 
         def add_io(name, io):
             """Add the input or output operations and their names to the string representation of the object."""
             nonlocal ret
-            ret += f"\n\t{name}: ["
+            ret += "\n\t{:}: [".format(name)
             for elem in io:
-                ret += f"\n\t\t{elem}"
+                ret += "\n\t\t{:}".format(elem)
             ret += "\n\t]"
 
         add_io("Inputs", self.inputs)
         add_io("Outputs", self.outputs)
 
         if self.attrs:
-            ret += f"\nAttributes: {self.attrs}"
+            ret += "\nAttributes: {:}".format(self.attrs)
 
         if self.domain:
-            ret += f"\nDomain: {self.domain}"
+            ret += "\nDomain: {:}".format(self.domain)
 
         return ret
 
@@ -206,7 +204,7 @@ class Node:
 
     def __eq__(self, other):
         """Check whether two nodes are equal by comparing name, attributes, op, inputs, and outputs."""
-        G_LOGGER.verbose(f"Comparing node: {self.name} with {other.name}")
+        G_LOGGER.verbose("Comparing node: {:} with {:}".format(self.name, other.name))
         attrs_match = self.name == other.name and self.op == other.op and self.attrs == other.attrs
         if not attrs_match:
             return False

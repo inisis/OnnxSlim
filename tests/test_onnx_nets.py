@@ -24,7 +24,6 @@ class TestTorchVisionClass:
             models.googlenet,
         ),
     )
-    """Tests TorchVision models by exporting them to ONNX format and verifying the process with random input tensors."""
     def test_torchvision(self, request, model, shape=(1, 3, 224, 224)):
         """Test various TorchVision models with random input tensors of a specified shape."""
         model = model(pretrained=PRETRAINED)
@@ -48,7 +47,6 @@ class TestTorchVisionClass:
 
 
 class TestTimmClass:
-    """Tests TIMM models for successful ONNX export and slimming using random input tensors."""
     @pytest.fixture(params=timm.list_models())
     def model_name(self, request):
         """Yields names of models available in TIMM (https://github.com/rwightman/pytorch-image-models) for pytest fixture parameterization."""

@@ -6,8 +6,6 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class ReshapePatternMatcher(PatternMatcher):
-    """Matches and optimizes nested reshape operations in computational graphs to eliminate redundancy."""
-
     def __init__(self, priority):
         """Initializes the ReshapePatternMatcher with a priority and a specific pattern for detecting nested reshape
         operations.

@@ -23,7 +23,7 @@ except ImportError:
         from tqdm import tqdm
     except ImportError:
         # fake tqdm if it's not installed
-        class tqdm:  # type: ignore[no-redef]
+        class tqdm(object):  # type: ignore[no-redef]
             def __init__(
                 self,
                 total=None,
@@ -44,9 +44,9 @@ except ImportError:
 
                 self.n += n
                 if self.total is None:
-                    sys.stderr.write(f"\r{self.n:.1f} bytes")
+                    sys.stderr.write("\r{0:.1f} bytes".format(self.n))
                 else:
-                    sys.stderr.write(f"\r{100 * self.n / float(self.total):.1f}%")
+                    sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
                 sys.stderr.flush()
 
             def close(self):

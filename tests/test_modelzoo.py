@@ -12,10 +12,7 @@ MODELZOO_PATH = "/data/modelzoo"
 
 
 class TestModelZoo:
-    """Tests ONNX models from the model zoo using slimming techniques for validation."""
-
     def test_silero_vad(self, request):
-        """Test the Silero VAD model by slimming its ONNX file and running inference with dummy input data."""
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
@@ -30,7 +27,6 @@ class TestModelZoo:
             ort_sess.run(None, {"input": input, "sr": sr, "state": state})
 
     def test_decoder_with_past_model(self, request):
-        """Test the ONNX model decoder with past states using a slimmed model and validate inference execution."""
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
@@ -44,7 +40,6 @@ class TestModelZoo:
             ort_sess.run(None, {"input_ids": input_ids, "encoder_hidden_states": encoder_hidden_states})
 
     def test_tiny_en_decoder(self, request):
-        """Tests the functionality of a slimmed tiny English encoder-decoder model using ONNX Runtime for inference."""
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
@@ -52,7 +47,6 @@ class TestModelZoo:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
 
     def test_transformer_encoder(self, request):
-        """Tests the transformer encoder model from the model zoo by verifying the operation count after slimming."""
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
         summary = summarize_model(slim(filename))
@@ -61,7 +55,6 @@ class TestModelZoo:
         assert summary["op_type_counts"]["Div"] == 53
 
     def test_uiex(self, request):
-        """Summarize the UIEX model and verify absence of 'Range' and 'Floor' operators."""
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
         summary = summarize_model(slim(filename))

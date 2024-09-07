@@ -6,8 +6,6 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
 class ConvBatchNormMatcher(PatternMatcher):
-    """Fuses Conv and BatchNormalization layers in an ONNX graph to optimize model performance and inference speed."""
-
     def __init__(self, priority):
         """Initializes the ConvBatchNormMatcher for fusing Conv and BatchNormalization layers in an ONNX graph."""
         pattern = Pattern(

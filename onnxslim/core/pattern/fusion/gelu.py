@@ -2,8 +2,6 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 
 
 class GeluPatternMatcher(PatternMatcher):
-    """Matches and fuses GELU patterns in computational graphs for optimization purposes."""
-
     def __init__(self, priority):
         """Initializes a `GeluPatternMatcher` to identify and fuse GELU patterns in a computational graph."""
         pattern = Pattern(

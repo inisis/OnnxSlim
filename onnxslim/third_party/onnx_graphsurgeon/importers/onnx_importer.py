@@ -189,8 +189,6 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
 
 
 class OnnxImporter(BaseImporter):
-    """Imports ONNX models, functions, and tensors into internal representations for further processing."""
-
     @staticmethod
     def get_opset(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
         """Return the ONNX opset version for the given ONNX model or function, or None if the information is
@@ -279,10 +277,14 @@ class OnnxImporter(BaseImporter):
                 if attr_str in ONNX_PYTHON_ATTR_MAPPING:
                     attr_dict[attr.name] = process_attr(attr_str)
                 else:
-                    G_LOGGER.warning(f"Attribute of type {attr_str} is currently unsupported. Skipping attribute.")
+                    G_LOGGER.warning(
+                        "Attribute of type {:} is currently unsupported. Skipping attribute.".format(attr_str)
+                    )
             else:
                 G_LOGGER.warning(
-                    f"Attribute type: {attr.type} was not recognized. Was the graph generated with a newer IR version than the installed `onnx` package? Skipping attribute."
+                    "Attribute type: {:} was not recognized. Was the graph generated with a newer IR version than the installed `onnx` package? Skipping attribute.".format(
+                        attr.type
+                    )
                 )
         return attr_dict
 
@@ -313,7 +315,9 @@ class OnnxImporter(BaseImporter):
                 return Variable.empty()
 
             G_LOGGER.verbose(
-                f"Tensor: {name} was not generated during shape inference, or shape inference was not run on this model. Creating a new Tensor."
+                "Tensor: {:} was not generated during shape inference, or shape inference was not run on this model. Creating a new Tensor.".format(
+                    name
+                )
             )
             subgraph_tensor_map[name] = Variable(name)
             return subgraph_tensor_map[name]

@@ -110,10 +110,7 @@ class CheckerArguments:
 
 
 class ArgumentParser:
-    """Parses command-line arguments into specified dataclasses for ONNX model optimization and modification tasks."""
-
     def __init__(self, *argument_dataclasses: Type):
-        """Initializes the ArgumentParser with dataclass types for parsing ONNX model optimization arguments."""
         self.argument_dataclasses = argument_dataclasses
         self.parser = argparse.ArgumentParser(
             description="OnnxSlim: A Toolkit to Help Optimizer Onnx Model",
@@ -122,7 +119,6 @@ class ArgumentParser:
         self._add_arguments()
 
     def _add_arguments(self):
-        """Adds command-line arguments to the parser based on provided dataclass fields and their metadata."""
         for dataclass_type in self.argument_dataclasses:
             for field_name, field_def in dataclass_type.__dataclass_fields__.items():
                 arg_type = field_def.type
@@ -154,7 +150,6 @@ class ArgumentParser:
         self.parser.add_argument("-v", "--version", action="version", version=onnxslim.__version__)
 
     def parse_args_into_dataclasses(self):
-        """Parses command-line arguments into specified dataclass instances for structured configuration."""
         args = self.parser.parse_args()
         args_dict = vars(args)
 

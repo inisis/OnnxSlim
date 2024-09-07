@@ -27,9 +27,7 @@ from onnxslim.third_party.onnx_graphsurgeon.util.exception import (
 
 
 # Context manager to apply indentation to messages
-class LoggerIndent:
-    """Context manager for temporarily setting indentation levels in logger messages."""
-
+class LoggerIndent(object):
     def __init__(self, logger, indent):
         """Initialize the LoggerIndent context manager with the specified logger and indentation level."""
         self.logger = logger
@@ -47,9 +45,7 @@ class LoggerIndent:
 
 
 # Context manager to suppress messages
-class LoggerSuppress:
-    """Suppress logger messages below a specified severity level within a context."""
-
+class LoggerSuppress(object):
     def __init__(self, logger, severity):
         """Initialize a LoggerSuppress object with a logger and severity level."""
         self.logger = logger
@@ -67,15 +63,11 @@ class LoggerSuppress:
 
 
 class LogMode(enum.IntEnum):
-    """Enumerates logging modes for controlling message frequency in the Ultralytics library."""
-
     EACH = 0  # Log the message each time
     ONCE = 1  # Log the message only once. The same message will not be logged again.
 
 
-class Logger:
-    """Manages logging with configurable severity, indentation, and formatting for debugging and monitoring."""
-
+class Logger(object):
     ULTRA_VERBOSE = -10
     VERBOSE = 0
     DEBUG = 10
@@ -181,7 +173,7 @@ class Logger:
                     # If the file is not located in trt_smeagol, use its basename instead.
                     if os.pardir in filename:
                         filename = os.path.basename(filename)
-                    return f"[{filename}:{sys._getframe(stack_depth).f_lineno}] "
+                    return "[{:}:{:}] ".format(filename, sys._getframe(stack_depth).f_lineno)
 
                 prefix = ""
                 if self.letter:
@@ -215,7 +207,7 @@ class Logger:
 
             prefix = get_prefix()
             message = apply_indentation(message)
-            return apply_color(f"{prefix}{message}")
+            return apply_color("{:}{:}".format(prefix, message))
 
         def should_log(message):
             """Determines if a message should be logged based on the severity level and logging mode."""

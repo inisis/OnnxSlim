@@ -158,8 +158,6 @@ def convert_to_onnx_attr_type(any_type):
 # So, in the example above, we can make n.inputs a synchronized list whose field_name is set to "outputs".
 # See test_ir.TestNodeIO for functional tests
 class SynchronizedList(list):
-    """Synchronizes list operations with a specified attribute of elements to maintain bidirectional consistency."""
-
     def __init__(self, parent_obj, field_name, initial):
         """Initialize a SynchronizedList with a parent object, a field name, and an initial set of elements."""
         self.parent_obj = parent_obj

@@ -18,9 +18,7 @@
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 
 
-class BaseImporter:
-    """BaseImporter provides functionality to import and convert source graphs into onnx-graphsurgeon Graph objects."""
-
+class BaseImporter(object):
     @staticmethod
     def import_graph(graph) -> Graph:
         """

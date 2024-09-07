@@ -10,14 +10,12 @@ from onnxslim.core.pattern import Pattern, PatternGenerator, PatternMatcher
 
 
 class TestPatternGenerator:
-    """Generates and tests ONNX fusion patterns for neural network models using the GELU activation function."""
-
     def test_gelu(self, request):
         """Test the GELU activation function within the PatternModel class."""
 
         class PatternModel(nn.Module):
             def __init__(self):
-                super().__init__()
+                super(PatternModel, self).__init__()
                 self.gelu = nn.GELU()
 
             def forward(self, x):
@@ -28,7 +26,7 @@ class TestPatternGenerator:
         class Model(nn.Module):
             def __init__(self):
                 """Initializes the Model class with ReLU and PatternModel components."""
-                super().__init__()
+                super(Model, self).__init__()
                 self.relu0 = nn.ReLU()
                 self.pattern = PatternModel()
                 self.relu1 = nn.ReLU()

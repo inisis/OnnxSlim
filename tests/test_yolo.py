@@ -1,9 +1,3 @@
-from itertools import product
-
-import pytest
-import ultralytics
-
-
 import gc
 import json
 import os
@@ -13,11 +7,13 @@ import time
 import warnings
 from copy import deepcopy
 from datetime import datetime
+from itertools import product
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
-
+import ultralytics
 from ultralytics.cfg import TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
@@ -41,11 +37,25 @@ from ultralytics.utils import (
     get_default_args,
     yaml_save,
 )
-from ultralytics.utils.checks import check_imgsz, check_is_path_safe, check_requirements, check_version
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
+from ultralytics.utils.checks import (
+    check_imgsz,
+    check_is_path_safe,
+    check_requirements,
+    check_version,
+)
+from ultralytics.utils.downloads import (
+    attempt_download_asset,
+    get_github_assets,
+    safe_download,
+)
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import (
+    TORCH_1_13,
+    get_latest_opset,
+    select_device,
+    smart_inference_mode,
+)
 
 
 def export_formats():
@@ -1152,6 +1162,7 @@ class IOSDetectModel(torch.nn.Module):
 
 import ultralytics.engine
 import ultralytics.engine.exporter
+
 ultralytics.engine.exporter.Exporter = Exporter
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2MODEL, TASKS

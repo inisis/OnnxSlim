@@ -59,8 +59,7 @@ class NodeDescriptor:
                 pattern_with_plus = re.search(r"(\d+)(\+)", io_spec)
                 if pattern_with_plus:
                     return int(pattern_with_plus[1]), True
-                else:
-                    raise ValueError(f"input_num and output_num must be integers {io_spec}")
+                raise ValueError(f"input_num and output_num must be integers {io_spec}")
 
             return int(io_spec), False
 
@@ -154,16 +153,13 @@ class PatternMatcher:
                         return False
 
                 pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
-                all_match = True
                 for node_feed, pattern_node in zip(node_feeds, pattern_nodes):
                     if pattern_node is not None:
                         node_match = match_(node_feed, pattern_node)
                         if not node_match:
                             return False
                         setattr(self, pattern_node.name, node_feed)
-
-                return all_match
-
+                return True
             return False
 
         if match_(node, match_point):

@@ -11,7 +11,7 @@ def tie_weights(graph):
 
     sub_graphs = graph.subgraphs(recursive=True)
     sub_graphs_constant_tensors = [
-        [tensor for name, tensor in sub_graph.tensors().items() if isinstance(tensor, gs.Constant)]
+        [tensor for _, tensor in sub_graph.tensors().items() if isinstance(tensor, gs.Constant)]
         for sub_graph in sub_graphs
     ]
 

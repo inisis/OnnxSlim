@@ -277,9 +277,7 @@ class OnnxImporter(BaseImporter):
                 if attr_str in ONNX_PYTHON_ATTR_MAPPING:
                     attr_dict[attr.name] = process_attr(attr_str)
                 else:
-                    G_LOGGER.warning(
-                        f"Attribute of type {attr_str} is currently unsupported. Skipping attribute."
-                    )
+                    G_LOGGER.warning(f"Attribute of type {attr_str} is currently unsupported. Skipping attribute.")
             else:
                 G_LOGGER.warning(
                     f"Attribute type: {attr.type} was not recognized. Was the graph generated with a newer IR version than the installed `onnx` package? Skipping attribute."

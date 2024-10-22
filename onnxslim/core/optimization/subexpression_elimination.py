@@ -10,8 +10,7 @@ def find_and_remove_replaceable_nodes(nodes):
     """Find and remove duplicate or replaceable nodes in a given list of computational graph nodes."""
 
     def get_node_key(node):
-        input_names = [input_node.name for input_node in node.inputs if\
-            isinstance(input_node, Variable)]
+        input_names = [input_node.name for input_node in node.inputs if isinstance(input_node, Variable)]
         return "_".join(input_names) if input_names else None
 
     def replace_node_references(existing_node, to_be_removed_node):

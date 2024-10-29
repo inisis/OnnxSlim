@@ -639,9 +639,7 @@ class Graph:
             if not tensor.is_empty():
                 if tensor.name in tensor_map and tensor_map[tensor.name] is not tensor:
                     msg = f"Found distinct tensors that share the same name:\n[id: {id(tensor_map[tensor.name])}] {tensor_map[tensor.name]}\n[id: {id(tensor)}] {tensor}\n"
-                    msg += (
-                        f"Note: Producer node(s) of first tensor:\n{tensor_map[tensor.name].inputs}\nProducer node(s) of second tensor:\n{tensor.inputs}"
-                    )
+                    msg += f"Note: Producer node(s) of first tensor:\n{tensor_map[tensor.name].inputs}\nProducer node(s) of second tensor:\n{tensor.inputs}"
 
                     if check_duplicates:
                         G_LOGGER.critical(msg)

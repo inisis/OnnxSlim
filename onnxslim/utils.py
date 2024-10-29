@@ -186,7 +186,9 @@ def format_model_info(model_name: str, model_info_list: List[Dict], elapsed_time
     final_op_info.extend(
         (
             [SEPARATING_LINE] * (len(model_info_list) + 1),
-            ["Model Info"] + [model_info_list[0].get("tag", "Original Model")] + [item.get("tag", "Slimmed Model") for item in model_info_list[1:]],
+            ["Model Info"]
+            + [model_info_list[0].get("tag", "Original Model")]
+            + [item.get("tag", "Slimmed Model") for item in model_info_list[1:]],
             [SEPARATING_LINE] * (len(model_info_list) + 1),
         )
     )
@@ -325,7 +327,7 @@ def summarize_model(model: Union[str, onnx.ModelProto], tag=None) -> Dict:
 
     logger.debug("Start summarizing model.")
     model_info = {}
-    if tag != None:
+    if tag is not None:
         model_info["tag"] = tag
 
     model_size = model.ByteSize()

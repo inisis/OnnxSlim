@@ -1,4 +1,4 @@
-from onnxslim.core.pattern import get_node_users, get_node_feeds
+from onnxslim.core.pattern import get_node_feeds, get_node_users
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Variable
 
 

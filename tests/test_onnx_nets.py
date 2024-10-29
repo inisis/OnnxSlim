@@ -6,7 +6,6 @@ import warnings
 import pytest
 import timm
 import torch
-from torch.utils.data import RandomSampler
 import torchvision.models as models
 
 FUSE = True

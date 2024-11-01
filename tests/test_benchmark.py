@@ -54,15 +54,12 @@ class TestModelZoo:
         summary_list = [summarize_model(filename)]
         summary_list.append(self.transform_and_check(name, filename, bench_onnxslim, "onnxslim", check_func))
         summary_list.append(self.transform_and_check(name, filename, bench_onnxsim, "onnxsim", check_func))
-        summary_list.append(
-            self.transform_and_check(name, filename, bench_polygraphy, "polygraphy", check_func)
-        )
+        summary_list.append(self.transform_and_check(name, filename, bench_polygraphy, "polygraphy", check_func))
 
         summary_list = [summary for summary in summary_list if summary is not None]
 
         print()
         print_model_info_as_table(name, summary_list)
-
 
     def test_silero_vad(self, request):
         def check_model_inference(model_path):
@@ -86,7 +83,7 @@ class TestModelZoo:
             encoder_hidden_states = np.zeros((batch_size, 128, 16), dtype=np.float32)
 
             ort_sess = ort.InferenceSession(model_path)
-            outputs = ort_sess.run(None, {"input_ids": input_ids, "encoder_hidden_states": encoder_hidden_states})
+            ort_sess.run(None, {"input_ids": input_ids, "encoder_hidden_states": encoder_hidden_states})
 
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"

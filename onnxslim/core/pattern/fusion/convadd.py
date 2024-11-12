@@ -1,4 +1,3 @@
-
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
 from onnxslim.core.pattern.registry import register_fusion_pattern

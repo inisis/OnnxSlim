@@ -46,7 +46,8 @@ class ReshapePatternMatcher(PatternMatcher):
                     reshape_shape = reshape_node.inputs[1].values.tolist()
                     if input_shape is not None and np.any(reshape_shape == 0):
                         shape = [
-                            input_shape[i] if dim_size == 0 else reshape_shape[i] for i, dim_size in enumerate(reshape_shape)
+                            input_shape[i] if dim_size == 0 else reshape_shape[i]
+                            for i, dim_size in enumerate(reshape_shape)
                         ]
                         if not all(isinstance(item, int) for item in shape):
                             return False

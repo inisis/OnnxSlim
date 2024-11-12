@@ -1,4 +1,3 @@
-import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
@@ -29,7 +28,13 @@ class ConvAddMatcher(PatternMatcher):
         conv_weight = list(conv_node.inputs)[1]
         conv_node_users = get_node_users(conv_node)
         node = self.add_0
-        if len(conv_node_users) == 1 and isinstance(node.inputs[1], gs.Constant) and isinstance(conv_weight, gs.Constant) and node.inputs[1].values.squeeze().ndim == 1 and node.inputs[1].values.squeeze().shape[0] == conv_weight.shape[0]:
+        if (
+            len(conv_node_users) == 1
+            and isinstance(node.inputs[1], gs.Constant)
+            and isinstance(conv_weight, gs.Constant)
+            and node.inputs[1].values.squeeze().ndim == 1
+            and node.inputs[1].values.squeeze().shape[0] == conv_weight.shape[0]
+        ):
             add_node = node
             if len(conv_node.inputs) == 2:
                 conv_bias = node.inputs[1].values.squeeze()

@@ -123,14 +123,16 @@ def slim(model: Union[str, onnx.ModelProto], *args, **kwargs):
 def main():
     """Entry point for the OnnxSlim toolkit, processes command-line arguments and passes them to the slim function."""
     from onnxslim.argparser import (
-        OnnxSlimArgumentParser,
         CheckerArguments,
         ModelArguments,
         ModificationArguments,
+        OnnxSlimArgumentParser,
         OptimizationArguments,
     )
 
-    argument_parser = OnnxSlimArgumentParser(ModelArguments, OptimizationArguments, ModificationArguments, CheckerArguments)
+    argument_parser = OnnxSlimArgumentParser(
+        ModelArguments, OptimizationArguments, ModificationArguments, CheckerArguments
+    )
     model_args, optimization_args, modification_args, checker_args = argument_parser.parse_args_into_dataclasses()
 
     if checker_args.inspect and model_args.output_model:

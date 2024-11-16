@@ -1,18 +1,17 @@
-import sys
 import argparse
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import dataclasses
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from dataclasses import dataclass, field
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Union, get_args, get_origin
 
 import onnxslim
 
-from typing import Union, List, Optional, get_origin, get_args
 
 def _get_inner_type(arg_type):
     if get_origin(arg_type) is Union:
         return next((t for t in get_args(arg_type) if t is not type(None)), str)
     return arg_type
+
 
 @dataclass
 class ModelArguments:

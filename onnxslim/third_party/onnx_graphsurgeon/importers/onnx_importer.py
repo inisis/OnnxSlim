@@ -551,5 +551,5 @@ def import_onnx(onnx_model: "onnx.ModelProto") -> Graph:
         producer_name=onnx_model.producer_name,
         producer_version=onnx_model.producer_version,
         functions=functions,
-        metadata_props=onnx_model.metadata_props
+        metadata_props=onnx_model.metadata_props,
     )

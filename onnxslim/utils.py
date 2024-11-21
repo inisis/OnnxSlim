@@ -1,8 +1,8 @@
-from pathlib import Path
 import logging
 import os
 import sys
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -176,16 +176,18 @@ def format_model_info(model_name: str, model_info_list: List[Dict], elapsed_time
         (
             ["Model Name"] + [item.tag for item in model_info_list],
             [SEPARATING_LINE] * (len(model_info_list) + 1),
-            ["Model Info"] + [ "Op Set: " + item.op_set + " / IR Version: " + item.ir_version for item in model_info_list],
-            [SEPARATING_LINE] * (len(model_info_list) + 1)
+            ["Model Info"]
+            + ["Op Set: " + item.op_set + " / IR Version: " + item.ir_version for item in model_info_list],
+            [SEPARATING_LINE] * (len(model_info_list) + 1),
         )
     )
+
     def get_io_info(model_info_list, tag=None):
         if tag == "OUT":
             ios = [op_type for model_info in model_info_list for op_type in model_info.output_info]
         else:
             ios = [op_type for model_info in model_info_list for op_type in model_info.input_info]
-        ios = list(dict.fromkeys([io.name for io in ios]))        
+        ios = list(dict.fromkeys([io.name for io in ios]))
         io_info = []
         for io in ios:
             input_info_list = [f"{tag}: {io}"]
@@ -201,7 +203,7 @@ def format_model_info(model_name: str, model_info_list: List[Dict], elapsed_time
             io_info.append(input_info_list)
 
         return io_info
-    
+
     final_op_info.extend(get_io_info(model_info_list, "IN"))
     final_op_info.extend(get_io_info(model_info_list, "OUT"))
 
@@ -316,13 +318,14 @@ def get_ir_version(model: onnx.ModelProto) -> int:
     except Exception:
         return None
 
-class TensorInfo(object):
+
+class TensorInfo:
     def __init__(self, tensor):
         self.dtype: np.dtype = np.float32
         self.shape: Tuple[Union[str, int]] = None
-        
+
         self._extract_info(tensor)
-    
+
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
         self.dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
@@ -340,20 +343,22 @@ class TensorInfo(object):
         self.shape = tuple(shape)
         self.name = tensor.name
 
-class OperatorInfo(object):
+
+class OperatorInfo:
     def __init__(self, operator, outputs=None):
         self.name: str = None
         self.op: str = None
-        
+
         self._extract_info(operator)
         self.outputs = outputs
-    
+
     def _extract_info(self, operator):
         self.name: str = operator.name
         self.op: str = operator.op_type
 
-class ModelInfo(object):
-    def __init__(self, model: Union[str, onnx.ModelProto], tag: str="OnnxSlim"):
+
+class ModelInfo:
+    def __init__(self, model: Union[str, onnx.ModelProto], tag: str = "OnnxSlim"):
         if isinstance(model, str):
             model = onnx.load(model)
             tag = Path(model).name
@@ -366,9 +371,9 @@ class ModelInfo(object):
         self.op_info: Dict[str, Dict] = {}
         self.input_info: List[str, Tuple[str, Tuple]] = []
         self.output_info: List[str, Tuple[str, Tuple]] = []
-        
+
         self._summarize_model(model)
-        
+
     def _summarize_model(self, model):
         self.op_set = str(get_opset(model))
         self.ir_version = str(get_ir_version(model))
@@ -376,9 +381,9 @@ class ModelInfo(object):
 
         for input in model.graph.input:
             self.input_info.append(TensorInfo(input))
-            
+
         for output in model.graph.output:
-            self.output_info.append(TensorInfo(output))            
+            self.output_info.append(TensorInfo(output))
 
         value_info_dict = {value_info.name: value_info for value_info in model.graph.value_info}
 
@@ -407,14 +412,15 @@ class ModelInfo(object):
     @property
     def input_maps(self):
         self.input_dict = {input_info.name: input_info for input_info in self.input_info}
-        
+
         return self.input_dict
 
     @property
     def output_maps(self):
         self.output_dict = {output_info.name: output_info for output_info in self.output_info}
-        
-        return self.output_dict            
+
+        return self.output_dict
+
 
 def summarize_model(model: Union[str, onnx.ModelProto], tag=None) -> Dict:
     """Generates a summary of the ONNX model, including model size, operations, and tensor shapes."""

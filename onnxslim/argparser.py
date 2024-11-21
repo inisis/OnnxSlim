@@ -131,7 +131,7 @@ class OnnxSlimArgumentParser(ArgumentParser):
     def _add_arguments(self):
         for dataclass_type in self.argument_dataclasses:
             if dataclass_type is ModelArguments:
-                continue            
+                continue
             for field_name, field_def in dataclass_type.__dataclass_fields__.items():
                 arg_type = _get_inner_type(field_def.type)
                 default_value = field_def.default if field_def.default is not field_def.default_factory else None
@@ -175,7 +175,6 @@ class OnnxSlimArgumentParser(ArgumentParser):
                     action.nargs = "+"
                     break
 
-        
         args = self.parser.parse_args()
         args_dict = vars(args)
 

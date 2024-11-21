@@ -38,7 +38,7 @@ def slim(model: List[Union[str, onnx.ModelProto]], *args, **kwargs):
     no_constant_folding = kwargs.get("no_constant_folding", False)
     dtype = kwargs.get("dtype", None)
     skip_fusion_patterns = kwargs.get("skip_fusion_patterns", None)
-    inspect = kwargs.get("inspect", False)
+    kwargs.get("inspect", False)
     dump_to_disk = kwargs.get("dump_to_disk", False)
     save_as_external_data = kwargs.get("save_as_external_data", False)
     model_check_inputs = kwargs.get("model_check_inputs", None)
@@ -67,9 +67,7 @@ def slim(model: List[Union[str, onnx.ModelProto]], *args, **kwargs):
         return model_name, model_info
 
     if isinstance(model, list):
-        model_name_list, model_info_list = zip(*[
-            get_info(m, inspect=True) for m in model
-        ])
+        model_name_list, model_info_list = zip(*[get_info(m, inspect=True) for m in model])
 
         if dump_to_disk:
             [dump_model_info_to_disk(name, info) for name, info in zip(model_name_list, model_info_list)]

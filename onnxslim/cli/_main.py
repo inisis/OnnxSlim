@@ -62,7 +62,7 @@ def slim(model: List[Union[str, onnx.ModelProto]], *args, **kwargs):
         if not inspect:
             return model_name, model
 
-        model_info = summarize_model(model)
+        model_info = summarize_model(model, model_name)
 
         return model_name, model_info
 
@@ -80,7 +80,7 @@ def slim(model: List[Union[str, onnx.ModelProto]], *args, **kwargs):
     else:
         model_name, model = get_info(model)
         if output_model:
-            original_info = summarize_model(model)
+            original_info = summarize_model(model, model_name)
 
     if inputs:
         model = input_modification(model, inputs)
@@ -123,7 +123,7 @@ def slim(model: List[Union[str, onnx.ModelProto]], *args, **kwargs):
     if not output_model:
         return model
 
-    slimmed_info = summarize_model(model)
+    slimmed_info = summarize_model(model, output_model)
     save(model, output_model, model_check, save_as_external_data, slimmed_info)
 
     end_time = time.time()

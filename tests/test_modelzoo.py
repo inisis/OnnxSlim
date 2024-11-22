@@ -49,16 +49,16 @@ class TestModelZoo:
     def test_transformer_encoder(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
-        summary = summarize_model(slim(filename))
-        print_model_info_as_table(request.node.name, summary)
+        summary = summarize_model(slim(filename), tag=request.node.name)
+        print_model_info_as_table(summary)
         assert summary.op_type_counts["Mul"] == 57
         assert summary.op_type_counts["Div"] == 53
 
     def test_uiex(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
-        summary = summarize_model(slim(filename))
-        print_model_info_as_table(request.node.name, summary)
+        summary = summarize_model(slim(filename), tag=request.node.name)
+        print_model_info_as_table(summary)
         assert summary.op_type_counts["Range"] == 0
         assert summary.op_type_counts["Floor"] == 0
         assert summary.op_type_counts["Concat"] == 54

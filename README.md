@@ -56,7 +56,7 @@ onnxslim your_onnx_model slimmed_onnx_model
 
 For more usage, see onnxslim -h or refer to our [examples](./examples)
 
-# Used by OnnxSlim
+# Projects using OnnxSlim
 
 - [Mozilla/smart_autofill](https://github.com/mozilla/smart_autofill)
 - [alibaba/MNN](https://github.com/alibaba/MNN)

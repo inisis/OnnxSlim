@@ -67,7 +67,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
         return model_info
 
     if isinstance(model, list):
-        model_info_list = (get_info(m, inspect=True) for m in model)
+        model_info_list = [get_info(m, inspect=True) for m in model]
 
         if dump_to_disk:
             [dump_model_info_to_disk(info) for info in model_info_list]

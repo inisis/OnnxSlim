@@ -166,7 +166,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
     return onnx_output, model
 
 
-def format_model_info(model_info_list: List[Dict], elapsed_time: float = None):
+def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
     assert model_info_list, "model_info_list must contain more than one model info"
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
@@ -239,7 +239,7 @@ def format_model_info(model_info_list: List[Dict], elapsed_time: float = None):
     return final_op_info
 
 
-def print_model_info_as_table(model_info_list: List[Dict], elapsed_time: float = None):
+def print_model_info_as_table(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
     """Prints the model information as a formatted table for the given model name and list of model details."""
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
@@ -277,14 +277,14 @@ def dump_model_info_to_disk(model_info: Dict):
             writer.writeheader()
 
         # Write the data
-        for node_name, info in model_info["op_info"].items():
-            op_type, output_info_list = info
+        for node_name, info in model_info.op_info.items():
+            op_type, output_info_list = info.op, info.outputs
             # Write the first row with actual NodeName and OpType
             row_data_first = {
                 "NodeName": node_name,
                 "OpType": op_type,
-                "OutputDtype": output_info_list[0][0],  # First entry in the list
-                "OutputShape": output_info_list[0][1],  # First entry in the list
+                "OutputDtype": output_info_list[0].dtype,  # First entry in the list
+                "OutputShape": output_info_list[0].shape,  # First entry in the list
             }
             writer.writerow(row_data_first)
 

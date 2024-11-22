@@ -36,8 +36,8 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
 
     def test_pad_conv(self, request):
         """Test padding followed by 2D convolution within a neural network module."""
@@ -69,11 +69,11 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
 
-        assert summary["op_type_counts"]["Conv"] == 2
-        assert summary["op_type_counts"]["Add"] == 1
+        assert summary.op_type_counts["Conv"] == 2
+        assert summary.op_type_counts["Add"] == 1
 
     def test_conv_bn(self, request):
         """Test the convolutional layer followed by batch normalization export and re-import via ONNX."""
@@ -98,9 +98,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename, do_constant_folding=False)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["Conv"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["Conv"] == 1
 
     def test_consecutive_slice(self, request):
         """Tests consecutive slicing operations on a model by exporting it to ONNX format and then slimming the ONNX
@@ -125,9 +125,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["Slice"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["Slice"] == 1
 
     def test_consecutive_reshape(self, request):
         """Test the functionality of consecutive reshape operations in a model and export it to ONNX format."""
@@ -148,9 +148,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["Reshape"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["Reshape"] == 1
 
     def test_matmul_add(self, request):
         """Tests matrix multiplication followed by an addition operation within a neural network model."""
@@ -174,9 +174,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["Gemm"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["Gemm"] == 1
 
     def test_reduce(self, request):
         """Tests model reduction by exporting a PyTorch model to ONNX format, slimming it, and saving to a specified
@@ -203,9 +203,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename, opset_version=11)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["ReduceSum"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["ReduceSum"] == 1
 
     @pytest.mark.parametrize(
         "opset",
@@ -234,9 +234,9 @@ class TestPatternMatcher:
         filename = f"{directory}/{request.node.name}.onnx"
         torch.onnx.export(m, input, filename, opset_version=opset)
 
-        summary = summarize_model(slim(filename, model_check=True))
-        print_model_info_as_table(request.node.name, summary)
-        assert summary["op_type_counts"]["Unsqueeze"] == 1
+        summary = summarize_model(slim(filename, model_check=True), request.node.name)
+        print_model_info_as_table(summary)
+        assert summary.op_type_counts["Unsqueeze"] == 1
 
 
 if __name__ == "__main__":

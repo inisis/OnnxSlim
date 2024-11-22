@@ -33,6 +33,7 @@ jobs:
 
       - name: onnxslim api and binary test
         run: |
+          pip install onnxconverter_common
           pytest tests/test_onnxslim.py 
 
       - name: model zoo test

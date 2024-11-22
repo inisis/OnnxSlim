@@ -361,8 +361,8 @@ class OperatorInfo:
 class ModelInfo:
     def __init__(self, model: Union[str, onnx.ModelProto], tag: str = "OnnxSlim"):
         if isinstance(model, str):
-            model = onnx.load(model)
             tag = Path(model).name
+            model = onnx.load(model)
 
         self.tag: str = tag
         self.model_size: int = -1

@@ -243,7 +243,7 @@ def print_model_info_as_table(model_info_list: List[Dict], elapsed_time: float =
     """Prints the model information as a formatted table for the given model name and list of model details."""
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
-    
+
     final_op_info = format_model_info(model_info_list, elapsed_time)
     lines = tabulate(
         final_op_info,

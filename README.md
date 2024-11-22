@@ -57,6 +57,7 @@ onnxslim your_onnx_model slimmed_onnx_model
 For more usage, see onnxslim -h or refer to our [examples](./examples)
 
 # Used by OnnxSlim
+
 - [Mozilla/smart_autofill](https://github.com/mozilla/smart_autofill)
 - [alibaba/MNN](https://github.com/alibaba/MNN)
 - [PaddlePaddle/PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
@@ -65,7 +66,6 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 - [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
 - [alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
 - [deepghs/imgutils](https://github.com/deepghs/imgutils)
-
 
 # References
 

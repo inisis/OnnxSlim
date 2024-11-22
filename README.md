@@ -58,14 +58,14 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 
 # Projects using OnnxSlim
 
-- <img src="https://avatars.githubusercontent.com/u/131524?s=48&v=4" style="width:22px;height:22px"/>[Mozilla/smart_autofill](https://github.com/mozilla/smart_autofill)
-- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" style="width:22px;height:22px"/>[alibaba/MNN](https://github.com/alibaba/MNN)
-- <img src="https://avatars.githubusercontent.com/u/23534030?s=48&v=4" style="width:22px;height:22px"/>[PaddlePaddle/PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
-- <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" style="width:22px;height:22px"/>[huggingface/transformers.js](https://github.com/huggingface/transformers.js)
-- <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" style="width:22px;height:22px"/>[THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
-- <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" style="width:22px;height:22px"/>[ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
-- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" style="width:22px;height:22px"/>[alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
-- <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" style="width:22px;height:22px"/>[deepghs/imgutils](https://github.com/deepghs/imgutils)
+- <img src="https://avatars.githubusercontent.com/u/131524?s=48&v=4" width="22" height="22"/>[Mozilla/smart_autofill](https://github.com/mozilla/smart_autofill)
+- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN](https://github.com/alibaba/MNN)
+- <img src="https://avatars.githubusercontent.com/u/23534030?s=48&v=4" width="22" height="22"/>[PaddlePaddle/PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
+- <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/transformers.js](https://github.com/huggingface/transformers.js)
+- <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" width="22" height="22"/>[THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
+- <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" width="22" height="22"/>[ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
+- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
+- <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" width="22" height="22"/>[deepghs/imgutils](https://github.com/deepghs/imgutils)
 
 # References
 

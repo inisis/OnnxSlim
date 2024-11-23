@@ -341,7 +341,7 @@ class TensorInfo:
                 else:
                     shape.append(None)
 
-        self.shape = tuple(shape)
+        self.shape = tuple(shape) if shape is not None else None
         self.name = tensor.name
 
 

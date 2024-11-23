@@ -36,7 +36,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
             matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], gs.Constant) else matmul_node.inputs[1]
         )
         users = get_node_users(matmul_node)
-        if len(users) == 1 and matmul_bias_variable:
+        if len(users) == 1 and matmul_bias_variable and len(matmul_bias_variable.shape) == 2:        
             if (
                 input_variable.shape
                 and len(input_variable.shape) > 2

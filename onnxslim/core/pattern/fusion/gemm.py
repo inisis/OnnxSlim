@@ -1,3 +1,5 @@
+import numpy as np
+
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.optimization.dead_node_elimination import get_constant_variable
 from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users

@@ -19,7 +19,7 @@ class TestFunctional:
             out_model_path = os.path.join(tempdir, out_model_name)
             slim(in_model_path, out_model_path)
             slim(in_model_path, out_model_path, model_check=True)
-            command = f"onnxslim {arg_str} \"{in_model_path}\" \"{out_model_path}\""
+            command = f'onnxslim {arg_str} "{in_model_path}" "{out_model_path}"'
             result = subprocess.run(command, shell=True, capture_output=True, text=True)
             output = result.stderr.strip()
             # Assert the expected return code
@@ -39,9 +39,7 @@ class TestFunctional:
     def test_fp322fp16_conversion(self, request):
         """Test the conversion of an ONNX model from FP32 to FP16 precision."""
         dtype_fp16_arg_str = "--dtype fp16"
-        _, out_model_path = self.__test_command_basic(
-            request, FILENAME, "resnet18_fp16.onnx", dtype_fp16_arg_str
-        )
+        _, out_model_path = self.__test_command_basic(request, FILENAME, "resnet18_fp16.onnx", dtype_fp16_arg_str)
         dtype_fp32_arg_str = "--dtype fp32"
         self.__test_command_basic(request, out_model_path, "resnet18_fp32.onnx", dtype_fp32_arg_str)
 

@@ -136,14 +136,13 @@ class OnnxSlimArgumentParser(ArgumentParser):
                 arg_type = _get_inner_type(field_def.type)
                 default_value = field_def.default if field_def.default is not field_def.default_factory else None
                 help_text = field_def.metadata.get("help", "")
-                nargs = "+" if arg_type == list else None
+                nargs = "+" if get_origin(arg_type) == list else None
                 choices = field_def.metadata.get("choices", None)
-
                 if choices and default_value is not None and default_value not in choices:
                     raise ValueError(
                         f"Invalid default value '{default_value}' for argument '{field_name}'. Must be one of {choices}."
                     )
-
+                arg_type = get_args(arg_type)[0] if get_args(arg_type) else arg_type
                 if arg_type == bool:
                     self.parser.add_argument(
                         f"--{field_name.replace('_', '-')}",

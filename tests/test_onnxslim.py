@@ -14,7 +14,7 @@ FILENAME = f"{MODELZOO_PATH}/resnet18/resnet18.onnx"
 class TestFunctional:
     def __test_command_basic(self, request, in_model_path=FILENAME, out_model_name="resnet18.onnx", arg_str=""):
         with tempfile.TemporaryDirectory() as tempdir:
-            summary = summarize_model(slim(in_model_path), request.node.name))
+            summary = summarize_model(slim(in_model_path), request.node.name)
             print_model_info_as_table(summary)
             out_model_path = os.path.join(tempdir, out_model_name)
             slim(in_model_path, out_model_path)

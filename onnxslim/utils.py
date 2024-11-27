@@ -504,7 +504,7 @@ def save(
 
             if model_info:
                 model_size = model.ByteSize()
-                model_info["model_size"] = [model_size, model_info["model_size"]]
+                model_info.model_size = [model_size, model_info.model_size]
 
 
 def check_result(raw_onnx_output, slimmed_onnx_output):

@@ -115,7 +115,7 @@ class TestFunctional:
         with tempfile.TemporaryDirectory() as tempdir:
             out_model_path = os.path.join(tempdir, "resnet18.onnx")
             input_data = os.path.join(tempdir, "input.npy")
-            test_data = np.random.random((1, 3, 224 ,224)).astype(np.float32)
+            test_data = np.random.random((1, 3, 224, 224)).astype(np.float32)
             np.save(input_data, test_data)
             kwargs = {}
             kwargs["bash"] = f"--model-check --model-check-inputs input:{input_data}"
@@ -123,9 +123,9 @@ class TestFunctional:
             self.run_basic_test(FILENAME, out_model_path, **kwargs)
 
     def test_inspect(self, request):
-        with tempfile.TemporaryDirectory() as tempdir:
+        with tempfile.TemporaryDirectory():
             kwargs = {}
-            kwargs["bash"] = f"--inspect"
+            kwargs["bash"] = "--inspect"
             kwargs["api"] = {"inspect": True}
             self.run_basic_test(FILENAME, FILENAME, **kwargs)
 

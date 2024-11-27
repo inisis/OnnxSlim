@@ -19,7 +19,7 @@ class TestFunctional:
             out_model_path = os.path.join(tempdir, out_model_name)
             slim(in_model_path, out_model_path)
             slim(in_model_path, out_model_path, model_check=True)
-            command = f'onnxslim {arg_str} "{in_model_path}" "{out_model_path}"'
+            command = f'onnxslim "{in_model_path}" "{out_model_path}" {arg_str}'
             result = subprocess.run(command, shell=True, capture_output=True, text=True)
             output = result.stderr.strip()
             # Assert the expected return code

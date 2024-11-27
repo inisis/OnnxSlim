@@ -26,7 +26,7 @@ class TestFunctional:
         if check_func:
             check_func(summary)
 
-        command = f'onnxslim "{in_model_path}" "{out_model_path}", {kwargs_bash}'
+        command = f'onnxslim "{in_model_path}" "{out_model_path}" {kwargs_bash}'
 
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         output = result.stderr.strip()
@@ -110,6 +110,24 @@ class TestFunctional:
             kwargs["api"] = {"save_as_external_data": True}
             self.run_basic_test(FILENAME, out_model_path, **kwargs)
             assert os.path.getsize(out_model_path) < 1e5
+
+    def test_model_check(self, request):
+        with tempfile.TemporaryDirectory() as tempdir:
+            out_model_path = os.path.join(tempdir, "resnet18.onnx")
+            input_data = os.path.join(tempdir, "input.npy")
+            test_data = np.random.random((1, 3, 224 ,224)).astype(np.float32)
+            np.save(input_data, test_data)
+            kwargs = {}
+            kwargs["bash"] = f"--model-check --model-check-inputs input:{input_data}"
+            kwargs["api"] = {"model_check": True, "model_check_inputs": [f"input:{input_data}"]}
+            self.run_basic_test(FILENAME, out_model_path, **kwargs)
+
+    def test_inspect(self, request):
+        with tempfile.TemporaryDirectory() as tempdir:
+            kwargs = {}
+            kwargs["bash"] = f"--inspect"
+            kwargs["api"] = {"inspect": True}
+            self.run_basic_test(FILENAME, FILENAME, **kwargs)
 
 
 if __name__ == "__main__":

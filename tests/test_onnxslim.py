@@ -11,7 +11,7 @@ MODELZOO_PATH = "/data/modelzoo"
 FILENAME = f"{MODELZOO_PATH}/resnet18/resnet18.onnx"
 
 
-class TestFunctional:        
+class TestFunctional:
     def __test_command_basic(self, request, in_model_path, out_model_path, arg_str=""):
         summary = summarize_model(slim(in_model_path), request.node.name)
         print_model_info_as_table(summary)

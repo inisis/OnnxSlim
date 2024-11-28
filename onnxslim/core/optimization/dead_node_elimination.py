@@ -81,10 +81,10 @@ def dead_node_elimination(graph, is_subgraph=False):
             if len(node.inputs) > 1 and isinstance(node.inputs[1], Constant):
                 constant_variable = node.inputs[1]
                 value = constant_variable.values
-                if value.ndim == 0 and value == 1:
+                if node.inputs[0].shape == node.outputs[0].shape:
                     delete_node(node)
                     logger.debug(f"removing {node.op} op: {node.name}")
-                elif np.all(value == 1) and (node.inputs[0].shape == node.outputs[0].shape):
+                elif value.ndim == 0 and value == 1:
                     delete_node(node)
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Concat":

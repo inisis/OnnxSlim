@@ -70,11 +70,15 @@ class TestModelZoo:
         print_model_info_as_table(summary)
         with tempfile.TemporaryDirectory() as tempdir:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
-            import onnxruntime as ort
             import numpy as np
+            import onnxruntime as ort
+
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
-            outputs = ort_sess.run(None, {'pixel_values': np.random.rand(256, 1176).astype(np.float32), 'grid_thw': np.array([[1, 16, 16]])})
-            print(f'{outputs[0].shape=}') # (64, 16)
+            outputs = ort_sess.run(
+                None,
+                {"pixel_values": np.random.rand(256, 1176).astype(np.float32), "grid_thw": np.array([[1, 16, 16]])},
+            )
+            print(f"{outputs[0].shape=}")  # (64, 16)
 
     def test_layer_normalization_2d_axis0_expanded_ver18(self, request):
         name = request.node.originalname[len("test_") :]
@@ -88,8 +92,12 @@ class TestModelZoo:
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True,
-                 input_shapes=["/encoder/encoders0/encoders0.0/self_attn/Transpose_2_output_0:1,516,32"])
+            slim(
+                filename,
+                os.path.join(tempdir, f"{name}_slim.onnx"),
+                model_check=True,
+                input_shapes=["/encoder/encoders0/encoders0.0/self_attn/Transpose_2_output_0:1,516,32"],
+            )
 
 
 if __name__ == "__main__":

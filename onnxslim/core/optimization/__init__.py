@@ -79,12 +79,10 @@ def find_matches(graph: Graph, fusion_patterns: dict):
 
 def get_previous_node_by_type(node, op_type, trajectory=None):
     """Recursively find and return the first preceding node of a specified type in the computation graph."""
-    if trajectory is None:
-        trajectory = []
     node_feeds = get_node_feeds(node)
+    if trajectory is None:
+        trajectory = [node_feed for node_feed in node_feeds]
     for node_feed in node_feeds:
-        trajectory.append(node_feed)
         if node_feed.op == op_type:
             return trajectory
-        else:
-            return get_previous_node_by_type(node_feed, op_type, trajectory)
+        return get_previous_node_by_type(node_feed, op_type, trajectory)

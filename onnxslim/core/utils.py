@@ -20,6 +20,10 @@ def delete_node(node, input_var_idx=0, output_var_idx=0):
         if not isinstance(feed, (Variable, Constant)):
             feed.outputs.remove(node.inputs[input_var_idx])
             feed.outputs.append(node.outputs[output_var_idx])
+            for user in list(node.inputs[input_var_idx].outputs):
+                for i, input in enumerate(user.inputs):
+                    if input == node.inputs[input_var_idx]:
+                        user.inputs[i] = node.outputs[output_var_idx]
             node.outputs.clear()
     else:
         for next_node in next_nodes:

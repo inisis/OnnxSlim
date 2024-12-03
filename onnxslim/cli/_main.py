@@ -116,7 +116,8 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
 
     if model_check:
         slimmed_onnx_output, model = onnxruntime_inference(model, input_data_dict)
-        check_result(raw_onnx_output, slimmed_onnx_output)
+        if not check_result(raw_onnx_output, slimmed_onnx_output):
+            return None
 
     if not output_model:
         return model

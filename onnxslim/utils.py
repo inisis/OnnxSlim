@@ -512,11 +512,11 @@ def check_result(raw_onnx_output, slimmed_onnx_output):
     detected.
     """
     if set(raw_onnx_output.keys()) != set(slimmed_onnx_output.keys()):
-        logger.warning("Model output mismatch after slimming.")
-        logger.warning(f"Raw model output keys: {raw_onnx_output.keys()}")
-        logger.warning(f"Slimmed model output keys: {slimmed_onnx_output.keys()}")
-        logger.warning("Please check the model carefully.")
-        return
+        print("Model output mismatch after slimming.")
+        print(f"Raw model output keys: {raw_onnx_output.keys()}")
+        print(f"Slimmed model output keys: {slimmed_onnx_output.keys()}")
+        print("Please check the model carefully.")
+        return False
     else:
         for key in raw_onnx_output.keys():
             if not np.allclose(
@@ -526,9 +526,11 @@ def check_result(raw_onnx_output, slimmed_onnx_output):
                 atol=1e-04,
                 equal_nan=True,
             ):
-                logger.warning("Model output mismatch after slimming.")
-                logger.warning("Please check the model carefully.")
-                return
+                print(f"\033[31mModel output {key} mismatch after slimming.")
+                print("\033[31mPlease check the model carefully.")
+                return False
+
+    return True
 
 
 data_type_sizes = {

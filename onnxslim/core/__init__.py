@@ -110,7 +110,7 @@ def input_modification(model: onnx.ModelProto, inputs: str) -> onnx.ModelProto:
             elif dtype == "bool":
                 dtype = bool
             else:
-                raise Exception(f"Output layer {key} assigned unsupported dtype {dtype}")
+                raise Exception(f"Input layer {key} assigned unsupported dtype {dtype}")
 
         graph.inputs.append(tensors[key].to_variable(dtype=dtype, shape=tensors[key].shape))
 

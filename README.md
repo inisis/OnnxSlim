@@ -64,6 +64,7 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 - <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/transformers.js](https://github.com/huggingface/transformers.js)
 - <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" width="22" height="22"/>[THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
 - <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" width="22" height="22"/>[ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
+- <img src="https://avatars.githubusercontent.com/u/109945100?s=48&v=4" width="22" height="22"/>[ModelScope/FunASR](https://github.com/modelscope/FunASR)
 - <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
 - <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" width="22" height="22"/>[deepghs/imgutils](https://github.com/deepghs/imgutils)
 

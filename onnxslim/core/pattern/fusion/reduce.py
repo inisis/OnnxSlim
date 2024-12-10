@@ -1,4 +1,4 @@
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -25,7 +25,7 @@ class ReducePatternMatcher(PatternMatcher):
         match_case = {}
         node = self.unsqueeze_0
         reduce_node = self.reduce_0
-        reduce_node_node_users = get_node_users(reduce_node)
+        reduce_node_node_users = reduce_node.users
         if len(reduce_node_node_users) == 1:
             unsqueeze_node = node
 

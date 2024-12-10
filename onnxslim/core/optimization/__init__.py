@@ -5,7 +5,6 @@ from typing import List, Union
 import onnx
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import get_node_feeds
 from onnxslim.core.pattern.registry import get_fusion_patterns
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 
@@ -81,7 +80,7 @@ def get_previous_node_by_type(node, op_type, trajectory=None):
     """Recursively find and return the first preceding node of a specified type in the computation graph."""
     if trajectory is None:
         trajectory = []
-    node_feeds = get_node_feeds(node)
+    node_feeds = node.feeds
     for node_feed in node_feeds:
         trajectory.append(node_feed)
         if node_feed.op == op_type:

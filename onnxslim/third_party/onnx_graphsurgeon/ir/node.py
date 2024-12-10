@@ -17,7 +17,7 @@
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor, Variable
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
@@ -238,29 +238,14 @@ class Node:
                 feeds.extend(input if feed.op == "Split" else feed for feed in input.inputs)
         return feeds
 
-    def replace_all_uses_with(self, node: "Node", input_var_idx=0, output_var_idx=0):
+    def replace_all_uses_with(self, node: Union['Node', 'Tensor'], input_var_idx=0, output_var_idx=0):
         """Replace all uses of this node with the given node."""
-        # I struggle a lot to keep original outputs and this is probably the best way to do it
-        output_var = None
-        for next_node in self.users:
-            if isinstance(next_node, Variable) and next_node.is_output:
-                output_var = next_node
-                break
-
-        if output_var:
-            feed = self.feeds[0]
-            if not isinstance(feed, (Variable, Constant)):
-                feed.outputs.remove(node.inputs[input_var_idx])
-                feed.outputs.append(node.outputs[output_var_idx])
-                for user in list(node.inputs[input_var_idx].outputs):
-                    for i, input in enumerate(user.inputs):
-                        if input == node.inputs[input_var_idx]:
-                            user.inputs[i] = node.outputs[output_var_idx]
-                node.outputs.clear()
+        if isinstance(node, Node):
+            input_var = node.outputs[output_var_idx]
         else:
-            input_variable = self.inputs[input_var_idx]
-            node_variable = self.outputs[output_var_idx]
-            for next_node in self.users:
-                index = next_node.inputs.index(node_variable)
-                next_node.inputs.pop(index)
-                next_node.inputs.insert(index, input_variable)
+            input_var = node
+        for output in self.outputs:
+            for node_ in output.outputs:
+                index = node_.inputs.index(output)
+                node_.inputs.pop(index)
+                node_.inputs.insert(index, input_var)

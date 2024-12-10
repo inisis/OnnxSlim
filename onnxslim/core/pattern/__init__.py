@@ -8,29 +8,6 @@ from onnxslim.third_party.onnx_graphsurgeon import Constant
 logger = logging.getLogger("onnxslim")
 
 
-def get_node_users(node):
-    """Retrieve the list of nodes that use the outputs of the given node."""
-    users = []
-    for output in node.outputs:  # output is a Variable
-        if output.is_output:
-            users.append(output)
-        users.extend(iter(output.outputs))
-    return users
-
-
-def get_node_feeds(node):
-    """Retrieve the list of nodes that provide inputs to the given node."""
-    feeds = []
-    for input in node.inputs:
-        if len(input.inputs) == 0 and not isinstance(input, Constant):
-            feeds.append(input)
-        elif isinstance(input, Constant):
-            feeds.append(input)
-        else:
-            feeds.extend(input if feed.op == "Split" else feed for feed in input.inputs)
-    return feeds
-
-
 def get_name(name):
     """Sanitizes the input string by replacing illegal characters with underscores and prefixing with an underscore if
     numeric.
@@ -142,7 +119,7 @@ class PatternMatcher:
             if node.op == pattern_node.op:
                 setattr(self, pattern_node.name, node)
 
-                node_feeds = get_node_feeds(node)
+                node_feeds = node.feeds
                 if pattern_node.coarse_input_num:
                     if len(node_feeds) < len(pattern_node.input_names):
                         return False
@@ -207,8 +184,8 @@ class PatternGenerator:
         for node in nodes:
             if node.op != "Constant":
                 name = get_name(node.name)
-                feeds = get_node_feeds(node)
-                users = get_node_users(node)
+                feeds = node.feeds
+                users = node.users
                 template.append(
                     " ".join(
                         [node.op, name, str(len(feeds)), str(len(users))]

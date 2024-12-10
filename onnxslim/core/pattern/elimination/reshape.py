@@ -1,7 +1,7 @@
 import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -33,7 +33,7 @@ class ReshapePatternMatcher(PatternMatcher):
         node = self.reshape_1
         first_reshape_node = node.i(0)
         first_reshape_node_inputs = list(first_reshape_node.inputs)
-        first_reshape_node_users = get_node_users(first_reshape_node)
+        first_reshape_node_users = first_reshape_node.users
         if len(first_reshape_node_users) == 1:
             second_reshape_node = node
 

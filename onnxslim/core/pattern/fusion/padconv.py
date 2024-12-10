@@ -1,5 +1,5 @@
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -33,7 +33,7 @@ class PadConvMatcher(PatternMatcher):
         match_case = {}
         conv_node = self.conv_0
         pad_node = self.pad_0
-        pad_node_users = get_node_users(pad_node)
+        pad_node_users = pad_node.users
 
         pad_inputs = len(pad_node.inputs)
         if pad_inputs < 3 or (

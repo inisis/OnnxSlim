@@ -19,7 +19,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
-from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor, Variable
+from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
@@ -238,7 +238,7 @@ class Node:
                 feeds.extend(input if feed.op == "Split" else feed for feed in input.inputs)
         return feeds
 
-    def replace_all_uses_with(self, node: Union['Node', 'Tensor'], input_var_idx=0, output_var_idx=0):
+    def replace_all_uses_with(self, node: Union["Node", "Tensor"], input_var_idx=0, output_var_idx=0):
         """Replace all uses of this node with the given node."""
         if isinstance(node, Node):
             input_var = node.outputs[output_var_idx]

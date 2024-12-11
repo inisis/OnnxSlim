@@ -70,10 +70,10 @@ def dead_node_elimination(graph, is_subgraph=False):
                 value = constant_variable.values
                 var_idx = 0 if idx == 1 else 1
                 if value.ndim == 0 and value == 0:
-                    node.replace_all_uses_with(node, var_idx)
+                    node.replace_all_uses_with(node.feeds[var_idx])
                     logger.debug(f"removing {node.op} op: {node.name}")
                 elif np.all(value == 0) and (node.inputs[var_idx].shape == node.outputs[0].shape):
-                    node.replace_all_uses_with(node, var_idx)
+                    node.replace_all_uses_with(node.feeds[var_idx])
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Expand":
             # tests/test_onnx_nets.py::TestTimmClass::test_timm[lambda_resnet26rpt_256]
@@ -81,14 +81,14 @@ def dead_node_elimination(graph, is_subgraph=False):
                 constant_variable = node.inputs[1]
                 value = constant_variable.values
                 if node.inputs[0].shape == node.outputs[0].shape:
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
                 elif value.ndim == 0 and value == 1:
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Concat":
             if len(node.inputs) == 1:
-                node.replace_all_uses_with(node)
+                node.replace_all_uses_with(node.feeds[0])
                 logger.debug(f"removing {node.op} op: {node.name}")
             else:
                 for input in node.inputs:
@@ -99,20 +99,20 @@ def dead_node_elimination(graph, is_subgraph=False):
                 constant_variable = node.inputs[1]
                 value = constant_variable.values
                 if value.ndim == 0 and value == 0:
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
                 elif np.all(value == 0) and (node.inputs[0].shape == node.outputs[0].shape):
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Div":
             if isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable):
                 constant_variable = node.inputs[1]
                 value = constant_variable.values
                 if value.ndim == 0 and value == 1:
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
                 elif np.all(value == 1) and (node.inputs[0].shape == node.outputs[0].shape):
-                    node.replace_all_uses_with(node)
+                    node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
 
 

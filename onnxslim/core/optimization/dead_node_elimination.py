@@ -60,7 +60,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 idx, constant_variable = get_constant_variable(node, return_idx=True)
                 if np.all(constant_variable.values == 1):
                     var_idx = 0 if idx == 1 else 1
-                    node.replace_all_uses_with(node, var_idx)
+                    node.replace_all_uses_with(node.feeds[var_idx])
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Add":
             if (isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable)) or (

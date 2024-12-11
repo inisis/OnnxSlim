@@ -86,6 +86,8 @@ class TestModelZoo:
 
         with tempfile.TemporaryDirectory() as tempdir:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["Reshape"] == 1
 
     def test_padconv(self, request):
         name = request.node.originalname[len("test_") :]

@@ -1,5 +1,5 @@
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -25,7 +25,7 @@ class ConvAddMatcher(PatternMatcher):
         match_case = {}
         conv_node = self.conv_0
         conv_weight = list(conv_node.inputs)[1]
-        conv_node_users = get_node_users(conv_node)
+        conv_node_users = conv_node.users
         node = self.add_0
         if (
             len(conv_node_users) == 1

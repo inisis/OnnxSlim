@@ -17,9 +17,9 @@
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Union
 
-from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Tensor
+from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
@@ -215,3 +215,37 @@ class Node:
 
         outputs_match = misc.sequences_equal(self.outputs, other.outputs)
         return self.domain == other.domain if outputs_match else False
+
+    @property
+    def users(self):
+        users = []
+        for output in self.outputs:  # output is a Variable
+            if output.is_output:
+                users.append(output)
+            users.extend(iter(output.outputs))
+        return users
+
+    @property
+    def feeds(self):
+        """Retrieve the list of nodes that provide inputs to the given node."""
+        feeds = []
+        for input in self.inputs:
+            if len(input.inputs) == 0 and not isinstance(input, Constant):
+                feeds.append(input)
+            elif isinstance(input, Constant):
+                feeds.append(input)
+            else:
+                feeds.extend(input if feed.op == "Split" else feed for feed in input.inputs)
+        return feeds
+
+    def replace_all_uses_with(self, node: Union["Node", "Tensor"], input_var_idx=0, output_var_idx=0):
+        """Replace all uses of this node with the given node."""
+        if isinstance(node, Node):
+            input_var = node.outputs[output_var_idx]
+        else:
+            input_var = node
+        for output in self.outputs:
+            for node_ in output.outputs:
+                index = node_.inputs.index(output)
+                node_.inputs.pop(index)
+                node_.inputs.insert(index, input_var)

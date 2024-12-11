@@ -1,7 +1,7 @@
 import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -29,7 +29,7 @@ class SlicePatternMatcher(PatternMatcher):
         first_slice_node = self.slice_0
         first_slice_node_inputs = list(first_slice_node.inputs)
         if all(isinstance(input, gs.Constant) for input in first_slice_node_inputs[1:]):
-            first_slice_node_users = get_node_users(first_slice_node)
+            first_slice_node_users = first_slice_node.users
             if all(
                 user.op == "Slice" and all(isinstance(input, gs.Constant) for input in list(user.inputs)[1:])
                 for user in first_slice_node_users

@@ -1,7 +1,7 @@
 import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -27,7 +27,7 @@ class UnsqueezePatternMatcher(PatternMatcher):
         """Rewrites an elimination pattern for unsqueeze nodes by optimizing nested slice operations."""
         match_case = {}
         node_unsqueeze_0 = self.unsqueeze_0
-        users_node_unsqueeze_0 = get_node_users(node_unsqueeze_0)
+        users_node_unsqueeze_0 = node_unsqueeze_0.users
         node_unsqueeze_1 = self.unsqueeze_1
         if len(users_node_unsqueeze_0) == 1 and node_unsqueeze_0.inputs[0].shape and node_unsqueeze_1.inputs[0].shape:
             if opset < 13 or (

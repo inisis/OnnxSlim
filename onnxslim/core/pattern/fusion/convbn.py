@@ -1,7 +1,7 @@
 import numpy as np
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.pattern import Pattern, PatternMatcher, get_node_users
+from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
@@ -27,7 +27,7 @@ class ConvBatchNormMatcher(PatternMatcher):
         """Rewrites the weights and biases of a BatchNormalization layer fused with a convolution layer."""
         match_case = {}
         conv_transpose_node = self.conv_0
-        conv_transpose_node_users = get_node_users(conv_transpose_node)
+        conv_transpose_node_users = conv_transpose_node.users
         node = self.bn_0
         if len(conv_transpose_node_users) == 1:
             conv_transpose_weight = conv_transpose_node.inputs[1].values

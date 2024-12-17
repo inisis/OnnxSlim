@@ -915,6 +915,7 @@ class Graph:
                     "QuantizeLinear",
                     "DequantizeLinear",
                     "DynamicQuantizeLinear",
+                    "SequenceEmpty",
                 }
                 if node.op in NO_FOLD_OPS:
                     return False

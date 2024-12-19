@@ -24,11 +24,11 @@ jobs:
         run: |
           pip install .
           pip install pytest onnxruntime
+          pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
 
       - name: yolo test
-        if: matrix.python-version < '3.11'
+        if: matrix.python-version <= '3.11'
         run: |
-          pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
           pip install ultralytics
           pytest tests/test_yolo.py -sv  
 

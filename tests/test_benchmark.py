@@ -35,13 +35,30 @@ def bench_polygraphy(input, output):
     result = bench_main(command)
     return result
 
+def bench_onnxruntime(input, output):
+    try:
+        import onnxruntime as rt
+        sess_options = rt.SessionOptions()
+        # Set graph optimization level
+        sess_options.graph_optimization_level = rt.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
+        # To enable model serialization after graph optimization set this
+        sess_options.optimized_model_filepath = output
+        session = rt.InferenceSession(input, sess_options)
+        return True
+
+    except Exception as e:
+        print(e)
+        return None
+
 
 class TestModelZoo:
     def transform_and_check(self, name, filename, transformation_func, suffix, check_func):
         with tempfile.TemporaryDirectory() as tempdir:
             output_file = os.path.join(tempdir, f"{name}_{suffix}.onnx")
             result = transformation_func(filename, output_file)
-            if result.returncode == 0:
+            if result is None:
+                return None
+            if result or result.returncode == 0:
                 if check_func:
                     try:
                         check_func(output_file)
@@ -55,6 +72,7 @@ class TestModelZoo:
         summary_list.append(self.transform_and_check(name, filename, bench_onnxslim, "onnxslim", check_func))
         summary_list.append(self.transform_and_check(name, filename, bench_onnxsim, "onnxsim", check_func))
         summary_list.append(self.transform_and_check(name, filename, bench_polygraphy, "polygraphy", check_func))
+        summary_list.append(self.transform_and_check(name, filename, bench_onnxruntime, "onnxruntime", check_func))
 
         summary_list = [summary for summary in summary_list if summary is not None]
 

@@ -20,9 +20,9 @@ def find_and_remove_replaceable_nodes(nodes):
         for user in users:
             for inp in user.inputs:
                 if inp in to_be_removed_node.outputs:
-                    index = user.inputs.index(inp)
-                    user.inputs.pop(index)
-                    user.inputs.insert(index, existing_node.outputs[0])
+                    for i, input in enumerate(user.inputs):
+                        if input == inp:
+                            user.inputs[i] = existing_node.outputs[to_be_removed_node.outputs.index(inp)]
 
         to_be_removed_node.inputs.clear()
         to_be_removed_node.outputs.clear()

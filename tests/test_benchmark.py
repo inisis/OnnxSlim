@@ -35,15 +35,17 @@ def bench_polygraphy(input, output):
     result = bench_main(command)
     return result
 
+
 def bench_onnxruntime(input, output):
     try:
         import onnxruntime as rt
+
         sess_options = rt.SessionOptions()
         # Set graph optimization level
         sess_options.graph_optimization_level = rt.GraphOptimizationLevel.ORT_ENABLE_EXTENDED
         # To enable model serialization after graph optimization set this
         sess_options.optimized_model_filepath = output
-        session = rt.InferenceSession(input, sess_options)
+        rt.InferenceSession(input, sess_options)
         return True
 
     except Exception as e:

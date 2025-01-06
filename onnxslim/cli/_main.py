@@ -38,6 +38,8 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     no_constant_folding = kwargs.get("no_constant_folding", False)
     dtype = kwargs.get("dtype", None)
     skip_fusion_patterns = kwargs.get("skip_fusion_patterns", None)
+    size_threshold = kwargs.get("size_threshold", None)
+    size_threshold = int(size_threshold) if size_threshold else None
     kwargs.get("inspect", False)
     dump_to_disk = kwargs.get("dump_to_disk", False)
     save_as_external_data = kwargs.get("save_as_external_data", False)
@@ -99,7 +101,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
         graph_check_point = check_point(model)
         while MAX_ITER > 0:
             logger.debug(f"iter: {MAX_ITER}")
-            model = optimize(model, skip_fusion_patterns)
+            model = optimize(model, skip_fusion_patterns, size_threshold)
             if not no_shape_infer:
                 model = shape_infer(model)
             graph = check_point(model)

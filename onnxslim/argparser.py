@@ -48,6 +48,12 @@ class OptimizationArguments:
             "choices": list(onnxslim.DEFAULT_FUSION_PATTERNS.keys()),
         },
     )
+    size_threshold: int = field(
+        default=None,
+        metadata={
+            "help": "size threshold in bytes, size larger than this value will not be folded, default None, which means fold all constants",
+        },
+    )
 
 
 @dataclass

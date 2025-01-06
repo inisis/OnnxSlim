@@ -114,6 +114,10 @@ def dead_node_elimination(graph, is_subgraph=False):
                 elif np.all(value == 1) and (node.inputs[0].shape == node.outputs[0].shape):
                     node.replace_all_uses_with(node.feeds[0])
                     logger.debug(f"removing {node.op} op: {node.name}")
+        elif node.op == "Split":
+            if len(node.outputs) == 1 and node.outputs[0].shape and node.inputs[0].shape and node.outputs[0].shape == node.inputs[0].shape:
+                node.replace_all_uses_with(node.feeds[0])
+                logger.debug(f"removing {node.op} op: {node.name}")
 
 
 def check_shape(shapes):

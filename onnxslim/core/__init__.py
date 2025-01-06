@@ -142,13 +142,13 @@ def shape_infer(model: onnx.ModelProto):
     return model
 
 
-def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None):
+def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None, size_threshold: int = None):
     """Optimize the given ONNX model with options to skip specific fusion patterns and return the optimized model."""
     logger.debug("Start converting model to gs.")
     graph = gs.import_onnx(model).toposort()
     logger.debug("Finish converting model to gs.")
     logger.debug("Start constant folding.")
-    graph.fold_constants().cleanup().toposort()
+    graph.fold_constants(size_threshold=size_threshold).cleanup().toposort()
     logger.debug("Finish constant folding.")
     logger.debug("Start optimize model.")
     model = optimize_model(graph, skip_fusion_patterns)

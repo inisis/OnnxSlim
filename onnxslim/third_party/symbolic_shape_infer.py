@@ -300,7 +300,7 @@ class SymbolicShapeInference:
         # when nothing to map to, use the shorter one
         if map_to is None:
             if self.verbose_ > 0:
-                logger.warning(f'Potential unsafe merge between symbolic expressions: ({",".join(symbols)})')
+                logger.warning(f"Potential unsafe merge between symbolic expressions: ({','.join(symbols)})")
             symbols_list = list(symbols)
             lens = [len(s) for s in symbols_list]
             map_to = symbols_list[lens.index(min(lens))]
@@ -359,7 +359,7 @@ class SymbolicShapeInference:
                 int_dim = is_int.index(1)
                 if self.verbose_ > 0:
                     logger.debug(
-                        f"dim {unique_dims[:int_dim] + unique_dims[int_dim + 1:]} has been merged with value {unique_dims[int_dim]}"
+                        f"dim {unique_dims[:int_dim] + unique_dims[int_dim + 1 :]} has been merged with value {unique_dims[int_dim]}"
                     )
                 self._check_merged_dims(unique_dims, allow_broadcast=False)
                 return unique_dims[int_dim]
@@ -1914,12 +1914,12 @@ class SymbolicShapeInference:
                     its arguments.
                     """
                     replaced = list(expr.args)
-                    assert isinstance(
-                        replaced[min_pos], sympy.Min
-                    ), f"Expected a sympy.Min() at position {min_pos}, got {replaced[min_pos]}"
-                    assert (
-                        len(replaced[min_pos].args) == 2
-                    ), f"Expected a sympy.Min() with exactly 2 arguments, got {replaced[min_pos]}"
+                    assert isinstance(replaced[min_pos], sympy.Min), (
+                        f"Expected a sympy.Min() at position {min_pos}, got {replaced[min_pos]}"
+                    )
+                    assert len(replaced[min_pos].args) == 2, (
+                        f"Expected a sympy.Min() with exactly 2 arguments, got {replaced[min_pos]}"
+                    )
                     replaced[min_pos] = replaced[min_pos].args[arg_idx]
                     return sympy.Add(*replaced)
 

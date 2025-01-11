@@ -179,7 +179,7 @@ def _html_row_with_attrs(celltag, unsafe, cell_values, colwidths, colaligns):
             "<{0}{1}>{2}</{0}>".format(celltag, alignment.get(a, ""), htmlescape(c))
             for c, a in zip(cell_values, colaligns)
         ]
-    rowhtml = f'<tr>{"".join(values_with_attrs).rstrip()}</tr>'
+    rowhtml = f"<tr>{''.join(values_with_attrs).rstrip()}</tr>"
     if celltag == "th":  # it's a header row, create a new table header
         rowhtml = f"<table>\n<thead>\n{rowhtml}\n</thead>\n<tbody>"
     return rowhtml
@@ -194,7 +194,7 @@ def _moin_row_with_attrs(celltag, cell_values, colwidths, colaligns, header=""):
         "decimal": '<style="text-align: right;">',
     }
     values_with_attrs = [
-        f'{celltag}{alignment.get(a, "")} {header + c + header} ' for c, a in zip(cell_values, colaligns)
+        f"{celltag}{alignment.get(a, '')} {header + c + header} " for c, a in zip(cell_values, colaligns)
     ]
     return "".join(values_with_attrs) + "||"
 

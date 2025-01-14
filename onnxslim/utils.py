@@ -1,10 +1,9 @@
+import importlib.util
+import logging
 import os
 import sys
-import logging
-
-import importlib.util
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -40,6 +39,7 @@ def init_logging(verbose=False):
 
     if is_onnxruntime_available():
         import onnxruntime as ort
+
         ort.set_default_logger_severity(3)
 
     return logger
@@ -586,7 +586,7 @@ def is_onnxruntime_available():
         return False
     else:
         try:
-            import onnxruntime
+
             return True
         except:
             logger = logging.getLogger("onnxslim")

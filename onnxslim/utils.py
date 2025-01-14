@@ -1,8 +1,10 @@
-import logging
 import os
 import sys
-from collections import defaultdict
+import logging
+
+import importlib.util
 from pathlib import Path
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -36,9 +38,9 @@ def init_logging(verbose=False):
 
     G_LOGGER.colors = False
 
-    import onnxruntime as ort
-
-    ort.set_default_logger_severity(3)
+    if is_onnxruntime_available():
+        import onnxruntime as ort
+        ort.set_default_logger_severity(3)
 
     return logger
 
@@ -577,9 +579,25 @@ def get_model_subgraph_size(model):
                     print("subgraph", attr.g.ByteSize())
 
 
+def is_onnxruntime_available():
+    if importlib.util.find_spec("onnxruntime") is None:
+        logger = logging.getLogger("onnxslim")
+        logger.debug("onnxruntime is not available, please install it first for better optimization")
+        return False
+    else:
+        try:
+            import onnxruntime
+            return True
+        except:
+            logger = logging.getLogger("onnxslim")
+            logger.debug("onnxruntime is not available, please install it first for better optimization")
+            return False
+
+
 def check_onnx_compatibility():
     """Ensure ONNX Runtime and ONNX versions are compatible for model inference."""
     compatibility_dict = {
+        "1.20": "1.17",
         "1.19": "1.17",
         "1.18": "1.16",
         "1.17": "1.15",

@@ -588,6 +588,7 @@ def is_onnxruntime_available():
         try:
             # in case of onnxruntime import error
             import onnxruntime as ort
+
             if hasattr(ort, "__version__"):
                 return True
             else:

@@ -586,8 +586,12 @@ def is_onnxruntime_available():
         return False
     else:
         try:
-
-            return True
+            # in case of onnxruntime import error
+            import onnxruntime as ort
+            if hasattr(ort, "__version__"):
+                return True
+            else:
+                return False
         except:
             logger = logging.getLogger("onnxslim")
             logger.debug("onnxruntime is not available, please install it first for better optimization")

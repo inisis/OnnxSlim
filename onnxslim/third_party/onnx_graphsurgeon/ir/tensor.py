@@ -257,6 +257,18 @@ class Variable(Tensor):
 
         return name_match and inputs_match and outputs_match and dtype_match and shape_match and type_match
 
+    def replace_all_uses_with(self, var: "Variable"):
+        # replace all the uses of this variable with another variable
+        for feed_node in list(self.inputs):
+            for i, input_var in enumerate(feed_node.outputs):
+                if input_var == self:
+                    feed_node.outputs[i] = var
+
+        for user_node in list(self.outputs): # find all the nodes that use this variable as input
+            for i, input_var in enumerate(user_node.inputs): # iterate
+                if input_var == self:
+                    user_node.inputs[i] = var
+
 
 class LazyValues:
     """A special object that represents constant tensor values that should be lazily loaded."""

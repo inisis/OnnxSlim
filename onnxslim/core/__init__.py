@@ -172,7 +172,7 @@ def convert_data_format(model: onnx.ModelProto, dtype: str) -> onnx.ModelProto:
             if node.op == "Cast":
                 inp_dtype = [input.dtype for input in node.inputs][0]
                 if inp_dtype in [np.float16, np.float32]:
-                    node.replace_all_uses_with(node.inputs[0])
+                    node.erase()
                 else:
                     outp_dtype = [output.dtype for output in node.outputs][0]
                     if outp_dtype == np.float16:

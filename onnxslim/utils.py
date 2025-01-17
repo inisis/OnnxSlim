@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import onnx
-from onnx import checker
+from onnx import checker, helper
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.misc.font import GREEN, WHITE
@@ -70,9 +70,8 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
 
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     """Maps an ONNX dtype to its corresponding NumPy dtype."""
-    import onnx.mapping as mapping
 
-    return np.dtype(mapping.TENSOR_TYPE_TO_NP_TYPE[onnx_dtype])
+    return np.dtype(helper.tensor_dtype_to_np_dtype(onnx_dtype))
 
 
 def gen_onnxruntime_input_data(

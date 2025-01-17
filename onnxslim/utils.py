@@ -70,7 +70,6 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
 
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     """Maps an ONNX dtype to its corresponding NumPy dtype."""
-
     return np.dtype(helper.tensor_dtype_to_np_dtype(onnx_dtype))
 
 

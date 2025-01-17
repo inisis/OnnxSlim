@@ -238,7 +238,6 @@ class Node:
                 feeds.extend(input if feed.op == "Split" else feed for feed in input.inputs)
         return feeds
 
-
     def erase(self, input_var_idx=0, output_var_idx=0):
         if isinstance(self.inputs[input_var_idx], Variable):
             if self.inputs[input_var_idx].is_input:
@@ -249,7 +248,6 @@ class Node:
                 self.inputs[input_var_idx].replace_all_uses_with(self.outputs[output_var_idx])
                 self.inputs.clear()
                 self.outputs.clear()
-
 
     def replace_all_uses_with(self, node: Union["Node", "Tensor"], input_var_idx=0, output_var_idx=0):
         """Replace all uses of this node with the given node."""

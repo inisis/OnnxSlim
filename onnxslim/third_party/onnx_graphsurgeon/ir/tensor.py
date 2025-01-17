@@ -264,8 +264,8 @@ class Variable(Tensor):
                 if input_var == self:
                     feed_node.outputs[i] = var
 
-        for user_node in list(self.outputs): # find all the nodes that use this variable as input
-            for i, input_var in enumerate(user_node.inputs): # iterate
+        for user_node in list(self.outputs):  # find all the nodes that use this variable as input
+            for i, input_var in enumerate(user_node.inputs):  # iterate
                 if input_var == self:
                     user_node.inputs[i] = var
 

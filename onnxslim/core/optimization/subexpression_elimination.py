@@ -15,18 +15,6 @@ def find_and_remove_replaceable_nodes(nodes):
                 input_names.append(input_node.name)
         return "_".join(input_names) if input_names else None
 
-    def replace_node_references(existing_node, to_be_removed_node):
-        users = to_be_removed_node.users
-        for user in users:
-            for inp in user.inputs:
-                if inp in to_be_removed_node.outputs:
-                    for i, input in enumerate(user.inputs):
-                        if input == inp:
-                            user.inputs[i] = existing_node.outputs[to_be_removed_node.outputs.index(inp)]
-
-        to_be_removed_node.inputs.clear()
-        to_be_removed_node.outputs.clear()
-
     node_dict = {}
     for node in nodes:
         key = get_node_key(node)
@@ -42,14 +30,12 @@ def find_and_remove_replaceable_nodes(nodes):
             for i, node in enumerate(bucketed_nodes):
                 if keep_nodes[i]:
                     for j in range(i + 1, len(bucketed_nodes)):
-                        if keep_nodes[j]:
-                            logger.debug(f"node.op {bucketed_nodes[i].op} idx i: {i}, idx j: {j}")
-                            if can_be_replaced(node, bucketed_nodes[j]):
-                                keep_nodes[j] = False
-                                existing_node = node
-                                to_be_removed_node = bucketed_nodes[j]
-                                replace_node_references(existing_node, to_be_removed_node)
-                                logger.debug(f"Node {to_be_removed_node.name} can be replaced by {existing_node.name}")
+                        if keep_nodes[j] and can_be_replaced(node, bucketed_nodes[j]):
+                            keep_nodes[j] = False
+                            existing_node = node
+                            to_be_removed_node = bucketed_nodes[j]
+                            to_be_removed_node.replace_all_uses_with(existing_node)
+                            logger.debug(f"Node {to_be_removed_node.name} Op {to_be_removed_node.op} can be replaced by {existing_node.name}")
 
 
 def sequences_equal(seq1, seq2):

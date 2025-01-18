@@ -249,34 +249,14 @@ class Node:
                 self.inputs.clear()
                 self.outputs.clear()
 
-    def replace_all_uses_with(self, node: Union["Node", "Tensor"], input_var_idx=0, output_var_idx=0):
+    def replace_all_uses_with(self, node: "Node"):
         """Replace all uses of this node with the given node."""
-        if isinstance(node, Node):
-            input_var = node.outputs[output_var_idx]
-        else:
-            input_var = node
-
-        output_var = None
-        for output in self.outputs:
-            if isinstance(output, Variable) and output.is_output:
-                output_var = output
-                break
-
-        if output_var:
-            feed = self.feeds[0]
-            if not isinstance(feed, (Variable, Constant)):
-                index = feed.outputs.index(self.inputs[input_var_idx])
-                feed.outputs.pop(index)
-                feed.outputs.insert(index, self.outputs[output_var_idx])
-                for user in list(self.inputs[input_var_idx].outputs):
-                    # do not use index here, because index will only return the first index of the input
+        for user in self.users:
+            for inp in user.inputs:
+                if inp in self.outputs:
                     for i, input in enumerate(user.inputs):
-                        if input == self.inputs[input_var_idx]:
-                            user.inputs[i] = self.outputs[output_var_idx]
-                self.outputs.clear()
-        else:
-            for output in self.outputs:
-                for node_ in output.outputs:
-                    index = node_.inputs.index(output)
-                    node_.inputs.pop(index)
-                    node_.inputs.insert(index, input_var)
+                        if input == inp:
+                            user.inputs[i] = node.outputs[self.outputs.index(inp)]
+
+        self.inputs.clear()
+        self.outputs.clear()

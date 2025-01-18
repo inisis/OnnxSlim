@@ -125,9 +125,6 @@ class PatternMatcher:
                         return False
                 else:
                     if len(node_feeds) != len(pattern_node.input_names):
-                        logger.debug(
-                            f"len(node_feeds) != len(pattern_node.input_names) {len(node_feeds)} != {len(pattern_node.input_names)}",
-                        )
                         return False
 
                 pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]

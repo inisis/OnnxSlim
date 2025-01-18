@@ -17,7 +17,7 @@
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor, Variable
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER

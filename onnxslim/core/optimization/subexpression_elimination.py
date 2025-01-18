@@ -35,7 +35,9 @@ def find_and_remove_replaceable_nodes(nodes):
                             existing_node = node
                             to_be_removed_node = bucketed_nodes[j]
                             to_be_removed_node.replace_all_uses_with(existing_node)
-                            logger.debug(f"Node {to_be_removed_node.name} Op {to_be_removed_node.op} can be replaced by {existing_node.name}")
+                            logger.debug(
+                                f"Node {to_be_removed_node.name} Op {to_be_removed_node.op} can be replaced by {existing_node.name}"
+                            )
 
 
 def sequences_equal(seq1, seq2):

@@ -113,7 +113,7 @@ class TestModelZoo:
         summary_list = [summary for summary in summary_list if summary is not None]
 
         print()
-        print_model_info_as_table(name, summary_list)
+        print_model_info_as_table(summary_list)
 
     def test_silero_vad(self, request):
         def check_model_inference(model_path):

@@ -28,7 +28,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 if all(value == 0 for value in pad_value):
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
-        elif node.op == "Cast_":
+        elif node.op == "Cast":
             inp_dtype = [dtype_to_onnx(input.dtype) for input in node.inputs][0]
             if inp_dtype == node.attrs["to"]:
                 node.erase()

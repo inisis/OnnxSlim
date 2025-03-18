@@ -21,11 +21,12 @@ def get_name(name):
 
 
 class NodeDescriptor:
-    '''
+    """
     case 0: input [1, 2, 3, 4, 5] output [0] Optype Name 5  1 i0 i1 i2 i3 i4 o0
     case 1: input [1, ...]        output [0] Optype Name 1+ 1 i0 o0
-    case 2: input [..., 1, ...]   output [0] Optype Name 1* 1 i0 o0
-    '''
+    case 2: input [..., 1, ...]   output [0] Optype Name 1* 1 i0 o0.
+    """
+
     def __init__(self, node_spec):
         """Initialize NodeDescriptor with node_spec list requiring at least 4 elements."""
         if not isinstance(node_spec, list):
@@ -142,7 +143,9 @@ class PatternMatcher:
                         return False
 
                 if pattern_node.input_mode == "append" or pattern_node.input_mode is None:
-                    pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
+                    pattern_nodes = [
+                        self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names
+                    ]
                     all_match = True
                     for node_feed, pattern_node in zip(node_feeds, pattern_nodes):
                         if pattern_node is not None:
@@ -153,7 +156,9 @@ class PatternMatcher:
 
                     return all_match
                 elif pattern_node.input_mode == "free-match":
-                    pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
+                    pattern_nodes = [
+                        self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names
+                    ]
                     all_match = True
                     for pattern_node in pattern_nodes:
                         if pattern_node is not None:

@@ -21,6 +21,11 @@ def get_name(name):
 
 
 class NodeDescriptor:
+    '''
+    case 0: input [1, 2, 3, 4, 5] output [0] Optype Name 5  1 i0 i1 i2 i3 i4 o0
+    case 1: input [1, ...]        output [0] Optype Name 1+ 1 i0 o0
+    case 2: input [..., 1, ...]   output [0] Optype Name 1* 1 i0 o0
+    '''
     def __init__(self, node_spec):
         """Initialize NodeDescriptor with node_spec list requiring at least 4 elements."""
         if not isinstance(node_spec, list):
@@ -33,18 +38,27 @@ class NodeDescriptor:
             input.
             """
             if not io_spec.isdigit():
-                pattern_with_plus = re.search(r"(\d+)(\+)", io_spec)
-                if pattern_with_plus:
-                    return int(pattern_with_plus[1]), True
-                else:
-                    raise ValueError(f"input_num and output_num must be integers {io_spec}")
+                match = re.search(r"(\d+)([+*])", io_spec)
+                if match:
+                    number = match.group(1)
+                    operator = match.group(2)
 
-            return int(io_spec), False
+                    if not number.isdigit():
+                        raise ValueError(f"input_num and output_num must be integers {io_spec}")
+
+                    if operator == "+":
+                        return int(number), True, "append"
+                    elif operator == "*":
+                        return int(number), True, "free-match"
+                    else:
+                        raise ValueError(f"operator must be + or * {io_spec}")
+
+            return int(io_spec), False, None
 
         self.op = node_spec[0]
         self.name = node_spec[1]
-        self.input_num, self.coarse_input_num = get_input_info(node_spec[2])
-        self.output_num, self.coarse_output_num = get_input_info(node_spec[3])
+        self.input_num, self.coarse_input_num, self.input_mode = get_input_info(node_spec[2])
+        self.output_num, self.coarse_output_num, self.output_mode = get_input_info(node_spec[3])
         self.input_names = node_spec[4 : 4 + self.input_num]
         self.output_names = node_spec[4 + self.input_num :]
         assert len(self.input_names) == self.input_num
@@ -127,17 +141,32 @@ class PatternMatcher:
                     if len(node_feeds) != len(pattern_node.input_names):
                         return False
 
-                pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
-                all_match = True
-                for node_feed, pattern_node in zip(node_feeds, pattern_nodes):
-                    if pattern_node is not None:
-                        node_match = match_(node_feed, pattern_node)
-                        if not node_match:
-                            return False
-                        setattr(self, pattern_node.name, node_feed)
+                if pattern_node.input_mode == "append" or pattern_node.input_mode is None:
+                    pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
+                    all_match = True
+                    for node_feed, pattern_node in zip(node_feeds, pattern_nodes):
+                        if pattern_node is not None:
+                            node_match = match_(node_feed, pattern_node)
+                            if not node_match:
+                                return False
+                            setattr(self, pattern_node.name, node_feed)
 
-                return all_match
+                    return all_match
+                elif pattern_node.input_mode == "free-match":
+                    pattern_nodes = [self.pattern_dict[name] if name != "?" else None for name in pattern_node.input_names]
+                    all_match = True
+                    for pattern_node in pattern_nodes:
+                        if pattern_node is not None:
+                            node_match = False
+                            for node_feed in node_feeds:
+                                node_match = match_(node_feed, pattern_node)
+                                if node_match:
+                                    break
+                            if not node_match:
+                                return False
+                            setattr(self, pattern_node.name, node_feed)
 
+                    return all_match
             return False
 
         if match_(node, match_point):

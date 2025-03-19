@@ -1,6 +1,4 @@
-import numpy as np
 
-import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
@@ -31,7 +29,7 @@ class ConcatPatternMatcher(PatternMatcher):
         users_node_concat_0 = node_concat_0.users
         node_concat_1 = self.concat_1
         node_concat_0_axis = node_concat_0.attrs.get("axis", 0)
-        node_concat_1_axis = node_concat_1.attrs.get("axis", 0)
+        node_concat_1.attrs.get("axis", 0)
 
         if all(user.op == "Concat" and user.attrs.get("axis", 0) == node_concat_0_axis for user in users_node_concat_0):
             index = node_concat_1.inputs.index(node_concat_0.outputs[0])

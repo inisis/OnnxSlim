@@ -17,6 +17,7 @@ jobs:
 
       - name: install dependency
         run: |
+          python -m pip install --upgrade pip wheel setuptools
           pip install .
           pip install pytest onnxruntime
 
@@ -26,7 +27,6 @@ jobs:
 
       - name: model test
         run: |
-          python -m pip install --upgrade pip wheel setuptools
           pip install .
           pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
           python tests/test_onnx_nets.py

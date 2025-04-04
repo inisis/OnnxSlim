@@ -6,6 +6,8 @@ from onnxslim.core.pattern.registry import (
     DEFAULT_FUSION_PATTERNS,
     register_fusion_pattern,
 )
+from onnxslim.core.optimization import DEFAULT_OPTIMIZATION
+
 from onnxslim.version import __version__
 
 if os.path.dirname(os.path.realpath(__file__)) == os.path.join(os.path.realpath(os.getcwd()), "onnxslim"):

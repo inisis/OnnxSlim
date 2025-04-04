@@ -15,6 +15,33 @@ from .subexpression_elimination import subexpression_elimination
 from .weight_tying import tie_weights
 
 
+class DEFAULT_OPTIMIZATION(object):
+    constant_folding = True
+    dead_node_elimination = True
+    subexpression_elimination = True
+    weight_tying = True
+
+    @classmethod
+    def keys(cls):
+        return ["constant_folding", "dead_node_elimination", "subexpression_elimination", "weight_tying"]
+
+    @classmethod
+    def reset(cls, skip_optimizations: List[str] = None):
+        for key in cls.keys():
+            if skip_optimizations and key in skip_optimizations:
+                setattr(cls, key, False)
+            else:
+                setattr(cls, key, True)
+
+    @classmethod
+    def stats(cls):
+        return {key: getattr(cls, key) for key in cls.keys()}
+
+    @classmethod
+    def enabled(cls):
+        return any([getattr(cls, key) for key in cls.keys()])
+
+
 def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns: str = None) -> onnx.ModelProto:
     """Optimize and transform the given ONNX model using various fusion patterns and graph rewriting techniques."""
     graph = model if isinstance(model, gs.Graph) else gs.import_onnx(model)
@@ -23,11 +50,14 @@ def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns
     for match in fusion_pairs.values():
         graph.replace_custom_layer(**match)
     graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    dead_node_elimination(graph)
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    subexpression_elimination(graph)
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    tie_weights(graph)
+    if DEFAULT_OPTIMIZATION.dead_node_elimination:
+        dead_node_elimination(graph)
+        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+    if DEFAULT_OPTIMIZATION.subexpression_elimination:
+        subexpression_elimination(graph)
+        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+    if DEFAULT_OPTIMIZATION.weight_tying:
+        tie_weights(graph)
     model = gs.export_onnx(graph)
 
     return model

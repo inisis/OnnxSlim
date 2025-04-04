@@ -9,6 +9,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     from pathlib import Path
 
     from onnxslim.core import (
+        DEFAULT_OPTIMIZATION,
         convert_data_format,
         freeze,
         input_modification,
@@ -16,7 +17,6 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
         optimize,
         output_modification,
         shape_infer,
-        DEFAULT_OPTIMIZATION,
     )
     from onnxslim.utils import (
         check_onnx,

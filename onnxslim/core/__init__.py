@@ -7,7 +7,7 @@ import onnx
 from onnx import checker
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.optimization import optimize_model, DEFAULT_OPTIMIZATION
+from onnxslim.core.optimization import DEFAULT_OPTIMIZATION, optimize_model
 from onnxslim.third_party.onnx_graphsurgeon.exporters.onnx_exporter import dtype_to_onnx
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant
 from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference

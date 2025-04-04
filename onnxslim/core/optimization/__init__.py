@@ -15,7 +15,7 @@ from .subexpression_elimination import subexpression_elimination
 from .weight_tying import tie_weights
 
 
-class DEFAULT_OPTIMIZATION(object):
+class DEFAULT_OPTIMIZATION:
     constant_folding = True
     dead_node_elimination = True
     subexpression_elimination = True

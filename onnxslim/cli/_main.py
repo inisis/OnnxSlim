@@ -9,7 +9,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     from pathlib import Path
 
     from onnxslim.core import (
-        DEFAULT_OPTIMIZATION,
+        OptimizationSettings,
         convert_data_format,
         freeze,
         input_modification,
@@ -98,8 +98,8 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     if not no_shape_infer:
         model = shape_infer(model)
 
-    DEFAULT_OPTIMIZATION.reset(skip_optimizations)
-    if DEFAULT_OPTIMIZATION.enabled():
+    OptimizationSettings.reset(skip_optimizations)
+    if OptimizationSettings.enabled():
         graph_check_point = check_point(model)
         while MAX_ITER > 0:
             logger.debug(f"iter: {MAX_ITER}")

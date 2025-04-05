@@ -42,7 +42,7 @@ class OptimizationArguments:
         default=None,
         metadata={
             "help": "whether to skip some optimizations",
-            "choices": list(onnxslim.DEFAULT_OPTIMIZATION.keys()),
+            "choices": list(onnxslim.OptimizationSettings.keys()),
         },
     )
     skip_fusion_patterns: Optional[List[str]] = field(

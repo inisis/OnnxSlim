@@ -7,7 +7,7 @@ import onnx
 from onnx import checker
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.core.optimization import DEFAULT_OPTIMIZATION, optimize_model
+from onnxslim.core.optimization import OptimizationSettings, optimize_model
 from onnxslim.third_party.onnx_graphsurgeon.exporters.onnx_exporter import dtype_to_onnx
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant
 from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference
@@ -147,7 +147,7 @@ def optimize(model: onnx.ModelProto, skip_fusion_patterns: str = None, size_thre
     logger.debug("Start converting model to gs.")
     graph = gs.import_onnx(model).toposort()
     logger.debug("Finish converting model to gs.")
-    if DEFAULT_OPTIMIZATION.constant_folding:
+    if OptimizationSettings.constant_folding:
         logger.debug("Start constant folding.")
         graph.fold_constants(size_threshold=size_threshold).cleanup().toposort()
         logger.debug("Finish constant folding.")

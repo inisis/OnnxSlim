@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import onnx
 
@@ -24,7 +24,13 @@ class DEFAULT_OPTIMIZATION:
 
     @classmethod
     def keys(cls):
-        return ["constant_folding", "graph_fusion", "dead_node_elimination", "subexpression_elimination", "weight_tying"]
+        return [
+            "constant_folding",
+            "graph_fusion",
+            "dead_node_elimination",
+            "subexpression_elimination",
+            "weight_tying",
+        ]
 
     @classmethod
     def reset(cls, skip_optimizations: Optional[List[str]] = None):

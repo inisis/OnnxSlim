@@ -38,8 +38,12 @@ class OptimizationArguments:
     """
 
     no_shape_infer: bool = field(default=False, metadata={"help": "whether to disable shape_infer, default false."})
-    no_constant_folding: bool = field(
-        default=False, metadata={"help": "whether to disable constant_folding, default false."}
+    skip_optimizations: Optional[List[str]] = field(
+        default=None,
+        metadata={
+            "help": "whether to skip some optimizations",
+            "choices": list(onnxslim.OptimizationSettings.keys()),
+        },
     )
     skip_fusion_patterns: Optional[List[str]] = field(
         default=None,

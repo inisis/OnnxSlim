@@ -9,6 +9,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     from pathlib import Path
 
     from onnxslim.core import (
+        OptimizationSettings,
         convert_data_format,
         freeze,
         input_modification,
@@ -35,7 +36,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     inputs = kwargs.get("inputs", None)
     outputs = kwargs.get("outputs", None)
     no_shape_infer = kwargs.get("no_shape_infer", False)
-    no_constant_folding = kwargs.get("no_constant_folding", False)
+    skip_optimizations = kwargs.get("skip_optimizations", None)
     dtype = kwargs.get("dtype", None)
     skip_fusion_patterns = kwargs.get("skip_fusion_patterns", None)
     size_threshold = kwargs.get("size_threshold", None)
@@ -97,7 +98,8 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
     if not no_shape_infer:
         model = shape_infer(model)
 
-    if not no_constant_folding:
+    OptimizationSettings.reset(skip_optimizations)
+    if OptimizationSettings.enabled():
         graph_check_point = check_point(model)
         while MAX_ITER > 0:
             logger.debug(f"iter: {MAX_ITER}")

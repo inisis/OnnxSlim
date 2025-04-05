@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import List, Union
+from typing import List, Optional, Union
 
 import onnx
 
@@ -15,19 +15,65 @@ from .subexpression_elimination import subexpression_elimination
 from .weight_tying import tie_weights
 
 
+class OptimizationSettings:
+    constant_folding = True
+    graph_fusion = True
+    dead_node_elimination = True
+    subexpression_elimination = True
+    weight_tying = True
+
+    @classmethod
+    def keys(cls):
+        return [
+            "constant_folding",
+            "graph_fusion",
+            "dead_node_elimination",
+            "subexpression_elimination",
+            "weight_tying",
+        ]
+
+    @classmethod
+    def reset(cls, skip_optimizations: Optional[List[str]] = None):
+        for key in cls.keys():
+            if skip_optimizations and key in skip_optimizations:
+                setattr(cls, key, False)
+            else:
+                setattr(cls, key, True)
+
+    @classmethod
+    def stats(cls):
+        return {key: getattr(cls, key) for key in cls.keys()}
+
+    @classmethod
+    def enabled(cls):
+        return any([getattr(cls, key) for key in cls.keys()])
+
+
 def optimize_model(model: Union[onnx.ModelProto, gs.Graph], skip_fusion_patterns: str = None) -> onnx.ModelProto:
     """Optimize and transform the given ONNX model using various fusion patterns and graph rewriting techniques."""
     graph = model if isinstance(model, gs.Graph) else gs.import_onnx(model)
-    fusion_patterns = get_fusion_patterns(skip_fusion_patterns)
-    fusion_pairs = find_matches(graph, fusion_patterns)
-    for match in fusion_pairs.values():
-        graph.replace_custom_layer(**match)
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    dead_node_elimination(graph)
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    subexpression_elimination(graph)
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
-    tie_weights(graph)
+    if OptimizationSettings.graph_fusion:
+        logger.debug("Start graph_fusion.")
+        fusion_patterns = get_fusion_patterns(skip_fusion_patterns)
+        fusion_pairs = find_matches(graph, fusion_patterns)
+        for match in fusion_pairs.values():
+            graph.replace_custom_layer(**match)
+        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+        logger.debug("Finish graph_fusion.")
+    if OptimizationSettings.dead_node_elimination:
+        logger.debug("Start dead_node_elimination.")
+        dead_node_elimination(graph)
+        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+        logger.debug("Finish dead_node_elimination.")
+    if OptimizationSettings.subexpression_elimination:
+        logger.debug("Start subexpression_elimination.")
+        subexpression_elimination(graph)
+        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+        logger.debug("Finish subexpression_elimination.")
+    if OptimizationSettings.weight_tying:
+        logger.debug("Start weight_tying.")
+        tie_weights(graph)
+        logger.debug("Finish weight_tying.")
     model = gs.export_onnx(graph)
 
     return model

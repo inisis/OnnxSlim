@@ -29,7 +29,7 @@ class ConvBatchNormMatcher(PatternMatcher):
         conv_transpose_node = self.conv_0
         conv_transpose_node_users = conv_transpose_node.users
         node = self.bn_0
-        if len(conv_transpose_node_users) == 1:
+        if len(conv_transpose_node_users) == 1 and isinstance(conv_transpose_node.inputs[1], gs.Constant):
             conv_transpose_weight = conv_transpose_node.inputs[1].values
             bn_node = node
             bn_scale = bn_node.inputs[1].values

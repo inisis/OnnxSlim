@@ -155,7 +155,7 @@ def main():
     if not checker_args.inspect and checker_args.dump_to_disk:
         argument_parser.error("dump_to_disk can only be used with --inspect")
 
-    if not optimization_args.no_shape_infer or optimization_args.no_constant_folding:
+    if not optimization_args.no_shape_infer:
         from onnxslim.utils import check_onnx_compatibility, is_onnxruntime_available
 
         if is_onnxruntime_available():

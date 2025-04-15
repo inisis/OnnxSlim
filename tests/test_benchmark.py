@@ -170,7 +170,8 @@ class TestModelZoo:
 
 
 if __name__ == "__main__":
-    pytest.main(
+    import sys
+    sys.exit(pytest.main(
         [
             "-p",
             "no:warnings",
@@ -178,3 +179,4 @@ if __name__ == "__main__":
             "tests/test_benchmark.py",
         ]
     )
+)

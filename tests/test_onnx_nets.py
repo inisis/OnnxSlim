@@ -103,4 +103,5 @@ class TestTimmClass:
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     import sys
+
     sys.exit(pytest.main(["-p", "no:warnings", "-v", "tests/test_onnx_nets.py"]))

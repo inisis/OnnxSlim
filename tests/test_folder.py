@@ -48,12 +48,14 @@ def test_model_file(model_file):
 
 if __name__ == "__main__":
     import sys
-    sys.exit(pytest.main(
-        [
-            "-p",
-            "no:warnings",
-            "-sv",
-            "tests/test_folder.py",
-        ]
-    ))  
 
+    sys.exit(
+        pytest.main(
+            [
+                "-p",
+                "no:warnings",
+                "-sv",
+                "tests/test_folder.py",
+            ]
+        )
+    )

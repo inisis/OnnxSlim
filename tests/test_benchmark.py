@@ -171,12 +171,14 @@ class TestModelZoo:
 
 if __name__ == "__main__":
     import sys
-    sys.exit(pytest.main(
-        [
-            "-p",
-            "no:warnings",
-            "-sv",
-            "tests/test_benchmark.py",
-        ]
+
+    sys.exit(
+        pytest.main(
+            [
+                "-p",
+                "no:warnings",
+                "-sv",
+                "tests/test_benchmark.py",
+            ]
+        )
     )
-)

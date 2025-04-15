@@ -132,12 +132,14 @@ class TestFunctional:
 
 if __name__ == "__main__":
     import sys
-    sys.exit(pytest.main(
-        [
-            "-p",
-            "no:warnings",
-            "-v",
-            "tests/test_onnxslim.py",
-        ]
-    ))
 
+    sys.exit(
+        pytest.main(
+            [
+                "-p",
+                "no:warnings",
+                "-v",
+                "tests/test_onnxslim.py",
+            ]
+        )
+    )

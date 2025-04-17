@@ -20,11 +20,12 @@
 
 OnnxSlim can help you slim your onnx model, with less operators, but same accuracy, better inference speed.
 
-- 🚀 OnnxSlim is merged to [mnn-llm](https://github.com/wangzhaode/mnn-llm), performance increased by 5%
-- 🚀 Rank 1st in the [AICAS 2024 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532170/customize440) held by Arm and T-head
-- 🚀 OnnxSlim is merged into [ultralytics](https://github.com/ultralytics/ultralytics) ❤️❤️❤️
-- 🚀 OnnxSlim is merged into [transformers.js](https://github.com/xenova/transformers.js) 🤗🤗🤗
-- 🚀 Achieved 1M downloads
+- 🚀 2025/04/30: Rank 1st in the [AICAS 2025 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532289/customize588)
+- 🚀 2025/01/28: Achieved 1M downloads
+- 🚀 2024/06/23: OnnxSlim is merged into [transformers.js](https://github.com/xenova/transformers.js) 🤗🤗🤗
+- 🚀 2024/06/02: OnnxSlim is merged into [ultralytics](https://github.com/ultralytics/ultralytics) ❤️❤️❤️
+- 🚀 2024/04/30: Rank 1st in the [AICAS 2024 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532170/customize440) held by Arm and T-head
+- 🚀 2024/01/25: OnnxSlim is merged to [mnn-llm](https://github.com/wangzhaode/mnn-llm), performance increased by 5%
 
 # Installation
 

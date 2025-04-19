@@ -16,7 +16,7 @@ class ReshapeAsPatternMatcher(PatternMatcher):
             Unsqueeze unsqueeze 1+ 1 gather output
             Concat    concat    1+ 1 unsqueeze output
             output    output    1  0 concat
-            """         
+            """
         )
         super().__init__(pattern, priority)
 
@@ -36,7 +36,7 @@ class ReshapeAsPatternMatcher(PatternMatcher):
 
         if not all([user.op == "Gather" for user in shape_node.users]):
             return False
-        
+
         for idx, user in enumerate(shape_node.users):
             if not isinstance(user.inputs[1], gs.Constant):
                 return False
@@ -50,9 +50,7 @@ class ReshapeAsPatternMatcher(PatternMatcher):
         return True
 
     def rewrite(self, opset=11):
-        """
-        Rewrites the pattern by replacing the Concat node with the Shape node.
-        """
+        """Rewrites the pattern by replacing the Concat node with the Shape node."""
         match_case = {}
         shape_node = self.shape
         concat_node = self.concat

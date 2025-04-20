@@ -5,9 +5,7 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 class ReshapeAsPatternMatcher(PatternMatcher):
     def __init__(self, priority):
-        """Initializes the ReshapeAsPatternMatcher with a priority and a specific pattern for reshape as
-        operations.
-        """
+        """Initializes the ReshapeAsPatternMatcher with a priority and a specific pattern for reshape as operations."""
         pattern = Pattern(
             """
             input     input     0  1 shape

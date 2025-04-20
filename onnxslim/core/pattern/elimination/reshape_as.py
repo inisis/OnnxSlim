@@ -5,7 +5,7 @@ from onnxslim.core.pattern.registry import register_fusion_pattern
 
 class ReshapeAsPatternMatcher(PatternMatcher):
     def __init__(self, priority):
-        """Initializes the ReshapeAsPatternMatcher with a priority and a specific pattern for detecting nested reshape
+        """Initializes the ReshapeAsPatternMatcher with a priority and a specific pattern for reshape as
         operations.
         """
         pattern = Pattern(
@@ -26,7 +26,6 @@ class ReshapeAsPatternMatcher(PatternMatcher):
         return "EliminationReshapeAs"
 
     def parameter_check(self) -> bool:
-        """Validates if the padding parameter for a convolutional node is a constant."""
         shape_node = self.shape
         if shape_node.outputs[0].shape is None:
             return False
@@ -46,6 +45,10 @@ class ReshapeAsPatternMatcher(PatternMatcher):
 
             if user.inputs[1].values != idx:
                 return False
+
+        concat_node = self.concat
+        if len(concat_node.inputs) != shape_node.users:
+            return False
 
         return True
 

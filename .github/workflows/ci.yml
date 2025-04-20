@@ -26,26 +26,36 @@ jobs:
           pip install .
           pip install pytest onnxruntime
           pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install coverage
 
       - name: yolo test
         if: matrix.python-version <= '3.11'
         run: |
           pip install ultralytics
-          pytest tests/test_yolo.py -sv  
+          coverage run -m pytest tests/test_yolo.py -sv
 
       - name: onnxslim api and binary test
         run: |
           pip install onnxconverter_common
-          pytest tests/test_onnxslim.py 
+          coverage run -m pytest tests/test_onnxslim.py
 
       - name: model zoo test
         run: |
-          pytest tests/test_modelzoo.py
+          coverage run -m pytest tests/test_modelzoo.py
 
       - name: pattern matcher test
         run: |
-          pytest tests/test_pattern_matcher.py
+          coverage run -m pytest tests/test_pattern_matcher.py
 
       - name: pattern generator test
         run: |
-          pytest tests/test_pattern_generator.py
+          coverage run -m pytest tests/test_pattern_generator.py
+
+      - name: Merge Coverage Reports
+        run: |
+          coverage xml -o coverage-ci.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -123,6 +123,11 @@ def dead_node_elimination(graph, is_subgraph=False):
             ):
                 node.erase()
                 logger.debug(f"removing {node.op} op: {node.name}")
+        elif node.op == "Resize":
+            mode = node.attrs.get("mode")
+            if mode == None:
+                node.attrs["mode"] = "nearest"
+                logger.debug(f"setting mode to nearest for {node.op} op: {node.name} since it is not set")
 
 
 def check_shape(shapes):

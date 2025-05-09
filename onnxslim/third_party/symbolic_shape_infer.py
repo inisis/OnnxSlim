@@ -471,8 +471,8 @@ class SymbolicShapeInference:
                 if str_dim in self.suggested_merge_:
                     if not is_literal(self.suggested_merge_[str_dim]):
                         new_sympy_shape[i] = self.symbolic_dims_[self.suggested_merge_[str_dim]]
-                elif str(new_dim) not in self.symbolic_dims_:
-                    self.symbolic_dims_[str(new_dim)] = new_dim
+                elif str_dim not in self.symbolic_dims_:
+                    self.symbolic_dims_[str_dim] = new_dim
 
     def _onnx_infer_single_node(self, node):
         """Performs ONNX shape inference for a single node, skipping inference for specified operation types."""
@@ -1792,9 +1792,12 @@ class SymbolicShapeInference:
                 else:
                     roi_start = [0] * rank
                     roi_end = [1] * rank
-                scales = list(scales)
+                if isinstance(scales, np.ndarray):
+                    scales = scales.tolist()
+                else:
+                    scales = list(scales)
                 new_sympy_shape = [
-                    sympy.simplify(sympy.floor(d * (end - start) * scale))
+                    (sympy.floor(d * (end - start) * scale))
                     for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
                 ]
                 self._update_computed_dims(new_sympy_shape)

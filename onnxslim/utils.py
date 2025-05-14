@@ -713,7 +713,7 @@ def update_outputs_dims(
     for output in model.graph.output:
         output_name = output.name
         output_dim_arr = output_dims[output_name]
-        if output_dim_arr == None:
+        if output_dim_arr is None:
             continue
         for j, dim in enumerate(output_dim_arr):
             update_dim(output, dim, j, output_name)

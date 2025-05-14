@@ -329,7 +329,7 @@ class TensorInfo:
 
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
-        self.dtype = onnx_dtype_to_numpy(tensor.type.tensor_type.elem_type)
+        self.dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []
@@ -339,7 +339,7 @@ class TensorInfo:
                 elif dim.HasField("dim_value"):
                     shape.append(dim.dim_value)
                 else:
-                    shape.append(None)
+                    shape.append("?")
 
         self.shape = tuple(shape) if shape is not None else None
         self.name = tensor.name

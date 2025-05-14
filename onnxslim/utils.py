@@ -329,7 +329,7 @@ class TensorInfo:
 
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
-        self.dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
+        self.dtype = onnx_dtype_to_numpy(tensor.type.tensor_type.elem_type)
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []
@@ -669,3 +669,51 @@ def get_max_tensor(model, topk=5):
         print(
             f"Tensor name: {tensor.name}, shape: {tensor.values.shape}, dtype: {tensor.values.dtype} size: {tensor.values.size}"
         )
+
+# copied from https://onnx.ai/onnx/api/tools.html
+def update_outputs_dims(
+    model,
+    output_dims,
+):
+    dim_param_set: set[str] = set()
+
+    def init_dim_param_set(dim_param_set, value_infos):
+        for info in value_infos:
+            shape = info.type.tensor_type.shape
+            for dim in shape.dim:
+                if dim.HasField("dim_param"):
+                    dim_param_set.add(dim.dim_param)  # type: ignore
+
+    init_dim_param_set(dim_param_set, model.graph.output)  # type: ignore
+
+    def update_dim(tensor, dim, j, name) -> None:
+        dim_proto = tensor.type.tensor_type.shape.dim[j]
+        if isinstance(dim, int):
+            if dim >= 0:
+                if dim_proto.HasField("dim_value") and dim_proto.dim_value != dim:
+                    raise ValueError(
+                        f"Unable to set dimension value to {dim} for axis {j} of {name}. Contradicts existing dimension value {dim_proto.dim_value}."
+                    )
+                dim_proto.dim_value = dim
+            else:
+                generated_dim_param = name + "_" + str(j)
+                if generated_dim_param in dim_param_set:
+                    raise ValueError(
+                        f"Unable to generate unique dim_param for axis {j} of {name}. Please manually provide a dim_param value."
+                    )
+                dim_proto.dim_param = generated_dim_param
+        elif isinstance(dim, str):
+            dim_proto.dim_param = dim
+        else:
+            raise ValueError(  # noqa: TRY004
+                f"Only int or str is accepted as dimension value, incorrect type: {type(dim)}"
+            )
+
+    for output in model.graph.output:
+        output_name = output.name
+        output_dim_arr = output_dims[output_name]
+        for j, dim in enumerate(output_dim_arr):
+            update_dim(output, dim, j, output_name)
+
+    onnx.checker.check_model(model)
+    return model

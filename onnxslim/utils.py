@@ -670,6 +670,7 @@ def get_max_tensor(model, topk=5):
             f"Tensor name: {tensor.name}, shape: {tensor.values.shape}, dtype: {tensor.values.dtype} size: {tensor.values.size}"
         )
 
+
 # copied from https://onnx.ai/onnx/api/tools.html
 def update_outputs_dims(
     model,

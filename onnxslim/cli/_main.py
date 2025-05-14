@@ -19,6 +19,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
         shape_infer,
     )
     from onnxslim.utils import (
+        TensorInfo,
         check_onnx,
         check_point,
         check_result,
@@ -28,8 +29,7 @@ def slim(model: Union[str, onnx.ModelProto, List[Union[str, onnx.ModelProto]]], 
         print_model_info_as_table,
         save,
         summarize_model,
-        TensorInfo,
-        update_outputs_dims
+        update_outputs_dims,
     )
 
     output_model = args[0] if len(args) > 0 else kwargs.get("output_model", None)

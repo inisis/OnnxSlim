@@ -20,9 +20,10 @@
 
 OnnxSlim can help you slim your onnx model, with less operators, but same accuracy, better inference speed.
 
+- 🚀 2025/05/17: OnnxSlim is merged into [huggingface optimum](https://github.com/huggingface/optimum) 🤗🤗🤗
 - 🚀 2025/04/30: Rank 1st in the [AICAS 2025 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532289/customize588)
 - 🚀 2025/01/28: Achieved 1M downloads
-- 🚀 2024/06/23: OnnxSlim is merged into [transformers.js](https://github.com/xenova/transformers.js) 🤗🤗🤗
+- 🚀 2024/06/23: OnnxSlim is merged into [transformers.js](https://github.com/huggingface/transformers.js) 🤗🤗🤗
 - 🚀 2024/06/02: OnnxSlim is merged into [ultralytics](https://github.com/ultralytics/ultralytics) ❤️❤️❤️
 - 🚀 2024/04/30: Rank 1st in the [AICAS 2024 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532170/customize440) held by Arm and T-head
 - 🚀 2024/01/25: OnnxSlim is merged to [mnn-llm](https://github.com/wangzhaode/mnn-llm), performance increased by 5%
@@ -64,6 +65,7 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 - <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN](https://github.com/alibaba/MNN)
 - <img src="https://avatars.githubusercontent.com/u/23534030?s=48&v=4" width="22" height="22"/>[PaddlePaddle/PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
 - <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/transformers.js](https://github.com/huggingface/transformers.js)
+- <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/optimum](https://github.com/huggingface/optimum)
 - <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" width="22" height="22"/>[THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
 - <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" width="22" height="22"/>[ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
 - <img src="https://avatars.githubusercontent.com/u/109945100?s=48&v=4" width="22" height="22"/>[ModelScope/FunASR](https://github.com/modelscope/FunASR)
@@ -81,4 +83,4 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 
 # Contact
 
-Discord: https://discord.gg/nRw2Fd3VUS QQ Group: 873569894
+Discord: https://discord.gg/nRw2Fd3VUS QQ Group: `873569894`

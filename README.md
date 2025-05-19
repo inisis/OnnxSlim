@@ -72,6 +72,7 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 - <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
 - <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" width="22" height="22"/>[deepghs/imgutils](https://github.com/deepghs/imgutils)
 - <img src="https://avatars.githubusercontent.com/u/48153283?s=48&v=4" width="22" height="22"/>[sunsmarterjie/yolov12](https://github.com/sunsmarterjie/yolov12)
+- <img src="https://avatars.githubusercontent.com/u/147458884?s=48&v=4" width="22" height="22"/>[nndeploy/nndeploy](https://github.com/nndeploy/nndeploy)
 
 # References
 

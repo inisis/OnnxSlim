@@ -62,10 +62,11 @@ class PadConvMatcher(PatternMatcher):
                     conv_node.inputs.clear()
                     conv_node.outputs.clear()
                     # remove pad node if it has only one user
-                    if len(pad_node_users) == 1:
+                    if len(pad_node_users) == 0:
                         input_variable.outputs.remove(pad_node)
                         pad_node.inputs.clear()
                         pad_node.outputs.clear()
+
                     conv_pads = attrs["pads"]
                     pads = pad_value[2:conv_weight_dim] + pad_value[conv_weight_dim + 2 :]
                     pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]

@@ -40,7 +40,7 @@ class ConcatPatternMatcher(PatternMatcher):
             node_concat_1.inputs.clear()
             node_concat_1.outputs.clear()
 
-            if len(users_node_concat_0) == 1:
+            if len(users_node_concat_0) == 0:
                 node_concat_0.inputs.clear()
                 node_concat_0.outputs.clear()
 

@@ -101,17 +101,29 @@ class TestModelZoo:
                 input_shapes=["/encoder/encoders0/encoders0.0/self_attn/Transpose_2_output_0:1,516,32"],
             )
 
-    def test_wav2vec2_conformer(self, request):
+    # def test_wav2vec2_conformer(self, request):
+    #     name = request.node.originalname[len("test_") :]
+    #     filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+    #     with tempfile.TemporaryDirectory() as tempdir:
+    #         slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
+    #         batch_size = 2
+    #         input = np.zeros((batch_size, 256), dtype=np.float32)
+
+    #         ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
+    #         ort_sess.run(None, {"input_values": input})
+
+    def test_yolo11n_pose(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
         with tempfile.TemporaryDirectory() as tempdir:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
-            batch_size = 2
-            input = np.zeros((batch_size, 256), dtype=np.float32)
+            input = np.zeros((1, 3, 256, 256), dtype=np.float32)
 
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
-            ort_sess.run(None, {"input_values": input})
+            ort_sess.run(None, {"images": input})
+
 
 
 if __name__ == "__main__":

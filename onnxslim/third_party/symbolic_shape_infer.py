@@ -2028,6 +2028,7 @@ class SymbolicShapeInference:
                                 e = new_sympy_shape[i]  # noqa: PLW2901
                         except Exception:
                             logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
+                            e = new_sympy_shape[i]
 
                 s = handle_negative_index(s, new_sympy_shape[i])  # noqa: PLW2901
                 if is_literal(new_sympy_shape[i]) and is_literal(s):

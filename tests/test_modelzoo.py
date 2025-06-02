@@ -125,7 +125,6 @@ class TestModelZoo:
             ort_sess.run(None, {"images": input})
 
 
-
 if __name__ == "__main__":
     import sys
 

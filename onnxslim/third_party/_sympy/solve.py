@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Type, Tuple
+from typing import Dict, Optional, Tuple, Type
 
 import sympy
 

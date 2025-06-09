@@ -1,7 +1,7 @@
 # mypy: allow-untyped-defs
 import functools
 import math
-from typing import TYPE_CHECKING, Union, Tuple
+from typing import TYPE_CHECKING, Tuple, Union
 
 import sympy
 from sympy.core.numbers import equal_valued

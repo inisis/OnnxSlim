@@ -9,7 +9,6 @@ from sympy.printing.precedence import PRECEDENCE
 
 from .numbers import int_oo
 
-
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -64,24 +63,18 @@ def simple_floordiv_gcd(p: sympy.Basic, q: sympy.Basic) -> sympy.Basic:
 
     def integer_coefficient(x: sympy.Basic) -> int:
         integer_coefficients: list[int] = [
-            abs(int(arg))
-            for arg in sympy.Mul.make_args(x)
-            if isinstance(arg, (int, sympy.Integer))
+            abs(int(arg)) for arg in sympy.Mul.make_args(x) if isinstance(arg, (int, sympy.Integer))
         ]
         return math.prod(integer_coefficients)
 
     def integer_factor(expr: sympy.Basic) -> int:
-        integer_factors: Iterable[int] = map(
-            integer_coefficient, sympy.Add.make_args(expr)
-        )
+        integer_factors: Iterable[int] = map(integer_coefficient, sympy.Add.make_args(expr))
         return functools.reduce(math.gcd, integer_factors)
 
     gcd: int = math.gcd(integer_factor(p), integer_factor(q))
     p, q = p / gcd, q / gcd  # type: ignore[operator, assignment]  # remove in py3.12
 
-    base_splits: list[tuple[sympy.Basic, ...]] = list(
-        map(sympy.Mul.make_args, sympy.Add.make_args(p))
-    )
+    base_splits: list[tuple[sympy.Basic, ...]] = list(map(sympy.Mul.make_args, sympy.Add.make_args(p)))
     divisor_split: tuple[sympy.Basic, ...] = sympy.Mul.make_args(q)
     for x in divisor_split:
         if all(x in base_split for base_split in base_splits):
@@ -111,7 +104,7 @@ class FloorDiv(sympy.Function):
     """
     We maintain this so that:
     1. We can use divisibility guards to simplify FloorDiv(a, b) to a / b.
-    2. Printing out the expression is nicer (compared to say, representing a//b as (a - a % b) / b)
+    2. Printing out the expression is nicer (compared to say, representing a//b as (a - a % b) / b).
 
     NB: This is Python-style floor division, round to -Inf
     """
@@ -136,9 +129,7 @@ class FloorDiv(sympy.Function):
     # Automatic evaluation.
     # https://docs.sympy.org/latest/guides/custom-functions.html#best-practices-for-eval
     @classmethod
-    def eval(
-        cls, base: sympy.Integer, divisor: sympy.Integer
-    ) -> Union[sympy.Basic, None]:
+    def eval(cls, base: sympy.Integer, divisor: sympy.Integer) -> Union[sympy.Basic, None]:
         # python test/test_dynamic_shapes.py -k TestDimConstraints.test_dim_constraints_solve_full
         # Assert triggered by inequality solver
         # assert base.is_integer, base
@@ -167,10 +158,7 @@ class FloorDiv(sympy.Function):
         if (
             isinstance(base, sympy.Number)
             and isinstance(divisor, sympy.Number)
-            and (
-                base in (int_oo, -int_oo, sympy.oo, -sympy.oo)
-                or divisor in (int_oo, -int_oo, sympy.oo, -sympy.oo)
-            )
+            and (base in (int_oo, -int_oo, sympy.oo, -sympy.oo) or divisor in (int_oo, -int_oo, sympy.oo, -sympy.oo))
         ):
             r = float(base) / float(divisor)
             if r == math.inf:
@@ -200,19 +188,14 @@ class FloorDiv(sympy.Function):
 
             if len(terms) != 0:
                 # Passing evaluate = False since expression will be optimized during the subtraction post its construction.
-                return (
-                    FloorDiv(base - sympy.Add(*terms, evaluate=False), divisor)
-                    + quotients
-                )
+                return FloorDiv(base - sympy.Add(*terms, evaluate=False), divisor) + quotients
 
         try:
             gcd = simple_floordiv_gcd(base, divisor)
             if equal_valued(gcd, 1) and isinstance(divisor, sympy.Add):
                 gcd = sympy.gcd(base, divisor)
             if not equal_valued(gcd, 1):
-                return FloorDiv(
-                    sympy.simplify(base / gcd), sympy.simplify(divisor / gcd)
-                )
+                return FloorDiv(sympy.simplify(base / gcd), sympy.simplify(divisor / gcd))
         except sympy.PolynomialError:
             pass  # https://github.com/pytorch/pytorch/issues/108276
 

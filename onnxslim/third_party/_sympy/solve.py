@@ -5,7 +5,6 @@ import sympy
 
 from onnxslim.third_party._sympy.functions import FloorDiv
 
-
 log = logging.getLogger(__name__)
 
 _MIRROR_REL_OP: dict[type[sympy.Basic], type[sympy.Rel]] = {
@@ -94,18 +93,12 @@ def try_solve(
     return None
 
 
-def _try_isolate_lhs(
-    e: sympy.Basic, thing: sympy.Basic, floordiv_inequality: bool
-) -> sympy.Basic:
+def _try_isolate_lhs(e: sympy.Basic, thing: sympy.Basic, floordiv_inequality: bool) -> sympy.Basic:
     op = type(e)
 
     if isinstance(e, sympy.Rel):
         # Move any constants in the left-hand side to the right-hand side.
-        lhs_not_thing = (
-            sum(a for a in e.lhs.args if not a.has(thing))
-            if isinstance(e.lhs, sympy.Add)
-            else 0
-        )
+        lhs_not_thing = sum(a for a in e.lhs.args if not a.has(thing)) if isinstance(e.lhs, sympy.Add) else 0
         e = op(e.lhs - lhs_not_thing, e.rhs - lhs_not_thing)  # type: ignore[attr-defined]
 
     # Divide both sides by the factors that don't contain thing.

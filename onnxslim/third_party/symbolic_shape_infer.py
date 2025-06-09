@@ -11,8 +11,8 @@ import sympy
 from onnx import helper, numpy_helper, shape_inference
 from packaging import version
 
-from onnxslim.third_party._sympy.solve import try_solve
 from onnxslim.third_party._sympy.functions import FloorDiv
+from onnxslim.third_party._sympy.solve import try_solve
 
 assert version.parse(onnx.__version__) >= version.parse("1.8.0")
 
@@ -2032,8 +2032,10 @@ class SymbolicShapeInference:
                                 e = new_sympy_shape[i]  # noqa: PLW2901
                         except Exception:
                             if len(e.free_symbols) == 1:
-                                if (try_solve((e - new_sympy_shape[i]) >= 0, list(e.free_symbols)[0]) is None):
-                                    logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
+                                if try_solve((e - new_sympy_shape[i]) >= 0, list(e.free_symbols)[0]) is None:
+                                    logger.warning(
+                                        f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal"
+                                    )
                                     e = new_sympy_shape[i]  # noqa: PLW2901
                             else:
                                 logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")

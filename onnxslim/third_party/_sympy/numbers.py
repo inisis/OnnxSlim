@@ -327,11 +327,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
             s_part = S.NegativeOne**expt
             if inf_part == 0 and s_part.is_finite:
                 return inf_part
-            if (
-                inf_part is S.ComplexInfinity
-                and s_part.is_finite
-                and not s_part.is_zero
-            ):
+            if inf_part is S.ComplexInfinity and s_part.is_finite and not s_part.is_zero:
                 return S.ComplexInfinity
             return s_part * inf_part
 

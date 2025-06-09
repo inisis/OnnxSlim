@@ -113,7 +113,6 @@ class TestModelZoo:
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
             ort_sess.run(None, {"input_values": input})
 
-
     def test_yolo11n_pose(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"

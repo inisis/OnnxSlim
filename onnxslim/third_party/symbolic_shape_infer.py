@@ -11,6 +11,9 @@ import sympy
 from onnx import helper, numpy_helper, shape_inference
 from packaging import version
 
+from onnxslim.third_party._sympy.solve import try_solve
+from onnxslim.third_party._sympy.functions import FloorDiv
+
 assert version.parse(onnx.__version__) >= version.parse("1.8.0")
 
 logger = logging.getLogger(__name__)
@@ -802,7 +805,7 @@ class SymbolicShapeInference:
                     (effective_input_size - effective_kernel_shape[i]) / strides[i]
                 )
             else:
-                strided_kernel_positions = (effective_input_size - effective_kernel_shape[i]) // strides[i]
+                strided_kernel_positions = FloorDiv((effective_input_size - effective_kernel_shape[i]), strides[i])
             sympy_shape[-rank + i + (-1 if channels_last else 0)] = strided_kernel_positions + 1
         return sympy_shape
 
@@ -2021,14 +2024,20 @@ class SymbolicShapeInference:
                             )  # special case for slicing first to make computation easier
                 else:
                     if is_literal(new_sympy_shape[i]):
-                        e = sympy.Min(e, new_sympy_shape[i])  # noqa: PLW2901
+                        if new_sympy_shape[i] < 0:
+                            e = sympy.Min(e, new_sympy_shape[i])  # noqa: PLW2901
                     else:
                         try:
                             if not less_equal(e, new_sympy_shape[i]):
                                 e = new_sympy_shape[i]  # noqa: PLW2901
                         except Exception:
-                            logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
-                            e = new_sympy_shape[i]
+                            if len(e.free_symbols) == 1:
+                                if (try_solve((e - new_sympy_shape[i]) >= 0, list(e.free_symbols)[0]) is None):
+                                    logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
+                                    e = new_sympy_shape[i]  # noqa: PLW2901
+                            else:
+                                logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
+                                e = new_sympy_shape[i]  # noqa: PLW2901
 
                 s = handle_negative_index(s, new_sympy_shape[i])  # noqa: PLW2901
                 if is_literal(new_sympy_shape[i]) and is_literal(s):

@@ -1,7 +1,7 @@
 # mypy: allow-untyped-defs
 import functools
 import math
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Tuple
 
 import sympy
 from sympy.core.numbers import equal_valued
@@ -109,7 +109,7 @@ class FloorDiv(sympy.Function):
     NB: This is Python-style floor division, round to -Inf
     """
 
-    nargs: tuple[int, ...] = (2,)
+    nargs: Tuple[int, ...] = (2,)
     precedence: int = 35  # lower precedence than add
     is_integer: bool = True
 

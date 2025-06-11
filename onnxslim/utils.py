@@ -636,7 +636,9 @@ def check_onnx_compatibility():
     # Check compatibility
     expected_onnx_version = compatibility_dict.get(ort_version)
     if expected_onnx_version is None:
-        logger.warning(f"Onnx Runtime version {ort_version} has no specified compatible ONNX version.")
+        print(
+            f"Onnx Runtime version {ort_version} has no specified compatible ONNX version."
+        )
     elif expected_onnx_version == ".".join(onnx_version.split("+")[0].split(".")[:2]):
         logger.info(
             f"Installed Onnx Runtime version {ort_version} is compatible with installed ONNX version {onnx_version}."

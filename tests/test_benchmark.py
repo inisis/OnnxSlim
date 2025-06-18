@@ -55,6 +55,7 @@ def bench_onnxruntime(input, output):
 
 class TestModelZoo:
     results = {}
+
     def transform_and_check(self, name, filename, transformation_func, suffix, check_func):
         with tempfile.TemporaryDirectory() as tempdir:
             output_file = os.path.join(tempdir, f"{name}_{suffix}.onnx")
@@ -155,6 +156,7 @@ class TestModelZoo:
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
         self.run_model_test(name, filename)
+
 
 if __name__ == "__main__":
     import sys

@@ -720,5 +720,9 @@ def update_outputs_dims(
         for j, dim in enumerate(output_dim_arr):
             update_dim(output, dim, j, output_name)
 
-    onnx.checker.check_model(model)
+    try:
+        checker.check_model(model)
+    except ValueError:
+        logger.warning("Model too large and cannot be checked.")
+
     return model

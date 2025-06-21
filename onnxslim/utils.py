@@ -691,6 +691,11 @@ def update_outputs_dims(
 
     def update_dim(tensor, dim, j, name) -> None:
         dim_proto = tensor.type.tensor_type.shape.dim[j]
+
+        # if it's int in model, it won't be replaced by original symbol
+        if dim_proto.HasField("dim_value"):
+            return
+
         if isinstance(dim, int):
             if dim >= 0:
                 if dim_proto.HasField("dim_value") and dim_proto.dim_value != dim:

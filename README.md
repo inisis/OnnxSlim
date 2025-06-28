@@ -16,6 +16,9 @@
     <a href="https://github.com/inisis/onnxslim/actions/workflows/ci.yaml">
         <img src="https://github.com/inisis/onnxslim/actions/workflows/ci.yml/badge.svg" />
     </a>
+    <a href="https://muhammadrizwanmunawar.medium.com/boost-onnx-load-speed-by-10-15-with-onnxslims-python-package-d401eb8c2e69">
+        <img src="https://img.shields.io/badge/Blog-OnnxSlim?style=flat&label=OnnxSlim" />
+    </a>
 </p>
 
 OnnxSlim can help you slim your onnx model, with less operators, but same accuracy, better inference speed.

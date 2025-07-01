@@ -1183,7 +1183,7 @@ class SymbolicShapeInference:
         new_sympy_shape = []
         from collections import OrderedDict
 
-        num_letter_occurrences = OrderedDict()
+        OrderedDict()
         if mid_index != -1:
             right_equation = equation[mid_index + 2 :]
             right_ellipsis_index = right_equation.find(b"...")

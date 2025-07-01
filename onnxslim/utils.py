@@ -329,7 +329,7 @@ class TensorInfo:
 
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
-        self.dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE.get(tensor.type.tensor_type.elem_type, "Unknown")
+        self.dtype = onnx.helper.tensor_dtype_to_np_dtype(tensor.type.tensor_type.elem_type)
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []

@@ -1105,7 +1105,7 @@ class SymbolicShapeInference:
         vi.CopyFrom(helper.make_tensor_value_info(node.output[0], output_dtype, output_shape))
 
     def _infer_Einsum(self, node):  # noqa: N802
-        """Infer the output shape and type for the Einsum operation as per ONNX standards: https://github.com/onnx/onnx/blob/623dfaa/onnx/defs/math/defs.cc#L3275."""
+        """Infer the output shape and type for the Einsum operation as per ONNX standards: https://github.com/onnx/onnx/blob/v1.18.0/onnx/defs/math/defs.cc#L2472."""
         equation = get_attribute(node, "equation")
         equation = equation.replace(b" ", b"")
         mid_index = equation.find(b"->")
@@ -1114,25 +1114,71 @@ class SymbolicShapeInference:
         num_operands = 0
         num_ellipsis = 0
         num_ellipsis_indices = 0
+        num_labels = 0
+        ellipsis_flag = True
+        dims_value = []
+        ellipsis_dims_value = []
 
-        letter_to_dim = {}
+        label_maps = {}
+        repeated_labels = set()
 
         terms = left_equation.split(b",")
         for term in terms:
             ellipsis_index = term.find(b"...")
             shape = self._get_shape(node, num_operands)
             rank = len(shape)
+            ellipsis_dims = 0
+            term_size = 0
+            num_illegal_char = 0
+
+            for i in range(len(term)):
+                if term[i] != 46:
+                    term_size = term_size + 1
+
+            for index in range(len(term)):
+                if index == ellipsis_index:
+                    ellipsis_dims = rank - term_size
+                    if ellipsis_flag:
+                        ellipsis_flag = False
+                        for i in range(ellipsis_dims):
+                            ellipsis_dims_value.append(shape[index + i - num_illegal_char])
+                    else:
+                        for i in range(ellipsis_dims):
+                            shape_dim = shape[index + i - num_illegal_char]
+                            current_dim = ellipsis_dims_value[i]
+                            if current_dim == 1 and shape_dim > current_dim:
+                                current_dim = shape_dim
+
+                    index += 2
+                    num_illegal_char += 3
+                    continue
+                elif term[index] == 46:
+                    num_illegal_char += 1
+                    continue
+
+                char = term[index]
+                if char not in label_maps:
+                    label_maps[char] = num_labels
+                    dims_value.append(shape[index + ellipsis_dims - num_illegal_char])  # assuming dims_value is a list
+                    num_labels += 1
+                else:
+                    repeated_labels.add(char)
+
             if ellipsis_index != -1:
+                # If there is an ellipsis, the number of dimensions it represents
+                # must be total dim - letter dimensions
                 if num_ellipsis == 0:
-                    num_ellipsis_indices = rank - len(term) + 3
-                num_ellipsis = num_ellipsis + 1
-            for i in range(1, rank + 1):
-                letter = term[-i]
-                if letter != 46:  # letter != b'.'
-                    dim = shape[-i]
-                    if letter not in letter_to_dim or type(dim) != sympy.Symbol:
-                        letter_to_dim[letter] = dim
-            num_operands = num_operands + 1
+                    if rank < term_size:
+                        raise ValueError("Ellipsis represents incompatible dimensions.")
+                    num_ellipsis_indices = rank - term_size
+                else:
+                    if num_ellipsis_indices != rank - term_size:
+                        raise ValueError("Ellipsis represents incompatible dimensions.")
+                num_ellipsis += 1
+            else:
+                if rank != term_size:
+                    raise ValueError("Rank of input ", num_operands, " does not match the equation indices.")
+            num_operands += 1
 
         new_sympy_shape = []
         from collections import OrderedDict
@@ -1143,22 +1189,16 @@ class SymbolicShapeInference:
             right_ellipsis_index = right_equation.find(b"...")
             if right_ellipsis_index != -1:
                 for i in range(num_ellipsis_indices):
-                    new_sympy_shape.append(shape[i])
+                    new_sympy_shape.append(ellipsis_dims_value[i])
             for c in right_equation:
                 if c != 46:  # c != b'.'
-                    new_sympy_shape.append(letter_to_dim[c])
+                    new_sympy_shape.append(dims_value[label_maps[c]])
         else:
             for i in range(num_ellipsis_indices):
-                new_sympy_shape.append(shape[i])
-            for c in left_equation:
-                if c not in {44, 46}:  # c != b',' and c != b'.':
-                    if c in num_letter_occurrences:
-                        num_letter_occurrences[c] = num_letter_occurrences[c] + 1
-                    else:
-                        num_letter_occurrences[c] = 1
-            for key, value in num_letter_occurrences.items():
-                if value == 1:
-                    new_sympy_shape.append(letter_to_dim[key])
+                new_sympy_shape.append(ellipsis_dims_value[i])
+            for label, idx in label_maps.items():
+                if label not in repeated_labels:
+                    new_sympy_shape.append(dims_value[idx])
 
         output_dtype = self.known_vi_[node.input[0]].type.tensor_type.elem_type
         vi = self.known_vi_[node.output[0]]

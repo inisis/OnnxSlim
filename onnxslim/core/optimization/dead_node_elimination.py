@@ -80,7 +80,7 @@ def dead_node_elimination(graph, is_subgraph=False):
             if len(node.inputs) > 1 and isinstance(node.inputs[1], Constant):
                 constant_variable = node.inputs[1]
                 value = constant_variable.values
-                if node.inputs[0].shape == node.outputs[0].shape:
+                if node.inputs[0].shape is not None and node.inputs[0].shape == node.outputs[0].shape:
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
                 elif value.ndim == 0 and value == 1:

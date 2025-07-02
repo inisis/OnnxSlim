@@ -123,7 +123,7 @@ class TestModelZoo:
 
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
             ort_sess.run(None, {"images": input})
-            
+
     def test_linguistic(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
@@ -131,13 +131,14 @@ class TestModelZoo:
         with tempfile.TemporaryDirectory() as tempdir:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), no_shape_infer=False, verbose=False)
             import torch
+
             tokens = torch.LongTensor([[1] * 5]).numpy()
             word_div = torch.LongTensor([[2, 2, 1]]).numpy()
             word_dur = torch.LongTensor([[8, 3, 4]]).numpy()
             languages = torch.LongTensor([[0] * 5]).numpy()
 
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
-            ort_sess.run(None, {"tokens": tokens, "word_div": word_div, "word_dur": word_dur, "languages": languages})            
+            ort_sess.run(None, {"tokens": tokens, "word_div": word_div, "word_dur": word_dur, "languages": languages})
 
 
 if __name__ == "__main__":

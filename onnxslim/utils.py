@@ -329,11 +329,7 @@ class TensorInfo:
 
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
-        self.dtype = (
-            onnx.helper.tensor_dtype_to_np_dtype(tensor.type.tensor_type.elem_type)
-            if tensor.type.tensor_type.elem_type in onnx.mapping.TENSOR_TYPE_MAP
-            else "Unknown"
-        )
+        self.dtype = onnx.helper.tensor_dtype_to_np_dtype(tensor.type.tensor_type.elem_type) if tensor.type.tensor_type.elem_type in onnx.helper.get_all_tensor_dtypes() else "Unknown"
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []
@@ -604,8 +600,8 @@ def is_onnxruntime_available():
 def check_onnx_compatibility():
     """Ensure ONNX Runtime and ONNX versions are compatible for model inference."""
     compatibility_dict = {
-        "1.20": "1.17",
-        "1.19": "1.17",
+        "1.20": "1.16",
+        "1.19": "1.16",
         "1.18": "1.16",
         "1.17": "1.15",
         "1.16": "1.14.1",

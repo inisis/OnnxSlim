@@ -1135,7 +1135,8 @@ class SymbolicShapeInference:
                 if term[i] != 46:
                     term_size = term_size + 1
 
-            for index in range(len(term)):
+            index = 0
+            while index < len(term):
                 if index == ellipsis_index:
                     ellipsis_dims = rank - term_size
                     if ellipsis_flag:
@@ -1146,23 +1147,26 @@ class SymbolicShapeInference:
                         for i in range(ellipsis_dims):
                             shape_dim = shape[index + i - num_illegal_char]
                             current_dim = ellipsis_dims_value[i]
-                            if current_dim == 1 and shape_dim > current_dim:
-                                current_dim = shape_dim
+                            ellipsis_dims_value[i] = max(current_dim, shape_dim)
 
-                    index += 2
                     num_illegal_char += 3
+                    index += 3  # Skip all three characters in '...'
                     continue
-                elif term[index] == 46:
+
+                elif term[index] == 46:  # ASCII for '.'
                     num_illegal_char += 1
+                    index += 1
                     continue
 
                 char = term[index]
                 if char not in label_maps:
                     label_maps[char] = num_labels
-                    dims_value.append(shape[index + ellipsis_dims - num_illegal_char])  # assuming dims_value is a list
+                    dims_value.append(shape[index + ellipsis_dims - num_illegal_char])
                     num_labels += 1
                 else:
                     repeated_labels.add(char)
+
+                index += 1
 
             if ellipsis_index != -1:
                 # If there is an ellipsis, the number of dimensions it represents

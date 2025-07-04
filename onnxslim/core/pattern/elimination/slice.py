@@ -60,19 +60,19 @@ class SlicePatternMatcher(PatternMatcher):
                         (
                             list(first_slice_node.inputs)[0],
                             gs.Constant(
-                                second_slice_node_inputs[1].name,
+                                second_slice_node_inputs[1].name + "_starts",
                                 values=np.array(new_starts, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[2].name,
+                                second_slice_node_inputs[2].name + "_ends",
                                 values=np.array(new_ends, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[3].name,
+                                second_slice_node_inputs[3].name + "_axes",
                                 values=np.array(new_axes, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[4].name,
+                                second_slice_node_inputs[4].name + "_steps",
                                 values=np.array(new_steps, dtype=np.int64),
                             ),
                         )

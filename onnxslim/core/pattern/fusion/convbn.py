@@ -61,7 +61,7 @@ class ConvBatchNormMatcher(PatternMatcher):
                 bias_name = f"{weight_name}_bias"
             inputs.extend(
                 (
-                    gs.Constant(weight_name, values=conv_w),
+                    gs.Constant(weight_name+"_weight", values=conv_w),
                     gs.Constant(bias_name, values=conv_b),
                 )
             )

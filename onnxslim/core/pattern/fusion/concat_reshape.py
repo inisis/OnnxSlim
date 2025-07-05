@@ -1,4 +1,5 @@
 import numpy as np
+
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
@@ -22,13 +23,11 @@ class ConcatReshapeMatcher(PatternMatcher):
 
     def parameter_check(self):
         concat_node = self.concat_0
+
         def check_inputs(inputs):
             vars = [i for i in inputs if isinstance(i, gs.Variable)]
             consts = [i for i in inputs if isinstance(i, gs.Constant)]
-            return (
-                len(vars) == 1 and
-                all(c.values != -1 for c in consts)
-            )
+            return len(vars) == 1 and all(c.values != -1 for c in consts)
 
         return check_inputs(concat_node.inputs)
 

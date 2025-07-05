@@ -1,3 +1,4 @@
+from .concat_reshape import *
 from .convadd import *
 from .convbn import *
 from .gelu import *

@@ -1,3 +1,4 @@
+import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
@@ -7,10 +8,10 @@ class ReducePatternMatcher(PatternMatcher):
         """Initializes the ReducePatternMatcher with a specified pattern matching priority level."""
         pattern = Pattern(
             """
-            input     input       0 1 reduce_0
-            ReduceSum reduce_0    1 1 input unsqueeze_0
-            Unsqueeze unsqueeze_0 1 1 reduce_0 output
-            output    output      1 0 unsqueeze_0
+            input     input       0   1 reduce_0
+            ReduceSum reduce_0    1+  1 input unsqueeze_0
+            Unsqueeze unsqueeze_0 1+  1 reduce_0 output
+            output    output      1   0 unsqueeze_0
             """
         )
         super().__init__(pattern, priority)
@@ -29,11 +30,21 @@ class ReducePatternMatcher(PatternMatcher):
         if len(reduce_node_node_users) == 1:
             unsqueeze_node = node
 
-            reduce_node_axes = reduce_node.attrs.get("axes", None)
-            reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
-            unsqueeze_node_axes = unsqueeze_node.attrs.get("axes", None)
+            if opset < 13:
+                reduce_node_axes = reduce_node.attrs.get("axes", None)
+                reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
+                unsqueeze_node_axes = unsqueeze_node.attrs.get("axes", None)
+            else:
+                reduce_node_axes_ = reduce_node.inputs[1]
+                reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
+                unsqueeze_node_axes_ = unsqueeze_node.inputs[1]
+                if isinstance(reduce_node_axes_, gs.Constant) and isinstance(unsqueeze_node_axes_, gs.Constant):
+                    reduce_node_axes = reduce_node_axes_.values
+                    unsqueeze_node_axes = unsqueeze_node_axes_.values
+                else:
+                    return match_case
 
-            if opset < 13 and reduce_node_axes == [-1] and unsqueeze_node_axes == [-1] and reduce_node_keepdims == 0:
+            if reduce_node_axes == unsqueeze_node_axes and reduce_node_keepdims == 0:
                 inputs = list(reduce_node.inputs)
                 outputs = list(unsqueeze_node.outputs)
                 attrs = reduce_node.attrs

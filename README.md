@@ -16,6 +16,9 @@
     <a href="https://github.com/inisis/onnxslim/actions/workflows/ci.yaml">
         <img src="https://github.com/inisis/onnxslim/actions/workflows/ci.yml/badge.svg" />
     </a>
+    <a href="https://codecov.io/gh/inisis/onnxslim" > 
+        <img src="https://codecov.io/gh/inisis/onnxslim/branch/main/graph/badge.svg?token=C69ZH6802N"/> 
+    </a>    
     <a href="https://muhammadrizwanmunawar.medium.com/boost-onnx-load-speed-by-10-15-with-onnxslims-python-package-d401eb8c2e69">
         <img src="https://img.shields.io/badge/Blog-OnnxSlim?style=flat&label=OnnxSlim" />
     </a>

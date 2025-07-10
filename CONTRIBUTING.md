@@ -11,6 +11,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to foster an op
 ### Reporting Bugs
 
 If you find a bug, please create an issue with the following information:
+
 - Clear description of the bug
 - Steps to reproduce
 - Expected behavior
@@ -20,6 +21,7 @@ If you find a bug, please create an issue with the following information:
 ### Suggesting Features
 
 We welcome feature suggestions! Please create an issue with:
+
 - Clear description of the feature
 - Rationale for the feature
 - Potential implementation approach (optional)
@@ -52,7 +54,7 @@ We welcome feature suggestions! Please create an issue with:
 # Setup commands
 git clone https://github.com/username/OnnxSlim.git
 cd OnnxSlim
-pip install -e .  # Install package in development mode
+pip install -e . # Install package in development mode
 ```
 
 ## Testing
@@ -81,4 +83,4 @@ pytest tests/test_onnxslim.py
 
 By contributing, you agree that your contributions will be licensed under the project's license.
 
-Thank you for contributing to OnnxSlim! 
+Thank you for contributing to OnnxSlim!

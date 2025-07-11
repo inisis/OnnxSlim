@@ -51,6 +51,10 @@ jobs:
         run: |
           coverage run -m pytest tests/test_pattern_generator.py
 
+      - name: dead node elimination test
+        run: |
+          coverage run -m pytest tests/test_dead_node_elimination.py          
+
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-ci.xml

@@ -27,17 +27,15 @@ class ConcatReshapeMatcher(PatternMatcher):
         def check_inputs(inputs):
             vars = [i for i in inputs if isinstance(i, gs.Variable)]
             consts = [i for i in inputs if isinstance(i, gs.Constant)]
-            return (
-                len(vars) == 1 and
-                all(c.values != -1 for c in consts) and
-                vars[0].shape == [1]
-            )
+            return len(vars) == 1 and all(c.values != -1 for c in consts) and vars[0].shape == [1]
 
         return check_inputs(concat_node.inputs)
 
     def rewrite(self, opset=11):
         match_case = {}
-        import pdb;pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         concat_node = self.concat_0
         index = [idx for idx, i in enumerate(concat_node.inputs) if isinstance(i, gs.Variable)][0]
         constant = gs.Constant(

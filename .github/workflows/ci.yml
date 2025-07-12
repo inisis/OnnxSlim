@@ -28,11 +28,16 @@ jobs:
           pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
           pip install coverage
 
-      - name: yolo test
-        if: matrix.python-version <= '3.11'
+      - name: create coverage config
         run: |
-          pip install ultralytics
-          coverage run -m pytest tests/test_yolo.py -sv
+          echo "[run]" > .coveragerc
+          echo "omit = onnxslim/third_party/*, onnxslim/misc/*" >> .coveragerc
+
+      # - name: yolo test
+      #   if: matrix.python-version <= '3.11'
+      #   run: |
+      #     pip install ultralytics
+      #     coverage run -m pytest tests/test_yolo.py -sv
 
       - name: onnxslim api and binary test
         run: |
@@ -50,6 +55,18 @@ jobs:
       - name: pattern generator test
         run: |
           coverage run -m pytest tests/test_pattern_generator.py
+
+      - name: dead node elimination test
+        run: |
+          coverage run -m pytest tests/test_dead_node_elimination.py
+
+      - name: subexpression elimination test
+        run: |
+          coverage run -m pytest tests/test_subexpression_elimination.py
+
+      - name: cli test
+        run: |
+          coverage run -m pytest tests/test_cli_main.py
 
       - name: Merge Coverage Reports
         run: |

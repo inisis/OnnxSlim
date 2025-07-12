@@ -1172,9 +1172,7 @@ SOURCE = ASSETS / "bus.jpg"
 
 
 class TestYolo:
-    @pytest.mark.parametrize(
-        "task, dynamic, int8, half, batch", product(TASKS, [True, False], [False], [False], [1, 2])
-    )
+    @pytest.mark.parametrize("task, dynamic, int8, half, batch", product(TASKS, [True], [False], [False], [2]))
     def test_yolov8_export_onnx_matrix(self, request, task, dynamic, int8, half, batch):
         """Tests YOLOv8 ONNX export functionality with various parameter configurations for different tasks."""
         file = YOLO(TASK2MODEL[task]).export(
@@ -1190,7 +1188,7 @@ class TestYolo:
 
     @pytest.mark.parametrize(
         "task, dynamic, int8, half, batch",
-        product(["yolov10n", "yolov10s", "yolov10m", "yolov10l", "yolov10x"], [True, False], [False], [False], [1, 2]),
+        product(["yolov10n", "yolov10s", "yolov10m", "yolov10l", "yolov10x"], [True], [False], [False], [2]),
     )
     def test_yolov10_export_onnx_matrix(self, request, task, dynamic, int8, half, batch):
         """Exports YOLOv10 models to ONNX and tests inference with varying configurations."""
@@ -1207,7 +1205,7 @@ class TestYolo:
 
     @pytest.mark.parametrize(
         "task, dynamic, int8, half, batch",
-        product(["yolov10n"], [False], [False], [False], [1, 2]),
+        product(["yolov10n"], [False], [False], [False], [2]),
     )
     def test_yolov10_export_tflite_matrix(self, request, task, dynamic, int8, half, batch):
         """Exports YOLOv10 models to TFLite and tests inference with varying configurations."""

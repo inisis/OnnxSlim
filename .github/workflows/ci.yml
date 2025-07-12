@@ -70,7 +70,6 @@ jobs:
 
       - name: Merge Coverage Reports
         run: |
-          coverage combine
           coverage xml -o coverage-ci.xml
 
       - name: Upload coverage reports to Codecov

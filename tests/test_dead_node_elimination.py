@@ -215,7 +215,9 @@ class TestDeadNodeElimination:
 
             def forward(self, x):
                 # Add 0
-                return x + self.zeros
+                x += 0
+                x += self.zeros
+                return x
 
         input_tensor = torch.randn(2, 3, 4, 5)
         model = Model()
@@ -228,6 +230,7 @@ class TestDeadNodeElimination:
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
+        graph.fold_constants().cleanup().toposort()
         initial_node_count = len(graph.nodes)
         dead_node_elimination(graph)
         graph.cleanup().toposort()
@@ -246,7 +249,7 @@ class TestDeadNodeElimination:
 
             def forward(self, x):
                 # Divide by 1
-                return x / self.ones
+                return x / self.ones / 1
 
         input_tensor = torch.randn(2, 3, 4, 5)
         model = Model()
@@ -259,6 +262,7 @@ class TestDeadNodeElimination:
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
+        graph.fold_constants().cleanup().toposort()
         initial_node_count = len(graph.nodes)
         dead_node_elimination(graph)
         graph.cleanup().toposort()
@@ -276,8 +280,9 @@ class TestDeadNodeElimination:
                 self.register_buffer("zeros", torch.zeros(1))
 
             def forward(self, x):
-                # Subtract 0
-                return x - self.zeros
+                x -= 0
+                x -= self.zeros
+                return x
 
         input_tensor = torch.randn(2, 3, 4, 5)
         model = Model()
@@ -290,6 +295,7 @@ class TestDeadNodeElimination:
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
+        graph.fold_constants().cleanup().toposort()
         initial_node_count = len(graph.nodes)
         dead_node_elimination(graph)
         graph.cleanup().toposort()

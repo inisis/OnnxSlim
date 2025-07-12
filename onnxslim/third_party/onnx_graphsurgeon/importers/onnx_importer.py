@@ -55,10 +55,9 @@ ONNX_PYTHON_ATTR_MAPPING = {
 
 def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> List[int]:
     """Returns the shape of an ONNX tensor as a list of dimensions."""
-    shape = []
+    shape = None
     if isinstance(onnx_tensor, (onnx.TensorProto, onnx.SparseTensorProto)):
         shape = onnx_tensor.dims
-        shape = tuple(shape) if shape else []
     elif onnx_tensor.type.tensor_type.HasField("shape"):
         shape = []
         for dim in onnx_tensor.type.tensor_type.shape.dim:
@@ -68,8 +67,7 @@ def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorPro
                 shape.append(dim.dim_value)
             else:
                 shape.append(None)
-        shape = tuple(shape)
-    return shape
+    return tuple(shape) if shape else None
 
 
 def get_dtype_name(onnx_type):

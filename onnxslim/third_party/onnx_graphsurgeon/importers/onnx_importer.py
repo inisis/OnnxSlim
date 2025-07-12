@@ -67,6 +67,7 @@ def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorPro
                 shape.append(dim.dim_value)
             else:
                 shape.append(None)
+        shape = tuple(shape)
     return shape
 
 

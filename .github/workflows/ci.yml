@@ -64,6 +64,10 @@ jobs:
         run: |
           coverage run -m pytest tests/test_subexpression_elimination.py
 
+      - name: cli test
+        run: |
+          coverage run -m pytest tests/test_cli_main.py
+
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-ci.xml

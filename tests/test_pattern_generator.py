@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 
 from onnxslim import register_fusion_pattern, slim
-from onnxslim.utils import summarize_model
 from onnxslim.core.pattern import Pattern, PatternGenerator, PatternMatcher
+from onnxslim.utils import summarize_model
 
 
 class TestPatternGenerator:
@@ -56,7 +56,7 @@ class TestPatternGenerator:
         model = onnx.load(pattern_filename)
         pgen = PatternGenerator(model)
         template = pgen.generate()
-        pattern = Pattern(template)
+        Pattern(template)
 
         class GeluMatcher(PatternMatcher):
             def __init__(self, pattern, priority):
@@ -73,6 +73,7 @@ class TestPatternGenerator:
                 raise Exception("Pattern Matched")
 
         from onnxslim.core.pattern.fusion import GeluPatternMatcher
+
         register_fusion_pattern(GeluPatternMatcher(1))
         slim(model_filename, f"{directory}/{request.node.name}_slim.onnx")
         summary = summarize_model(f"{directory}/{request.node.name}_slim.onnx")

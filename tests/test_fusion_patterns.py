@@ -278,24 +278,24 @@ class TestFusionPatterns(unittest.TestCase):
 
         import torch
         import torch.nn as nn
-        
+
         # Define a simple model with GELU activation
         class GeluModel(nn.Module):
             def __init__(self):
-                super(GeluModel, self).__init__()
+                super().__init__()
                 self.gelu = nn.GELU()
-                
+
             def forward(self, x):
                 return self.gelu(x)
-        
+
         # Create model instance
         model = GeluModel()
         model.eval()  # Set to evaluation mode
-        
+
         # Create dummy input
         dummy_input = torch.randn(1, 512, dtype=torch.float32)
         input_data = dummy_input.numpy()
-        
+
         with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
             # Export the model to ONNX
             torch.onnx.export(
@@ -310,21 +310,21 @@ class TestFusionPatterns(unittest.TestCase):
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})
-            
+
             # Load the ONNX model
             onnx_model = onnx.load(f.name)
-            
+
             # Optimize the model with onnxslim
             optimized_model = onnxslim.slim(onnx_model)
             onnx.save(optimized_model, f.name)
             optimized_output = run_onnx(f.name, {"input": input_data})
-            
+
             # Check that the outputs are the same
             np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
-            
+
             # Check that optimization occurred
             self.assertLessEqual(len(optimized_model.graph.node), len(onnx_model.graph.node))
-        
+
         os.unlink(f.name)
 
     def test_concat_reshape_pattern(self):
@@ -341,25 +341,25 @@ class TestFusionPatterns(unittest.TestCase):
 
         import torch
         import torch.nn as nn
-        
+
         # Define a simple model with MatMul + Add (GEMM) with 3D input
         class GemmModel(nn.Module):
             def __init__(self):
-                super(GemmModel, self).__init__()
+                super().__init__()
                 self.linear = nn.Linear(512, 256, bias=False)
                 self.bias = nn.Parameter(torch.randn(256, dtype=torch.float32))
-                
+
             def forward(self, x):
                 return self.linear(x) + self.bias
-        
+
         # Create model instance
         model = GemmModel()
         model.eval()  # Set to evaluation mode
-        
+
         # Create 3D dummy input (batch_size, sequence_length, hidden_size)
         dummy_input = torch.randn(2, 10, 512, dtype=torch.float32)
         input_data = dummy_input.numpy()
-        
+
         with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
             # Export the model to ONNX
             torch.onnx.export(
@@ -369,25 +369,26 @@ class TestFusionPatterns(unittest.TestCase):
                 export_params=True,
                 opset_version=11,
                 input_names=["input"],
-                output_names=["output"]
+                output_names=["output"],
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})
-            
+
             # Load the ONNX model
             onnx_model = onnx.load(f.name)
-            
+
             # Optimize the model with onnxslim
             optimized_model = onnxslim.slim(onnx_model)
             onnx.save(optimized_model, f.name)
             optimized_output = run_onnx(f.name, {"input": input_data})
             # Check that the outputs are the same
             np.testing.assert_allclose(original_output["output"], optimized_output["output"], atol=1e-5)
-            
+
             # Check that optimization occurred (nodes were fused)
             self.assertLessEqual(len(onnx_model.graph.node), len(optimized_model.graph.node))
-        
+
         os.unlink(f.name)
+
 
 if __name__ == "__main__":
     unittest.main()

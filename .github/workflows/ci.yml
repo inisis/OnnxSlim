@@ -32,6 +32,12 @@ jobs:
           echo "[run]" > .coveragerc
           echo "omit = onnxslim/third_party/*, onnxslim/misc/*" >> .coveragerc
 
+      - name: yolo test
+        if: matrix.python-version <= '3.11'
+        run: |
+          pip install ultralytics
+          coverage run --parallel-mode -m pytest tests/test_yolo.py -sv
+
       # Add --parallel-mode to each test
       - name: Run all tests
         run: |
@@ -41,6 +47,8 @@ jobs:
           coverage run --parallel-mode -m pytest tests/test_pattern_generator.py
           coverage run --parallel-mode -m pytest tests/test_dead_node_elimination.py
           coverage run --parallel-mode -m pytest tests/test_subexpression_elimination.py
+          coverage run --parallel-mode -m pytest tests/test_elimination_patterns.py
+          coverage run --parallel-mode -m pytest tests/test_fusion_patterns.py
           coverage run --parallel-mode -m pytest tests/test_cli_main.py
 
       - name: Combine and Generate Coverage Report

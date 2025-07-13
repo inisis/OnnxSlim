@@ -564,15 +564,18 @@ def _legacy_zip_load(filename, model_dir, map_location):
 
 
 def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False, file_name=None):
-    """Download an ONNX file from a URL and save it to the specified directory."""
+    """Download an ONNX model from a URL, saving it to the specified directory."""
     if model_dir is None:
         hub_dir = get_dir()
-        model_dir = os.path.join(hub_dir, "onnx")
+        model_dir = os.path.join(hub_dir, "checkpoints")
 
     try:
         os.makedirs(model_dir)
     except OSError as e:
-        if e.errno != errno.EEXIST:
+        if e.errno == errno.EEXIST:
+            # Directory already exists, ignore.
+            pass
+        else:
             # Unexpected OSError, re-raise.
             raise
 
@@ -582,14 +585,72 @@ def download_onnx_from_url(url, model_dir=None, progress=True, check_hash=False,
         filename = file_name
     cached_file = os.path.join(model_dir, filename)
     if not os.path.exists(cached_file):
-        sys.stderr.write(f'Downloading: "{url}" to {cached_file}\n')
+        sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
         hash_prefix = None
-        if check_hash:
-            r = HASH_REGEX.search(filename)  # r is Optional[Match[str]]
-            hash_prefix = r.group(1) if r else None
         download_url_to_file(url, cached_file, hash_prefix, progress=progress)
 
-    if _is_legacy_zip_format(cached_file):
-        return _legacy_zip_load(cached_file, model_dir)
-
     return cached_file
+
+
+def run_onnx(model_path, inputs):
+    """
+    Run an ONNX model with the given inputs and return the outputs.
+    
+    Args:
+        model_path (str): Path to the ONNX model file
+        inputs (dict): Dictionary of input name to numpy array
+        
+    Returns:
+        dict: Dictionary of output name to numpy array
+    """
+    import onnxruntime as ort
+    
+    session = ort.InferenceSession(model_path)
+    input_names = [input.name for input in session.get_inputs()]
+    output_names = [output.name for output in session.get_outputs()]
+    
+    # Filter inputs to only include those expected by the model
+    filtered_inputs = {name: inputs[name] for name in input_names if name in inputs}
+    
+    # Run inference
+    outputs = session.run(output_names, filtered_inputs)
+    
+    # Return outputs as a dictionary
+    return {name: output for name, output in zip(output_names, outputs)}
+
+
+def create_model(nodes, inputs, outputs, initializers=None, opset=11):
+    """
+    Create an ONNX model from nodes, inputs, outputs, and initializers.
+    
+    Args:
+        nodes (list): List of ONNX nodes
+        inputs (list): List of ONNX input tensors
+        outputs (list): List of ONNX output tensors
+        initializers (list, optional): List of ONNX initializers
+        opset (int, optional): ONNX opset version
+        
+    Returns:
+        onnx.ModelProto: ONNX model
+    """
+    import onnx
+    
+    if initializers is None:
+        initializers = []
+    
+    graph = onnx.helper.make_graph(
+        nodes,
+        "test-model",
+        inputs,
+        outputs,
+        initializer=initializers
+    )
+    
+    model = onnx.helper.make_model(
+        graph,
+        producer_name="onnxslim-test"
+    )
+    
+    model.opset_import[0].version = opset
+    
+    return model

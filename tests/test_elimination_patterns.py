@@ -183,7 +183,7 @@ class TestEliminationPatterns(unittest.TestCase):
         )
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
-        model.opset_import[0].version = 11
+        model.opset_import[0].version = 14
 
         # Test the pattern matcher directly
         matcher = UnsqueezePatternMatcher(1)

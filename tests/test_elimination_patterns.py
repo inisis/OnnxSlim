@@ -31,6 +31,7 @@ class TestEliminationPatterns(unittest.TestCase):
         graph = helper.make_graph([node1, node2], "concat-test", [input_tensor], [output_tensor])
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
 
         # Test the pattern matcher directly
         matcher = ConcatPatternMatcher(1)
@@ -86,6 +87,7 @@ class TestEliminationPatterns(unittest.TestCase):
         )
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
 
         # Test the pattern matcher directly
         matcher = ReshapePatternMatcher(1)
@@ -129,6 +131,7 @@ class TestEliminationPatterns(unittest.TestCase):
         )
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
 
         # Test the pattern matcher directly
         matcher = SlicePatternMatcher(1)
@@ -180,6 +183,7 @@ class TestEliminationPatterns(unittest.TestCase):
         )
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
 
         # Test the pattern matcher directly
         matcher = UnsqueezePatternMatcher(1)

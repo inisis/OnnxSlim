@@ -105,7 +105,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                     }
                 )
 
-                values = input_variable.shape[:-1] + [matmul_bias_variable.values.shape[-1]]
+                values = list(input_variable.shape[:-1]) + [matmul_bias_variable.values.shape[-1]]
                 post_reshape_const = gs.Constant(
                     f"{matmul_node.name}_post_reshape_in",
                     values=np.array(values, dtype=np.int64),

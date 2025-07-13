@@ -1,18 +1,4 @@
-import errno
-import hashlib
-import json
-import os
-import re
-import shutil
-import sys
-import tempfile
-import warnings
-import zipfile
-from urllib.error import HTTPError
 from urllib.parse import urlparse  # noqa: F401
-from urllib.request import Request, urlopen
-
-import torch
 
 
 def run_onnx(model_path, inputs):

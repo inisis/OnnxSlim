@@ -17,6 +17,18 @@ def tie_weights(graph):
 
     constant_tensors.extend([tensor for tensors in sub_graphs_constant_tensors for tensor in tensors])
 
+    constant_by_shape = {}
+
+    for constant_tensor in constant_tensors:
+        shape = constant_tensor.shape
+        if shape not in constant_by_shape:
+            constant_by_shape[shape] = []
+        constant_by_shape[shape].append(constant_tensor)
+
+    for nodes in constant_by_shape.values():
+        find_and_remove_replaceable_constants(nodes)
+
+def find_and_remove_replaceable_constants(constant_tensors):
     def replace_constant_references(existing_constant, to_be_removed_constant):
         users = list(to_be_removed_constant.outputs)
 

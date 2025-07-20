@@ -726,6 +726,10 @@ def update_outputs_dims(
         output_dim_arr = output_dims[output_name]
         if output_dim_arr is None:
             continue
+
+        if len(output.type.tensor_type.shape.dim) == 0:
+            for _ in range(len(output_dim_arr)):
+                output.type.tensor_type.shape.dim.add()
         for j, dim in enumerate(output_dim_arr):
             update_dim(output, dim, j, output_name)
 

@@ -491,7 +491,7 @@ def save(
             logger.warning("Model too large and cannot be checked.")
 
     if model_path:  # model larger than 2GB can be saved, but compiler like trtexec won't parse it
-        if model.ByteSize() <= checker.MAXIMUM_PROTOBUF and not save_as_external_data:
+        if get_model_size_and_initializer_size(model) <= checker.MAXIMUM_PROTOBUF and not save_as_external_data:
             onnx.save(model, model_path)
         else:
             import os

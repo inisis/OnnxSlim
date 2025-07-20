@@ -49,6 +49,8 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
     """Convert byte sizes into human-readable format with appropriate units (B, KB, MB, GB)."""
     if isinstance(size, int):
         size = (size,)
+    elif isinstance(size, np.int64):
+        size = (int(size),)
 
     units = ["B", "KB", "MB", "GB"]
     formatted_sizes = []
@@ -382,7 +384,7 @@ class ModelInfo:
     def _summarize_model(self, model):
         self.op_set = str(get_opset(model))
         self.ir_version = str(get_ir_version(model))
-        self.model_size = model.ByteSize()
+        self.model_size = get_model_size_and_initializer_size(model)
 
         for input in model.graph.input:
             self.input_info.append(TensorInfo(input))
@@ -558,15 +560,18 @@ def calculate_tensor_size(tensor):
     return num_elements * element_size
 
 
-def get_model_size_and_initializer_size(model):
-    """Calculates and prints the model size and initializer size for an ONNX model in bytes."""
+def get_model_size_and_initializer_size(model, return_model_size=False):
     initializer_size = 0
     for tensor in model.graph.initializer:
         tensor_size = calculate_tensor_size(tensor)
         initializer_size += tensor_size
 
-    print("model size", model.ByteSize())
-    print("initializer size", initializer_size)
+    if return_model_size:
+        print("model size", model.ByteSize())
+        print("initializer size", initializer_size)
+        return model.ByteSize(), initializer_size
+
+    return initializer_size
 
 
 def get_model_subgraph_size(model):

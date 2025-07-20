@@ -28,6 +28,7 @@ def tie_weights(graph):
     for nodes in constant_by_shape.values():
         find_and_remove_replaceable_constants(nodes)
 
+
 def find_and_remove_replaceable_constants(constant_tensors):
     def replace_constant_references(existing_constant, to_be_removed_constant):
         users = list(to_be_removed_constant.outputs)

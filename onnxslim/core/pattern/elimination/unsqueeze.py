@@ -50,12 +50,21 @@ class UnsqueezePatternMatcher(PatternMatcher):
                     axis + sum(1 for axis_ in axes_node_unsqueeze_1 if axis_ <= axis) for axis in axes_node_unsqueeze_0
                 ]
 
-                inputs = [node_unsqueeze_0.inputs[0]]
+                inputs = [list(node_unsqueeze_0.inputs)[0]]
                 outputs = list(node_unsqueeze_1.outputs)
-                node_unsqueeze_0.inputs.clear()
-                node_unsqueeze_0.outputs.clear()
+
+                index = node_unsqueeze_1.inputs.index(node_unsqueeze_0.outputs[0])
+                node_unsqueeze_1.inputs.pop(index)
+                for i, item in enumerate(node_unsqueeze_0.inputs):
+                    node_unsqueeze_1.inputs.insert(index + i, item)
+                inputs = [list(node_unsqueeze_1.inputs)[0]]
+                outputs = list(node_unsqueeze_1.outputs)
                 node_unsqueeze_1.inputs.clear()
                 node_unsqueeze_1.outputs.clear()
+
+                if len(users_node_unsqueeze_0) == 0:
+                    outputs.inputs.clear()
+                    outputs.outputs.clear()
 
                 if opset < 13:
                     attrs = {"axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1}

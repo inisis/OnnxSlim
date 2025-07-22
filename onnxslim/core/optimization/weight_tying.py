@@ -1,11 +1,12 @@
-import os
 import logging
+import os
 
 logger = logging.getLogger("onnxslim")
-import numpy as np
 from collections import defaultdict
-import onnxslim.third_party.onnx_graphsurgeon as gs
 
+import numpy as np
+
+import onnxslim.third_party.onnx_graphsurgeon as gs
 
 THRESHOLD = int(os.getenv("ONNXSLIM_THRESHOLD")) if os.getenv("ONNXSLIM_THRESHOLD") else 1000
 

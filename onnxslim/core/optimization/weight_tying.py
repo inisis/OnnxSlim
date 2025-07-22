@@ -1,7 +1,13 @@
+import os
 import logging
 
 logger = logging.getLogger("onnxslim")
+import numpy as np
+from collections import defaultdict
 import onnxslim.third_party.onnx_graphsurgeon as gs
+
+
+THRESHOLD = int(os.getenv("ONNXSLIM_THRESHOLD")) if os.getenv("ONNXSLIM_THRESHOLD") else 1000
 
 
 def tie_weights(graph):
@@ -17,13 +23,12 @@ def tie_weights(graph):
 
     constant_tensors.extend([tensor for tensors in sub_graphs_constant_tensors for tensor in tensors])
 
-    constant_by_shape = {}
+    constant_by_shape = defaultdict(list)
 
     for constant_tensor in constant_tensors:
-        shape = constant_tensor.shape
-        if shape not in constant_by_shape:
-            constant_by_shape[shape] = []
-        constant_by_shape[shape].append(constant_tensor)
+        shape = tuple(constant_tensor.shape)
+        if np.prod(shape) < THRESHOLD:
+            constant_by_shape[shape].append(constant_tensor)
 
     for nodes in constant_by_shape.values():
         find_and_remove_replaceable_constants(nodes)

@@ -337,9 +337,7 @@ class SymbolicShapeInference:
                         d.dim_param = v
 
     def _preprocess(self, in_mp):
-        """Preprocess ONNX model by copying its structure and updating graph input and initializer dictionaries."""
-        self.out_mp_ = onnx.ModelProto()
-        self.out_mp_.CopyFrom(in_mp)
+        self.out_mp_ = in_mp
         self.graph_inputs_ = {i.name: i for i in list(self.out_mp_.graph.input)}
         self.initializers_ = {i.name: i for i in self.out_mp_.graph.initializer}
         self.known_vi_ = {i.name: i for i in list(self.out_mp_.graph.input)}

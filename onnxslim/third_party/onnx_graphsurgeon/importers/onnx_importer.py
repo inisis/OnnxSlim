@@ -487,7 +487,7 @@ class OnnxImporter(BaseImporter):
         G_LOGGER.verbose("Importing graph outputs")
         graph_outputs = []  # List[Tensor]
         for out in onnx_graph.output:
-            tensor = get_tensor(out, check_outer_graph=False)
+            tensor = get_tensor(out, check_outer_graph=False, overwrite=True)
             tensor.is_output = True
             graph_outputs.append(tensor)
 

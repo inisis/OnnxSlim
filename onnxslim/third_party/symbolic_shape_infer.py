@@ -681,7 +681,6 @@ class SymbolicShapeInference:
             values = self._get_int_or_float_values(node, broadcast=True, allow_float_values=True)
         else:
             values = self._get_int_or_float_values(node, broadcast=True)
-
         if all(v is not None for v in values):
             is_list = [isinstance(v, list) for v in values]
             as_list = any(is_list)
@@ -1295,12 +1294,6 @@ class SymbolicShapeInference:
             get_attribute(node, "then_branch"),
             get_attribute(node, "else_branch"),
         ]
-        cond = self._try_get_value(node, 0)
-        if cond is not None:
-            if as_scalar(cond) > 0:
-                subgraphs[1].CopyFrom(subgraphs[0])
-            else:
-                subgraphs[0].CopyFrom(subgraphs[1])
 
         for i_sub, subgraph in enumerate(subgraphs):
             subgraph_infer = self._onnx_infer_subgraph(node, subgraph, use_node_input=False)

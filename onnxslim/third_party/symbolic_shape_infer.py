@@ -556,16 +556,20 @@ class SymbolicShapeInference:
                 [make_named_value_info(i) for i in node.output],
                 initializers,
             )
-            self.tmp_mp_.graph.CopyFrom(tmp_graph)
 
-            self.tmp_mp_ = shape_inference.infer_shapes(self.tmp_mp_)
+            kwargs = {}
+            kwargs["opset_imports"] = self.out_mp_.opset_import
+            kwargs["ir_version"] = self.out_mp_.ir_version
+
+            model = helper.make_model(tmp_graph, **kwargs)
+            model = shape_inference.infer_shapes(model)
 
         for i_o in range(len(node.output)):
             o = node.output[i_o]
             if o:  # skip optional output
                 vi = self.out_mp_.graph.value_info.add()
                 if not skip_infer:
-                    vi.CopyFrom(self.tmp_mp_.graph.output[i_o])
+                    vi.CopyFrom(model.graph.output[i_o])
                 else:
                     vi.name = o
                 self.known_vi_[o] = vi
@@ -590,7 +594,11 @@ class SymbolicShapeInference:
         )
         tmp_graph.initializer.extend([i for i in self.out_mp_.graph.initializer if i.name in subgraph_implicit_input])
         tmp_graph.initializer.extend(subgraph.initializer)
-        self.tmp_mp_.graph.CopyFrom(tmp_graph)
+        kwargs = {}
+        kwargs["opset_imports"] = self.out_mp_.opset_import
+        kwargs["ir_version"] = self.out_mp_.ir_version
+
+        model = helper.make_model(tmp_graph, **kwargs)
 
         symbolic_shape_inference = SymbolicShapeInference(
             self.int_max_,
@@ -602,7 +610,7 @@ class SymbolicShapeInference:
         if inc_subgraph_id:
             self.subgraph_id_ += 1
 
-        symbolic_shape_inference._preprocess(self.tmp_mp_)
+        symbolic_shape_inference._preprocess(model)
         symbolic_shape_inference.suggested_merge_ = self.suggested_merge_.copy()
         while symbolic_shape_inference.run_:
             symbolic_shape_inference._infer_impl(self.sympy_data_.copy())
@@ -2835,13 +2843,6 @@ class SymbolicShapeInference:
             else:
                 # Since inputs are not produced by other ops, we can assume positivity
                 self.symbolic_dims_[s] = sympy.Symbol(s, integer=True, positive=True)
-        # create a temporary ModelProto for single node inference
-        # note that we remove initializer to have faster inference
-        # for tensor ops like Reshape/Tile/Expand that read initializer, we need to do sympy computation based inference anyways
-        self.tmp_mp_ = onnx.ModelProto()
-        self.tmp_mp_.CopyFrom(self.out_mp_)
-        self.tmp_mp_.graph.ClearField("initializer")
-
         # compute prerequisite for node for topological sort
         # node with subgraphs may have dependency on implicit inputs, which will affect topological sort
         prereq_for_node = {}  # map from node to all its inputs, including implicit ones in subgraph
@@ -2871,7 +2872,7 @@ class SymbolicShapeInference:
                         names.remove(i.name)
             return names
 
-        for n in self.tmp_mp_.graph.node:
+        for n in self.out_mp_.graph.node:
             prereq_for_node[n.output[0]] = get_prereq(n)
 
         # topological sort nodes, note there might be dead nodes so we check if all graph outputs are reached to terminate

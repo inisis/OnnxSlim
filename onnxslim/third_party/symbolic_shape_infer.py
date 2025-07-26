@@ -556,7 +556,12 @@ class SymbolicShapeInference:
                 [make_named_value_info(i) for i in node.output],
                 initializers,
             )
-            model = helper.make_model(tmp_graph)
+
+            kwargs = {}
+            kwargs["opset_imports"] = self.out_mp_.opset_import
+            kwargs["ir_version"] = self.out_mp_.ir_version
+
+            model = helper.make_model(tmp_graph, **kwargs)
             model = shape_inference.infer_shapes(model)
 
         for i_o in range(len(node.output)):
@@ -589,7 +594,11 @@ class SymbolicShapeInference:
         )
         tmp_graph.initializer.extend([i for i in self.out_mp_.graph.initializer if i.name in subgraph_implicit_input])
         tmp_graph.initializer.extend(subgraph.initializer)
-        model = helper.make_model(tmp_graph)
+        kwargs = {}
+        kwargs["opset_imports"] = self.out_mp_.opset_import
+        kwargs["ir_version"] = self.out_mp_.ir_version
+
+        model = helper.make_model(tmp_graph, **kwargs)
 
         symbolic_shape_inference = SymbolicShapeInference(
             self.int_max_,

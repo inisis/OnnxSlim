@@ -331,6 +331,7 @@ class OnnxExporter(BaseExporter):
 
         return graph_proto
 
+
 def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto":
     """
     Exports an onnx-graphsurgeon Graph to an ONNX model.

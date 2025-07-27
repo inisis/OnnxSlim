@@ -20,6 +20,8 @@ from typing import List, Sequence, Union
 import numpy as np
 import onnx
 import onnx.numpy_helper
+from onnx import IR_VERSION
+from onnx import defs, ModelProto
 
 from onnxslim.third_party.onnx_graphsurgeon.exporters.base_exporter import BaseExporter
 from onnxslim.third_party.onnx_graphsurgeon.ir.function import Function
@@ -167,7 +169,9 @@ class OnnxExporter(BaseExporter):
                 val = OnnxExporter.export_tensor_proto(val)
             elif isinstance(val, Graph):
                 # Subgraphs don't need to have types specified for their tensors.
-                val = OnnxExporter.export_graph(val, subgraph_tensor_map=subgraph_tensor_map, do_type_check=False)
+                graph = onnx.GraphProto
+                OnnxExporter.export_graph(graph, val, subgraph_tensor_map=subgraph_tensor_map, do_type_check=False)
+                val = graph
             elif isinstance(val, Node.AttributeRef):
                 onnx_attr = onnx.AttributeProto()
                 onnx_attr.name = key
@@ -257,11 +261,12 @@ class OnnxExporter(BaseExporter):
 
     @staticmethod
     def export_graph(
+        graph_proto: onnx.GraphProto,
         graph: Graph,
         tensor_map: "OrderedDict[str, Tensor]" = None,
         subgraph_tensor_map: "OrderedDict[str, Tensor]" = None,
         do_type_check=True,
-    ) -> onnx.GraphProto:
+    ) -> None:
         """
         Export an onnx-graphsurgeon Graph to an ONNX GraphProto.
 
@@ -308,18 +313,26 @@ class OnnxExporter(BaseExporter):
             if has_value_info(tensor)
         ]
 
-        return onnx.helper.make_graph(
-            nodes=nodes,
-            name=graph.name,
-            inputs=inputs,
-            outputs=outputs,
-            initializer=initializer,
-            sparse_initializer=sparse_initializer,
-            doc_string=graph.doc_string,
-            value_info=value_info,
-        )
+        if initializer is None:
+            initializer = []
+        if sparse_initializer is None:
+            sparse_initializer = []
+        if value_info is None:
+            value_info = []
 
+        graph_proto.node.extend(nodes)
+        graph_proto.name = graph.name
+        graph_proto.input.extend(inputs)
+        graph_proto.output.extend(outputs)
+        graph_proto.initializer.extend(initializer)
+        graph_proto.sparse_initializer.extend(sparse_initializer)
+        graph_proto.value_info.extend(value_info)
+        if graph.doc_string:
+            graph.doc_string = graph.doc_string
 
+        return graph_proto
+
+@profile
 def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto":
     """
     Exports an onnx-graphsurgeon Graph to an ONNX model.
@@ -354,8 +367,9 @@ def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto"
             else None
         )
 
-    onnx_graph = OnnxExporter.export_graph(
-        graph, tensor_map=graph.tensors(), subgraph_tensor_map=intersection, do_type_check=do_type_check
+    model = ModelProto() # create in advance to avoid unnecessary copy
+    OnnxExporter.export_graph(
+        model.graph, graph, tensor_map=graph.tensors(), subgraph_tensor_map=intersection, do_type_check=do_type_check
     )
     onnx_functions = [OnnxExporter.export_function(func) for func in graph.functions]
     kwargs["functions"] = onnx_functions
@@ -366,7 +380,26 @@ def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto"
     if "ir_version" not in kwargs and graph.ir_version is not None:
         kwargs["ir_version"] = graph.ir_version
 
-    model = onnx.helper.make_model(onnx_graph, **kwargs)
+    model.ir_version = IR_VERSION
+
+    opset_imports = None
+    opset_imports = kwargs.pop("opset_imports", None)  # type: ignore
+    if opset_imports is not None:
+        model.opset_import.extend(opset_imports)
+    else:
+        # Default import
+        imp = model.opset_import.add()
+        imp.version = defs.onnx_opset_version()
+
+    functions = None
+    functions = kwargs.pop("functions", None)  # type: ignore
+    if functions is not None:
+        model.functions.extend(functions)
+
+    for k, v in kwargs.items():
+        # TODO: Does this work with repeated fields?
+        setattr(model, k, v)
+
     if graph.metadata_props is not None:
         model.metadata_props.extend(graph.metadata_props)
     model.producer_name = graph.producer_name

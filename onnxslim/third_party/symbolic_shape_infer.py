@@ -13,11 +13,22 @@ from packaging import version
 
 from onnxslim.third_party._sympy.functions import FloorDiv
 from onnxslim.third_party._sympy.solve import try_solve
+from torch.utils._sympy.printers import PythonPrinter as _PythonPrinter
 
 assert version.parse(onnx.__version__) >= version.parse("1.8.0")
 
 logger = logging.getLogger(__name__)
 
+class PythonPrinter(_PythonPrinter):
+    def doprint(
+        self, expr: sympy.Expr, *, simplify: bool = True, p: bool = True
+    ) -> str:
+        # TODO: why are people passing strings to the printer here :think:
+        # if simplify and isinstance(expr, sympy.Expr) and hasattr(V.graph, "sizevars"):
+        #     expr = V.graph.sizevars.simplify(expr)
+        return super().doprint(expr)
+
+pexpr = PythonPrinter().doprint
 
 def get_attribute(node, attr_name, default_value=None):
     """Retrieve the value of an attribute from an ONNX node, returning a default if the attribute is not found."""
@@ -468,7 +479,7 @@ class SymbolicShapeInference:
         """Update dimensions in new_sympy_shape based on suggested merges and computational expressions."""
         for i, new_dim in enumerate(new_sympy_shape):
             if not is_literal(new_dim) and type(new_dim) != str:  # noqa: E721
-                str_dim = str(new_dim)
+                str_dim = pexpr(new_dim)
                 if str_dim in self.suggested_merge_:
                     if not is_literal(self.suggested_merge_[str_dim]):
                         new_sympy_shape[i] = self.symbolic_dims_[self.suggested_merge_[str_dim]]
@@ -1312,14 +1323,6 @@ class SymbolicShapeInference:
                     vi.name = node.output[i_out]
                 else:
                     self._fuse_tensor_type(node, i_out, vi.type, subgraph.output[i_out].type)
-
-                # pass on sympy data from subgraph, if cond is constant
-                if (
-                    cond is not None
-                    and i_sub == (0 if as_scalar(cond) > 0 else 1)
-                    and subgraph.output[i_out].name in subgraph_infer.sympy_data_
-                ):
-                    self.sympy_data_[vi.name] = subgraph_infer.sympy_data_[subgraph.output[i_out].name]
 
     def _infer_Loop(self, node):  # noqa: N802
         """Infer the shape and type of variables produced by the 'Loop' operation in an ONNX graph."""

@@ -10,9 +10,9 @@ import onnx
 import sympy
 from onnx import helper, numpy_helper, shape_inference
 from packaging import version
-from onnxslim.third_party._sympy.printers import PythonPrinter as _PythonPrinter
 
 from onnxslim.third_party._sympy.functions import FloorDiv
+from onnxslim.third_party._sympy.printers import PythonPrinter as _PythonPrinter
 from onnxslim.third_party._sympy.solve import try_solve
 
 assert version.parse(onnx.__version__) >= version.parse("1.8.0")

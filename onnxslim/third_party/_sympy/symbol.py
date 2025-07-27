@@ -13,7 +13,7 @@ in this file and seeing what breaks.
 """
 
 from collections.abc import Iterable
-from enum import auto, Enum
+from enum import Enum, auto
 from typing import Union
 
 import sympy

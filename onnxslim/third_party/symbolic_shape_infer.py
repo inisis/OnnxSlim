@@ -10,25 +10,26 @@ import onnx
 import sympy
 from onnx import helper, numpy_helper, shape_inference
 from packaging import version
+from torch.utils._sympy.printers import PythonPrinter as _PythonPrinter
 
 from onnxslim.third_party._sympy.functions import FloorDiv
 from onnxslim.third_party._sympy.solve import try_solve
-from torch.utils._sympy.printers import PythonPrinter as _PythonPrinter
 
 assert version.parse(onnx.__version__) >= version.parse("1.8.0")
 
 logger = logging.getLogger(__name__)
 
+
 class PythonPrinter(_PythonPrinter):
-    def doprint(
-        self, expr: sympy.Expr, *, simplify: bool = True, p: bool = True
-    ) -> str:
+    def doprint(self, expr: sympy.Expr, *, simplify: bool = True, p: bool = True) -> str:
         # TODO: why are people passing strings to the printer here :think:
         # if simplify and isinstance(expr, sympy.Expr) and hasattr(V.graph, "sizevars"):
         #     expr = V.graph.sizevars.simplify(expr)
         return super().doprint(expr)
 
+
 pexpr = PythonPrinter().doprint
+
 
 def get_attribute(node, attr_name, default_value=None):
     """Retrieve the value of an attribute from an ONNX node, returning a default if the attribute is not found."""
@@ -1315,7 +1316,7 @@ class SymbolicShapeInference:
         ]
 
         for i_sub, subgraph in enumerate(subgraphs):
-            subgraph_infer = self._onnx_infer_subgraph(node, subgraph, use_node_input=False)
+            self._onnx_infer_subgraph(node, subgraph, use_node_input=False)
             for i_out in range(len(node.output)):
                 vi = self.known_vi_[node.output[i_out]]
                 if i_sub == 0:

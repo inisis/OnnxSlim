@@ -5,7 +5,6 @@ import sympy
 from sympy.printing.precedence import PRECEDENCE, precedence
 from sympy.printing.str import StrPrinter
 
-
 INDEX_TYPE = "int64_t"
 INDEX_TYPE_MAX = (1 << 63) - 1
 INDEX_TYPE_MIN = -1 << 63
@@ -87,9 +86,7 @@ class ExprPrinter(StrPrinter):
         raise NotImplementedError(f"_print_Infinity not implemented for {type(self)}")
 
     def _print_NegativeInfinity(self, expr: sympy.Expr) -> str:
-        raise NotImplementedError(
-            f"_print_NegativeInfinity not implemented for {type(self)}"
-        )
+        raise NotImplementedError(f"_print_NegativeInfinity not implemented for {type(self)}")
 
     def _print_FloorDiv(self, expr: sympy.Expr) -> str:
         raise NotImplementedError(f"_print_FloorDiv not implemented for {type(self)}")
@@ -101,9 +98,7 @@ class ExprPrinter(StrPrinter):
         raise NotImplementedError(f"_print_IntTrueDiv not implemented for {type(self)}")
 
     def _print_PowByNatural(self, expr: sympy.Expr) -> str:
-        raise NotImplementedError(
-            f"_print_PowByNatural not implemented for {type(self)}"
-        )
+        raise NotImplementedError(f"_print_PowByNatural not implemented for {type(self)}")
 
     def _print_FloatPow(self, expr: sympy.Expr) -> str:
         raise NotImplementedError(f"_print_FloatPow not implemented for {type(self)}")
@@ -115,9 +110,7 @@ class ExprPrinter(StrPrinter):
         raise NotImplementedError(f"_print_RoundToInt not implemented for {type(self)}")
 
     def _print_RoundDecimal(self, expr: sympy.Expr) -> str:
-        raise NotImplementedError(
-            f"_print_RoundDecimal not implemented for {type(self)}"
-        )
+        raise NotImplementedError(f"_print_RoundDecimal not implemented for {type(self)}")
 
     # NB: Some float operations are INTENTIONALLY not implemented for
     # printers.  You can implement them as a quick unblock, but it is better
@@ -125,9 +118,7 @@ class ExprPrinter(StrPrinter):
     # universe instead
 
     def _print_TruncToFloat(self, expr: sympy.Expr) -> str:
-        raise NotImplementedError(
-            f"_print_TruncToFloat not implemented for {type(self)}"
-        )
+        raise NotImplementedError(f"_print_TruncToFloat not implemented for {type(self)}")
 
 
 class PythonPrinter(ExprPrinter):
@@ -155,9 +146,7 @@ class PythonPrinter(ExprPrinter):
         return self.stringify(expr.args, " or ", precedence(expr))
 
     def _print_ModularIndexing(self, expr: sympy.Expr) -> str:
-        x, div, mod = (
-            self.parenthesize(arg, PRECEDENCE["Atom"] - 0.5) for arg in expr.args
-        )
+        x, div, mod = (self.parenthesize(arg, PRECEDENCE["Atom"] - 0.5) for arg in expr.args)
         if div != "1":
             x = f"({x} // {div})"
         return f"({x} % {mod})"
@@ -296,9 +285,7 @@ class CppPrinter(ExprPrinter):
         return f"{i}{suffix}"
 
     def _print_Where(self, expr: sympy.Expr) -> str:
-        c, p, q = (
-            self.parenthesize(arg, PRECEDENCE["Atom"] - 0.5) for arg in expr.args
-        )
+        c, p, q = (self.parenthesize(arg, PRECEDENCE["Atom"] - 0.5) for arg in expr.args)
         return f"{c} ? {p} : {q}"
 
     def _print_ModularIndexing(self, expr: sympy.Expr) -> str:
@@ -362,9 +349,7 @@ class CppPrinter(ExprPrinter):
         base, exp = expr.args
         if base == 2:
             return f"(1 << ({self._print(exp)}))"
-        raise NotImplementedError(
-            f"_print_PowByNatural not implemented for {type(self)}"
-        )
+        raise NotImplementedError(f"_print_PowByNatural not implemented for {type(self)}")
 
     def _print_FloatPow(self, expr: sympy.Expr) -> str:
         base, exp = expr.args
@@ -382,11 +367,7 @@ class CppPrinter(ExprPrinter):
             if exp > 0:
                 r = self.stringify([base] * exp, "*", PRECEDENCE["Mul"])
             elif exp < -1:
-                r = (
-                    "1.0/("
-                    + self.stringify([base] * abs(exp), "*", PRECEDENCE["Mul"])
-                    + ")"
-                )
+                r = "1.0/(" + self.stringify([base] * abs(exp), "*", PRECEDENCE["Mul"]) + ")"
             elif exp == -1:
                 r = "1.0/" + self._print(base)
             else:  # exp == 0

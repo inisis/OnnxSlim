@@ -20,8 +20,7 @@ from typing import List, Sequence, Union
 import numpy as np
 import onnx
 import onnx.numpy_helper
-from onnx import IR_VERSION
-from onnx import defs, ModelProto
+from onnx import IR_VERSION, ModelProto, defs
 
 from onnxslim.third_party.onnx_graphsurgeon.exporters.base_exporter import BaseExporter
 from onnxslim.third_party.onnx_graphsurgeon.ir.function import Function
@@ -332,6 +331,7 @@ class OnnxExporter(BaseExporter):
 
         return graph_proto
 
+
 @profile
 def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto":
     """
@@ -367,7 +367,7 @@ def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto"
             else None
         )
 
-    model = ModelProto() # create in advance to avoid unnecessary copy
+    model = ModelProto()  # create in advance to avoid unnecessary copy
     OnnxExporter.export_graph(
         model.graph, graph, tensor_map=graph.tensors(), subgraph_tensor_map=intersection, do_type_check=do_type_check
     )

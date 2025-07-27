@@ -1324,7 +1324,7 @@ class SymbolicShapeInference:
                     vi.name = node.output[i_out]
                 else:
                     self._fuse_tensor_type(node, i_out, vi.type, subgraph.output[i_out].type)
-
+                # fixme
                 if (
                     cond is not None
                     and i_sub == (0 if as_scalar(cond) > 0 else 1)

@@ -168,7 +168,7 @@ class OnnxExporter(BaseExporter):
                 val = OnnxExporter.export_tensor_proto(val)
             elif isinstance(val, Graph):
                 # Subgraphs don't need to have types specified for their tensors.
-                graph = onnx.GraphProto
+                graph = onnx.GraphProto()
                 OnnxExporter.export_graph(graph, val, subgraph_tensor_map=subgraph_tensor_map, do_type_check=False)
                 val = graph
             elif isinstance(val, Node.AttributeRef):

@@ -1316,7 +1316,7 @@ class SymbolicShapeInference:
         ]
 
         for i_sub, subgraph in enumerate(subgraphs):
-            self._onnx_infer_subgraph(node, subgraph, use_node_input=False)
+            subgraph_infer = self._onnx_infer_subgraph(node, subgraph, use_node_input=False)
             for i_out in range(len(node.output)):
                 vi = self.known_vi_[node.output[i_out]]
                 if i_sub == 0:
@@ -1324,6 +1324,13 @@ class SymbolicShapeInference:
                     vi.name = node.output[i_out]
                 else:
                     self._fuse_tensor_type(node, i_out, vi.type, subgraph.output[i_out].type)
+
+                if (
+                    cond is not None
+                    and i_sub == (0 if as_scalar(cond) > 0 else 1)
+                    and subgraph.output[i_out].name in subgraph_infer.sympy_data_
+                ):
+                    self.sympy_data_[vi.name] = subgraph_infer.sympy_data_[subgraph.output[i_out].name]
 
     def _infer_Loop(self, node):  # noqa: N802
         """Infer the shape and type of variables produced by the 'Loop' operation in an ONNX graph."""

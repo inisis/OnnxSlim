@@ -62,11 +62,22 @@ pip install .
 
 # How to use
 
-```
+## Bash
+```bash
 onnxslim your_onnx_model slimmed_onnx_model
 ```
 
 <div align=left><img src="https://raw.githubusercontent.com/inisis/onnxslim/main/images/onnxslim.gif"></div>
+
+## Inscript
+```inscript
+import onnx
+import onnxslim
+
+model = onnx.load("model.onnx")
+slimmed_model = onnxslim.slim(model)
+onnx.save(slimmed_model, "slimmed_model.onnx")
+```
 
 For more usage, see onnxslim -h or refer to our [examples](./examples)
 

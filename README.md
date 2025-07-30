@@ -63,6 +63,7 @@ pip install .
 # How to use
 
 ## Bash
+
 ```bash
 onnxslim your_onnx_model slimmed_onnx_model
 ```
@@ -70,6 +71,7 @@ onnxslim your_onnx_model slimmed_onnx_model
 <div align=left><img src="https://raw.githubusercontent.com/inisis/onnxslim/main/images/onnxslim.gif"></div>
 
 ## Inscript
+
 ```inscript
 import onnx
 import onnxslim

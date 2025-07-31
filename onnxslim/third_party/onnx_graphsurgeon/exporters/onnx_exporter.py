@@ -323,8 +323,10 @@ class OnnxExporter(BaseExporter):
         graph_proto.name = graph.name
         graph_proto.input.extend(inputs)
         graph_proto.output.extend(outputs)
-        graph_proto.initializer.extend(initializer)
-        graph_proto.sparse_initializer.extend(sparse_initializer)
+        for init in initializer:
+            graph_proto.initializer.add().CopyFrom(init)
+        for sparse in sparse_initializer:
+            graph_proto.sparse_initializer.add().CopyFrom(sparse)
         graph_proto.value_info.extend(value_info)
         if graph.doc_string:
             graph.doc_string = graph.doc_string

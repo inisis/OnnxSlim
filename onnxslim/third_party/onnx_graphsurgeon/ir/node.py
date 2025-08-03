@@ -251,7 +251,6 @@ class Node:
 
     def replace_all_uses_with(self, node: "Node"):
         """Replace all uses of this node with the given node."""
-
         for user in self.users:
             for inp in user.inputs:
                 if inp in self.outputs:

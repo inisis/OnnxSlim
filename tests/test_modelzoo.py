@@ -151,6 +151,7 @@ class TestModelZoo:
             assert summary.op_type_counts["Mul"] == 0
             assert summary.op_type_counts["Add"] == 0
 
+
 if __name__ == "__main__":
     import sys
 

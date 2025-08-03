@@ -270,6 +270,8 @@ class Variable(Tensor):
                     user_node.inputs[i] = var
 
 
+
+
 class LazyValues:
     """A special object that represents constant tensor values that should be lazily loaded."""
 

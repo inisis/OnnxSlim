@@ -140,6 +140,16 @@ class TestModelZoo:
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
             ort_sess.run(None, {"tokens": tokens, "word_div": word_div, "word_dur": word_dur, "languages": languages})
 
+    def test_linear_mul_fusion(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["MatMul"] == 0
+            assert summary.op_type_counts["Mul"] == 0
+            assert summary.op_type_counts["Add"] == 0
 
 if __name__ == "__main__":
     import sys

@@ -251,12 +251,16 @@ class Node:
 
     def replace_all_uses_with(self, node: "Node"):
         """Replace all uses of this node with the given node."""
+
         for user in self.users:
             for inp in user.inputs:
                 if inp in self.outputs:
                     for i, input in enumerate(user.inputs):
                         if input == inp:
                             user.inputs[i] = node.outputs[self.outputs.index(inp)]
+
+        if isinstance(self.outputs[0], Variable) and self.outputs[0].is_output:
+            node.outputs[0] = self.outputs[0]
 
         self.inputs.clear()
         self.outputs.clear()

@@ -151,6 +151,12 @@ class TestModelZoo:
             assert summary.op_type_counts["Mul"] == 0
             assert summary.op_type_counts["Add"] == 0
 
+            filename = f"{MODELZOO_PATH}/{name}/{name}2.onnx"
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["MatMul"] == 0
+            assert summary.op_type_counts["Mul"] == 1
+            assert summary.op_type_counts["Add"] == 1
 
 if __name__ == "__main__":
     import sys

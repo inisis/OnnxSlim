@@ -213,18 +213,21 @@ class GemmMulPatternMatcher(PatternMatcher):
                 and isinstance(gemm_node.inputs[1], gs.Constant)
                 and isinstance(gemm_node.inputs[2], gs.Constant)
             )
-        ) and mul_bias_variable:
+        ) and mul_bias_variable and len(reshape_node.users) == 1:
             gemm_attr = gemm_node.attrs
             gemm_weight_constant = gemm_node.inputs[1]
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if (
                 gemm_attr["transA"] == 0
                 and gemm_attr["transB"] == 1
-                and gemm_weight_constant.shape[0] == mul_bias_variable.shape[0]
+                and ((mul_bias_variable.values.ndim == 1 and gemm_weight_constant.shape[0] == mul_bias_variable.shape[0]) or mul_bias_variable.values.ndim == 0)
             ):
                 gemm_weight = gemm_weight_constant.values
                 mul_weight = mul_bias_variable.values
-                gemm_weight_fused = gemm_weight * mul_weight[:, None]
+                if mul_bias_variable.values.ndim == 1:
+                    gemm_weight_fused = gemm_weight * mul_weight[:, None]
+                else:
+                    gemm_weight_fused = gemm_weight * mul_weight
                 gemm_weight_fused_constant = gs.Constant(gemm_weight_constant.name + "_fused", values=gemm_weight_fused)
                 gemm_node.inputs[1] = gemm_weight_fused_constant
 
@@ -275,7 +278,7 @@ class GemmAddPatternMatcher(PatternMatcher):
         if (
             (len(gemm_node.inputs) == 2)
             or (len(gemm_node.inputs) == 3 and isinstance(gemm_node.inputs[2], gs.Constant))
-        ) and add_bias_variable:
+        ) and add_bias_variable and len(reshape_node.users) == 1:
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if gemm_bias_constant:
                 gemm_bias = gemm_bias_constant.values

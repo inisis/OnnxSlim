@@ -207,20 +207,27 @@ class GemmMulPatternMatcher(PatternMatcher):
         mul_bias_variable = get_constant_variable(mul_node)
 
         if (
-            (len(gemm_node.inputs) == 2 and isinstance(gemm_node.inputs[1], gs.Constant))
-            or (
-                len(gemm_node.inputs) == 3
-                and isinstance(gemm_node.inputs[1], gs.Constant)
-                and isinstance(gemm_node.inputs[2], gs.Constant)
+            (
+                (len(gemm_node.inputs) == 2 and isinstance(gemm_node.inputs[1], gs.Constant))
+                or (
+                    len(gemm_node.inputs) == 3
+                    and isinstance(gemm_node.inputs[1], gs.Constant)
+                    and isinstance(gemm_node.inputs[2], gs.Constant)
+                )
             )
-        ) and mul_bias_variable and len(reshape_node.users) == 1:
+            and mul_bias_variable
+            and len(reshape_node.users) == 1
+        ):
             gemm_attr = gemm_node.attrs
             gemm_weight_constant = gemm_node.inputs[1]
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if (
                 gemm_attr["transA"] == 0
                 and gemm_attr["transB"] == 1
-                and ((mul_bias_variable.values.ndim == 1 and gemm_weight_constant.shape[0] == mul_bias_variable.shape[0]) or mul_bias_variable.values.ndim == 0)
+                and (
+                    (mul_bias_variable.values.ndim == 1 and gemm_weight_constant.shape[0] == mul_bias_variable.shape[0])
+                    or mul_bias_variable.values.ndim == 0
+                )
             ):
                 gemm_weight = gemm_weight_constant.values
                 mul_weight = mul_bias_variable.values
@@ -276,9 +283,13 @@ class GemmAddPatternMatcher(PatternMatcher):
         add_bias_variable = get_constant_variable(add_node)
 
         if (
-            (len(gemm_node.inputs) == 2)
-            or (len(gemm_node.inputs) == 3 and isinstance(gemm_node.inputs[2], gs.Constant))
-        ) and add_bias_variable and len(reshape_node.users) == 1:
+            (
+                (len(gemm_node.inputs) == 2)
+                or (len(gemm_node.inputs) == 3 and isinstance(gemm_node.inputs[2], gs.Constant))
+            )
+            and add_bias_variable
+            and len(reshape_node.users) == 1
+        ):
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if gemm_bias_constant:
                 gemm_bias = gemm_bias_constant.values

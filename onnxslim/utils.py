@@ -11,7 +11,6 @@ import onnx
 from onnx import checker, helper
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
-from onnxslim.misc.font import GREEN, WHITE
 from onnxslim.misc.tabulate import SEPARATING_LINE, tabulate
 from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 
@@ -170,6 +169,8 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
 
 def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
     assert model_info_list, "model_info_list must contain more than one model info"
+    from colorama import init, Fore
+    init()
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
 
@@ -220,7 +221,7 @@ def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: fl
         for model_info in model_info_list[1:]:
             slimmed_number = model_info.op_type_counts.get(op, 0)
             if float_number > slimmed_number:
-                slimmed_number = GREEN + str(slimmed_number) + WHITE
+                slimmed_number = Fore.GREEN + str(slimmed_number) + Fore.WHITE
             op_info_list.append(slimmed_number)
 
         final_op_info.append(op_info_list)

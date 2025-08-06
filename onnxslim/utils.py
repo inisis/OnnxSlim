@@ -49,7 +49,7 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
     """Convert byte sizes into human-readable format with appropriate units (B, KB, MB, GB)."""
     if isinstance(size, int):
         size = (size,)
-    elif isinstance(size, np.int64):
+    elif isinstance(size, np.integer):
         size = (int(size),)
 
     units = ["B", "KB", "MB", "GB"]

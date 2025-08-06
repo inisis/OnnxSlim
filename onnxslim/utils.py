@@ -169,7 +169,8 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
 
 def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
     assert model_info_list, "model_info_list must contain more than one model info"
-    from colorama import init, Fore
+    from colorama import Fore, init
+
     init()
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]

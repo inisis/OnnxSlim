@@ -563,25 +563,32 @@ def calculate_tensor_size(tensor):
 
 
 def get_initializer_size(model):
+    total_size = get_model_subgraph_size(model)
+    return total_size
+
+def get_model_subgraph_size(model):
+    """Calculate total size of all subgraphs in an ONNX model."""
+    total_size = get_graph_subgraph_size(model.graph)
+    return total_size
+
+def get_graph_subgraph_size(graph):
+    """Recursively calculate the size of all subgraphs in bytes."""
+    total_size = 0
+    for node in graph.node:
+        for attr in node.attribute:
+            if attr.type == onnx.AttributeProto.GRAPH:
+                size = attr.g.ByteSize()
+                total_size += size
+                total_size += get_graph_subgraph_size(attr.g)
+    return total_size
+
+def get_graph_initializer_size(graph):
     initializer_size = 0
-    for tensor in model.graph.initializer:
+    for tensor in graph.initializer:
         tensor_size = calculate_tensor_size(tensor)
         initializer_size += tensor_size
 
     return initializer_size
-
-
-def get_model_subgraph_size(model):
-    """Calculate and print the size of subgraphs in an ONNX model in bytes."""
-    graph = model.graph
-    for node in graph.node:
-        for attr in node.attribute:
-            ATTR_TYPE_MAPPING = {v: k for k, v in onnx.AttributeProto.AttributeType.items()}
-            if attr.type in ATTR_TYPE_MAPPING:
-                attr_str = ATTR_TYPE_MAPPING[attr.type]
-                if attr_str == "GRAPH":
-                    print("subgraph", attr.g.ByteSize())
-
 
 def is_onnxruntime_available():
     if importlib.util.find_spec("onnxruntime") is None:

@@ -566,10 +566,12 @@ def get_initializer_size(model):
     total_size = get_model_subgraph_size(model)
     return total_size
 
+
 def get_model_subgraph_size(model):
     """Calculate total size of all subgraphs in an ONNX model."""
     total_size = get_graph_subgraph_size(model.graph)
     return total_size
+
 
 def get_graph_subgraph_size(graph):
     """Recursively calculate the size of all subgraphs in bytes."""
@@ -582,6 +584,7 @@ def get_graph_subgraph_size(graph):
                 total_size += get_graph_subgraph_size(attr.g)
     return total_size
 
+
 def get_graph_initializer_size(graph):
     initializer_size = 0
     for tensor in graph.initializer:
@@ -589,6 +592,7 @@ def get_graph_initializer_size(graph):
         initializer_size += tensor_size
 
     return initializer_size
+
 
 def is_onnxruntime_available():
     if importlib.util.find_spec("onnxruntime") is None:

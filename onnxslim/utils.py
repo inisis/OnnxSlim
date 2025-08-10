@@ -563,25 +563,8 @@ def calculate_tensor_size(tensor):
 
 
 def get_initializer_size(model):
-    total_size = get_model_subgraph_size(model)
-    return total_size
-
-
-def get_model_subgraph_size(model):
     """Calculate total size of all subgraphs in an ONNX model."""
-    total_size = get_graph_subgraph_size(model.graph)
-    return total_size
-
-
-def get_graph_subgraph_size(graph):
-    """Recursively calculate the size of all subgraphs in bytes."""
-    total_size = 0
-    for node in graph.node:
-        for attr in node.attribute:
-            if attr.type == onnx.AttributeProto.GRAPH:
-                size = attr.g.ByteSize()
-                total_size += size
-                total_size += get_graph_subgraph_size(attr.g)
+    total_size = get_graph_initializer_size(model.graph)
     return total_size
 
 
@@ -590,6 +573,28 @@ def get_graph_initializer_size(graph):
     for tensor in graph.initializer:
         tensor_size = calculate_tensor_size(tensor)
         initializer_size += tensor_size
+
+    for node in graph.node:
+        if node.op_type == "Constant":
+            for attr in node.attribute:
+                if attr.name == "value" and attr.type == onnx.AttributeProto.TENSOR:
+                    initializer_size += calculate_tensor_size(attr.t)
+
+        elif node.op_type == "If":
+            initializer_size += get_graph_initializer_size(
+                node.attribute[0].g
+            )
+            initializer_size += get_graph_initializer_size(
+                node.attribute[1].g
+            )
+        elif node.op_type == "Loop":
+            initializer_size += get_graph_initializer_size(
+                node.attribute[0].g
+            )
+        elif node.op_type == "Scan":
+            initializer_size += get_graph_initializer_size(
+                node.attribute[0].g
+            )                    
 
     return initializer_size
 

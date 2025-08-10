@@ -581,20 +581,12 @@ def get_graph_initializer_size(graph):
                     initializer_size += calculate_tensor_size(attr.t)
 
         elif node.op_type == "If":
-            initializer_size += get_graph_initializer_size(
-                node.attribute[0].g
-            )
-            initializer_size += get_graph_initializer_size(
-                node.attribute[1].g
-            )
+            initializer_size += get_graph_initializer_size(node.attribute[0].g)
+            initializer_size += get_graph_initializer_size(node.attribute[1].g)
         elif node.op_type == "Loop":
-            initializer_size += get_graph_initializer_size(
-                node.attribute[0].g
-            )
+            initializer_size += get_graph_initializer_size(node.attribute[0].g)
         elif node.op_type == "Scan":
-            initializer_size += get_graph_initializer_size(
-                node.attribute[0].g
-            )                    
+            initializer_size += get_graph_initializer_size(node.attribute[0].g)
 
     return initializer_size
 

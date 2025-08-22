@@ -380,8 +380,8 @@ def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto"
 
     if "ir_version" not in kwargs and graph.ir_version is not None:
         kwargs["ir_version"] = graph.ir_version
-
-    model.ir_version = IR_VERSION
+    else:
+        model.ir_version = IR_VERSION
 
     opset_imports = None
     opset_imports = kwargs.pop("opset_imports", None)  # type: ignore

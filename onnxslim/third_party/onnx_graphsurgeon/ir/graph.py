@@ -1199,7 +1199,6 @@ class Graph:
                         onnx_model = tmp_path
                     else:
                         onnx_model = onnx_model.SerializeToString()
-
                     sess = onnxrt.InferenceSession(
                         onnx_model,
                         providers=ORT_PROVIDERS,
@@ -1461,6 +1460,7 @@ class Graph:
             doc_string=copy.copy(self.doc_string),
             opset=copy.copy(self.opset),
             import_domains=self.import_domains,
+            ir_version=self.ir_version,
             functions=copy.copy(self.functions),
         )
 

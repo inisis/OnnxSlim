@@ -19,6 +19,7 @@ from onnxslim.utils import (
     format_model_info,
     gen_onnxruntime_input_data,
     get_ir_version,
+    get_max_tensor,
     get_opset,
     init_logging,
     is_onnxruntime_available,
@@ -27,7 +28,6 @@ from onnxslim.utils import (
     onnxruntime_inference,
     save,
     summarize_model,
-    get_max_tensor,
 )
 
 
@@ -331,7 +331,7 @@ class TestUtils(unittest.TestCase):
         self.assertIsInstance(result, bool)
 
     def test_get_max_tensor(self):
-        model_info = get_max_tensor(self.model)
+        get_max_tensor(self.model)
 
 
 if __name__ == "__main__":

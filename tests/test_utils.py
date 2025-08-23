@@ -27,6 +27,7 @@ from onnxslim.utils import (
     onnxruntime_inference,
     save,
     summarize_model,
+    get_max_tensor,
 )
 
 
@@ -328,6 +329,9 @@ class TestUtils(unittest.TestCase):
         # This is just a simple test to check if the function runs without errors
         result = is_onnxruntime_available()
         self.assertIsInstance(result, bool)
+
+    def test_get_max_tensor(self):
+        model_info = get_max_tensor(self.model)
 
 
 if __name__ == "__main__":

@@ -467,18 +467,6 @@ def check_point(model: onnx.ModelProto):
     return gs.import_onnx(model)
 
 
-def is_converged(model: onnx.ModelProto, graph_ckpt, iter: int) -> bool:
-    """Checks if the model optimization has converged by comparing the current graph to the checkpoint."""
-    logger.debug(f"optimization iter: {iter}")
-    graph = gs.import_onnx(model)
-    if graph == graph_ckpt:
-        print(f"converged at iter: {iter}")
-        return None
-    else:
-        graph_ckpt = graph
-        return False
-
-
 def save(
     model: onnx.ModelProto,
     model_path: str,

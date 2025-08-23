@@ -283,24 +283,25 @@ def dump_model_info_to_disk(model_info: Dict):
         # Write the data
         for node_name, info in model_info.op_info.items():
             op_type, output_info_list = info.op, info.outputs
-            # Write the first row with actual NodeName and OpType
-            row_data_first = {
-                "NodeName": node_name,
-                "OpType": op_type,
-                "OutputDtype": output_info_list[0].dtype,  # First entry in the list
-                "OutputShape": output_info_list[0].shape,  # First entry in the list
-            }
-            writer.writerow(row_data_first)
-
-            # Write subsequent rows with empty strings for NodeName and OpType
-            for output_dtype, output_shape in output_info_list[1:]:
-                row_data_empty = {
-                    "NodeName": "",
-                    "OpType": "",
-                    "OutputDtype": output_dtype,
-                    "OutputShape": output_shape,
+            if len(output_info_list) >= 1:
+                # Write the first row with actual NodeName and OpType
+                row_data_first = {
+                    "NodeName": node_name,
+                    "OpType": op_type,
+                    "OutputDtype": output_info_list[0].dtype,  # First entry in the list
+                    "OutputShape": output_info_list[0].shape,  # First entry in the list
                 }
-                writer.writerow(row_data_empty)
+                writer.writerow(row_data_first)
+
+                # Write subsequent rows with empty strings for NodeName and OpType
+                for output_dtype, output_shape in output_info_list[1:]:
+                    row_data_empty = {
+                        "NodeName": "",
+                        "OpType": "",
+                        "OutputDtype": output_dtype,
+                        "OutputShape": output_shape,
+                    }
+                    writer.writerow(row_data_empty)
     print(f"Model info written to {csv_file_path}")
 
 

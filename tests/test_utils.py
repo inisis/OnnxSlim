@@ -26,6 +26,7 @@ from onnxslim.utils import (
     onnxruntime_inference,
     save,
     summarize_model,
+    dump_model_info_to_disk
 )
 
 
@@ -193,11 +194,16 @@ class TestUtils(unittest.TestCase):
     def test_summarize_model(self):
         """Test summarize_model function."""
         model_info = summarize_model(self.model, "test_model")
-
         # Check if model_info is returned correctly
         self.assertEqual(model_info.tag, "test_model")
         self.assertEqual(model_info.op_set, "13")
         self.assertEqual(model_info.op_type_counts["Add"], 2)
+
+    def test_dump_model_info_to_disk(self):
+        import onnxslim
+        model = onnxslim.slim(self.model)
+        model_info = summarize_model(model, "test_model")
+        dump_model_info_to_disk(model_info)
 
     def test_save(self):
         """Test save function."""

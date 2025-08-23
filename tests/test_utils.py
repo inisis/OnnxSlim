@@ -14,6 +14,7 @@ from onnxslim.utils import (
     check_onnx,
     check_point,
     check_result,
+    dump_model_info_to_disk,
     format_bytes,
     format_model_info,
     gen_onnxruntime_input_data,
@@ -26,7 +27,6 @@ from onnxslim.utils import (
     onnxruntime_inference,
     save,
     summarize_model,
-    dump_model_info_to_disk
 )
 
 
@@ -201,6 +201,7 @@ class TestUtils(unittest.TestCase):
 
     def test_dump_model_info_to_disk(self):
         import onnxslim
+
         model = onnxslim.slim(self.model)
         model_info = summarize_model(model, "test_model")
         dump_model_info_to_disk(model_info)

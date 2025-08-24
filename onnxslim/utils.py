@@ -571,12 +571,10 @@ def get_numpy_type(onnx_type):
 
     # TENSOR_TYPE_TO_NP_TYPE maps types unsupported by NumPy to random other types.
     # This obviously breaks things, so we need to treat this as a special case.
-    if (
-        onnx_type not in numpy_unsupported_types
-        and onnx_type in onnx.helper.get_all_tensor_dtypes()
-    ):
+    if onnx_type not in numpy_unsupported_types and onnx_type in onnx.helper.get_all_tensor_dtypes():
         return onnx.helper.tensor_dtype_to_np_dtype(onnx_type)
     return None
+
 
 def get_itemsize(dtype):
     np_dtype = get_numpy_type(dtype)
@@ -593,7 +591,7 @@ def get_itemsize(dtype):
         onnx.TensorProto.FLOAT8E5M2FNUZ,
     ]:
         return 1
-    
+
     print(dtype)
     raise
 

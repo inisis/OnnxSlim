@@ -84,52 +84,67 @@ def update_import_domains(graph):
     return graph.import_domains
 
 
-# Converts a fp32 gs.Constant to a bf16 onnx.TensorProto
-def tensor_to_onnx_bf16(tensor: Constant):
-    """Converts an fp32 gs.Constant tensor to a bf16 onnx.TensorProto."""
+class NumpyArrayConverter(object):
+    def __init__(self, container, scalar_converter):
+        self.func = np.vectorize(scalar_converter, otypes=[container])
 
-    def np_float32_to_bf16_as_uint16(arr):
-        new_arr = np.empty(arr.size, dtype=np.uint16)
-        flatten = arr.flatten()
-        for i in range(arr.size):
-            new_arr[i] = onnx.helper.float32_to_bfloat16(flatten[i])
-        return new_arr.reshape(arr.shape)
+    def __call__(self, arr):
+        return self.func(arr)
 
-    arr_bf16_as_uint16 = np_float32_to_bf16_as_uint16(tensor.values)
 
-    onnx_tensor = onnx.TensorProto()
-    onnx_tensor.data_type = onnx.TensorProto.BFLOAT16
-    onnx_tensor.dims.extend(arr_bf16_as_uint16.shape)
-    onnx_tensor.raw_data = arr_bf16_as_uint16.tobytes()
+_NUMPY_ARRAY_CONVERTERS = {
+    onnx.TensorProto.BFLOAT16: NumpyArrayConverter(
+        np.uint16, onnx.helper.float32_to_bfloat16
+    ),
+    # FP8 in TensorRT supports negative zeros, no infinities
+    # See https://onnx.ai/onnx/technical/float8.html#papers
+    onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(
+        np.uint8, lambda x: onnx.helper.float32_to_float8e4m3(x, fn=True, uz=False)
+    ),
+}
 
-    return onnx_tensor
+def constant_to_onnx_tensor(tensor: Constant) -> onnx.TensorProto:
+    source_dtype = dtype_to_onnx(tensor.dtype)
+    target_dtype = dtype_to_onnx(tensor.export_dtype)
+
+    if source_dtype != target_dtype:
+        source_dtype_str = onnx.helper.tensor_dtype_to_string(source_dtype)
+        target_dtype_str = onnx.helper.tensor_dtype_to_string(target_dtype)
+        assert source_dtype == onnx.TensorProto.FLOAT, (
+            f"Cannot convert onnx dtype {source_dtype_str} to {target_dtype_str}. "
+            "Source dtype must be float32 to convert to numpy unsupported dtypes."
+        )
+        assert target_dtype in _NUMPY_ARRAY_CONVERTERS.keys(), (
+            f"Cannot convert onnx dtype {source_dtype_str} to {target_dtype_str}. "
+            f"Only float32 to {_NUMPY_ARRAY_CONVERTERS.keys()} is supported."
+        )
+        arr = _NUMPY_ARRAY_CONVERTERS[target_dtype](tensor.values)
+        tensor_raw_bytes = arr.tobytes()
+    else:
+        tensor_raw_bytes = tensor.values.tobytes()
+
+    return onnx.helper.make_tensor(
+        name=tensor.name,
+        data_type=target_dtype,
+        dims=tensor.shape,
+        vals=tensor_raw_bytes,
+        raw=True,
+    )
 
 
 class OnnxExporter(BaseExporter):
     @staticmethod
     def export_tensor_proto(tensor: Constant) -> onnx.TensorProto:
         # Do *not* load LazyValues into an intermediate numpy array - instead, use
-        """Converts a gs.Constant tensor to an onnx.TensorProto with type and data location handling."""
         # the original onnx.TensorProto directly.
         if isinstance(tensor._values, LazyValues):
             onnx_tensor = tensor._values.tensor
+            onnx_tensor.name = tensor.name
         else:
-            if dtype_to_onnx(tensor.dtype) != dtype_to_onnx(tensor.export_dtype):
-                assert tensor.dtype == np.float32, (
-                    f"Cannot convert onnx dtype {dtype_to_onnx(tensor.dtype)} to {dtype_to_onnx(tensor.export_dtype)}."
-                    "Only float32 to bfloat16 is supported"
-                )
-                assert tensor.export_dtype == onnx.TensorProto.BFLOAT16, (
-                    f"Cannot convert onnx dtype {dtype_to_onnx(tensor.dtype)} to {dtype_to_onnx(tensor.export_dtype)}."
-                    "Only float32 to bfloat16 is supported"
-                )
-                onnx_tensor = tensor_to_onnx_bf16(tensor)
-            else:
-                onnx_tensor = onnx.numpy_helper.from_array(tensor.values)
+            onnx_tensor = constant_to_onnx_tensor(tensor)
 
             if tensor.data_location is not None:
                 onnx_tensor.data_location = tensor.data_location
-        onnx_tensor.name = tensor.name
         return onnx_tensor
 
     @staticmethod

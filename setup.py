@@ -25,7 +25,7 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     license="MIT",
-    install_requires=["onnx", "sympy>=1.13.3", "packaging", "colorama"],
+    install_requires=["onnx", "sympy>=1.13.3", "packaging", "colorama", "ml_dtypes"],
     packages=find_packages(exclude=("tests", "tests.*")),
     entry_points={"console_scripts": ["onnxslim=onnxslim.cli:main"]},
     zip_safe=True,

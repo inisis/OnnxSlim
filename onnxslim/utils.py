@@ -71,6 +71,43 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
 
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     """Maps an ONNX dtype to its corresponding NumPy dtype."""
+    import ml_dtypes
+    from onnx import TensorProto
+    from onnx.mapping import TensorDtypeMap
+    TENSOR_TYPE_MAP = {
+        int(TensorProto.BFLOAT16): TensorDtypeMap(
+            np.dtype(ml_dtypes.bfloat16), int(TensorProto.UINT16), "TensorProto.BFLOAT16"
+        ),
+        # Native numpy does not support float8 types, so now use float32 for these types.
+        int(TensorProto.FLOAT8E4M3FN): TensorDtypeMap(
+            np.dtype(ml_dtypes.float8_e4m3fn), int(TensorProto.UINT8), "TensorProto.FLOAT8E4M3FN"
+        ),
+        int(TensorProto.FLOAT8E4M3FNUZ): TensorDtypeMap(
+            np.dtype(ml_dtypes.float8_e4m3fnuz), int(TensorProto.UINT8), "TensorProto.FLOAT8E4M3FNUZ"
+        ),
+        int(TensorProto.FLOAT8E5M2): TensorDtypeMap(
+            np.dtype(ml_dtypes.float8_e5m2), int(TensorProto.UINT8), "TensorProto.FLOAT8E5M2"
+        ),
+        int(TensorProto.FLOAT8E5M2FNUZ): TensorDtypeMap(
+            np.dtype(ml_dtypes.float8_e5m2fnuz), int(TensorProto.UINT8), "TensorProto.FLOAT8E5M2FNUZ"
+        ),
+        int(TensorProto.UINT4): TensorDtypeMap(
+            np.dtype(ml_dtypes.uint4), int(TensorProto.INT32), "TensorProto.UINT4"
+        ),
+        int(TensorProto.INT4): TensorDtypeMap(
+            np.dtype(ml_dtypes.int4), int(TensorProto.INT32), "TensorProto.INT4"
+        ),
+        int(TensorProto.FLOAT4E2M1): TensorDtypeMap(
+            np.dtype(ml_dtypes.float4_e2m1fn), int(TensorProto.UINT8), "TensorProto.FLOAT4E2M1"
+        ),
+    }
+
+    tensor_dtype = TENSOR_TYPE_MAP.get(onnx_dtype)
+
+    if tensor_dtype:
+        return tensor_dtype.np_dtype
+
+    # Native numpy dtypes.
     return np.dtype(helper.tensor_dtype_to_np_dtype(onnx_dtype))
 
 
@@ -334,11 +371,7 @@ class TensorInfo:
 
     def _extract_info(self, tensor):
         """Extract the data type and shape of an ONNX tensor."""
-        self.dtype = (
-            onnx.helper.tensor_dtype_to_np_dtype(tensor.type.tensor_type.elem_type)
-            if tensor.type.tensor_type.elem_type in onnx.helper.get_all_tensor_dtypes()
-            else "Unknown"
-        )
+        self.dtype = onnx_dtype_to_numpy(tensor.type.tensor_type.elem_type)
         shape = None
         if tensor.type.tensor_type.HasField("shape"):
             shape = []

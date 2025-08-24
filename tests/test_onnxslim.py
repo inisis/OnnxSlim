@@ -130,6 +130,52 @@ class TestFunctional:
             self.run_basic_test(FILENAME, FILENAME, **kwargs)
 
 
+    def test_unsupported_dtypes(self, request):
+        import onnxslim.third_party.onnx_graphsurgeon as gs
+        import numpy as np
+        import onnx
+
+
+        def generate(dtype, out_path):
+            X = gs.Variable(name="X", dtype=dtype, shape=(1, 3, 224, 224))
+            W = gs.Constant(
+                name="W",
+                values=np.ones(shape=(5, 3, 3, 3), dtype=np.float32) * 0.5,
+                export_dtype=dtype,
+            )
+            Y = gs.Variable(name="Y", dtype=dtype, shape=(1, 5, 222, 222))
+            node = gs.Node(op="Conv", inputs=[X, W], outputs=[Y])
+            graph = gs.Graph(nodes=[node], inputs=[X], outputs=[Y])
+            onnx.save(gs.export_onnx(graph), out_path)
+
+            # --- Assertions ---
+            loaded = onnx.load(out_path)
+
+            # Check input dtype
+            input_dtype = loaded.graph.input[0].type.tensor_type.elem_type
+            assert (
+                input_dtype == dtype
+            ), f"Expected input dtype {dtype}, got {input_dtype}"
+
+            # Check output dtype
+            output_dtype = loaded.graph.output[0].type.tensor_type.elem_type
+            assert (
+                output_dtype == dtype
+            ), f"Expected output dtype {dtype}, got {output_dtype}"
+
+            # Check constant dtype
+            for init in loaded.graph.initializer:
+                if init.name == "W":
+                    assert (
+                        init.data_type == dtype
+                    ), f"Expected W dtype {dtype}, got {init.data_type}"
+
+
+
+        generate(onnx.TensorProto.BFLOAT16, "test_conv_bf16.onnx")
+        generate(onnx.TensorProto.FLOAT8E4M3FN, "test_conv_float8e4m3fn.onnx")
+
+
 if __name__ == "__main__":
     import sys
 

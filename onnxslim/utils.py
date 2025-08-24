@@ -74,6 +74,7 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     import ml_dtypes
     from onnx import TensorProto
     from onnx.mapping import TensorDtypeMap
+
     TENSOR_TYPE_MAP = {
         int(TensorProto.BFLOAT16): TensorDtypeMap(
             np.dtype(ml_dtypes.bfloat16), int(TensorProto.UINT16), "TensorProto.BFLOAT16"
@@ -91,12 +92,8 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
         int(TensorProto.FLOAT8E5M2FNUZ): TensorDtypeMap(
             np.dtype(ml_dtypes.float8_e5m2fnuz), int(TensorProto.UINT8), "TensorProto.FLOAT8E5M2FNUZ"
         ),
-        int(TensorProto.UINT4): TensorDtypeMap(
-            np.dtype(ml_dtypes.uint4), int(TensorProto.INT32), "TensorProto.UINT4"
-        ),
-        int(TensorProto.INT4): TensorDtypeMap(
-            np.dtype(ml_dtypes.int4), int(TensorProto.INT32), "TensorProto.INT4"
-        ),
+        int(TensorProto.UINT4): TensorDtypeMap(np.dtype(ml_dtypes.uint4), int(TensorProto.INT32), "TensorProto.UINT4"),
+        int(TensorProto.INT4): TensorDtypeMap(np.dtype(ml_dtypes.int4), int(TensorProto.INT32), "TensorProto.INT4"),
         int(TensorProto.FLOAT4E2M1): TensorDtypeMap(
             np.dtype(ml_dtypes.float4_e2m1fn), int(TensorProto.UINT8), "TensorProto.FLOAT4E2M1"
         ),

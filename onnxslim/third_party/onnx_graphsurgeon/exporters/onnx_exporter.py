@@ -84,7 +84,7 @@ def update_import_domains(graph):
     return graph.import_domains
 
 
-class NumpyArrayConverter(object):
+class NumpyArrayConverter:
     def __init__(self, container, scalar_converter):
         self.func = np.vectorize(scalar_converter, otypes=[container])
 
@@ -93,15 +93,14 @@ class NumpyArrayConverter(object):
 
 
 _NUMPY_ARRAY_CONVERTERS = {
-    onnx.TensorProto.BFLOAT16: NumpyArrayConverter(
-        np.uint16, onnx.helper.float32_to_bfloat16
-    ),
+    onnx.TensorProto.BFLOAT16: NumpyArrayConverter(np.uint16, onnx.helper.float32_to_bfloat16),
     # FP8 in TensorRT supports negative zeros, no infinities
     # See https://onnx.ai/onnx/technical/float8.html#papers
     onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(
         np.uint8, lambda x: onnx.helper.float32_to_float8e4m3(x, fn=True, uz=False)
     ),
 }
+
 
 def constant_to_onnx_tensor(tensor: Constant) -> onnx.TensorProto:
     source_dtype = dtype_to_onnx(tensor.dtype)

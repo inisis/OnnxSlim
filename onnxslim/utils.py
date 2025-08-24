@@ -22,14 +22,14 @@ from onnx.mapping import TensorDtypeMap
 TENSOR_TYPE_MAP = {}
 
 candidates = [
-    ("BFLOAT16",    "bfloat16",       "UINT16"),
-    ("FLOAT8E4M3FN",    "float8_e4m3fn",    "UINT8"),
-    ("FLOAT8E4M3FNUZ",  "float8_e4m3fnuz",  "UINT8"),
-    ("FLOAT8E5M2",      "float8_e5m2",      "UINT8"),
-    ("FLOAT8E5M2FNUZ",  "float8_e5m2fnuz",  "UINT8"),
-    ("UINT4",           "uint4",            "INT32"),
-    ("INT4",            "int4",             "INT32"),
-    ("FLOAT4E2M1",      "float4_e2m1fn",    "UINT8"),
+    ("BFLOAT16", "bfloat16", "UINT16"),
+    ("FLOAT8E4M3FN", "float8_e4m3fn", "UINT8"),
+    ("FLOAT8E4M3FNUZ", "float8_e4m3fnuz", "UINT8"),
+    ("FLOAT8E5M2", "float8_e5m2", "UINT8"),
+    ("FLOAT8E5M2FNUZ", "float8_e5m2fnuz", "UINT8"),
+    ("UINT4", "uint4", "INT32"),
+    ("INT4", "int4", "INT32"),
+    ("FLOAT4E2M1", "float4_e2m1fn", "UINT8"),
 ]
 
 for onnx_name, ml_name, storage_name in candidates:
@@ -37,7 +37,7 @@ for onnx_name, ml_name, storage_name in candidates:
         TENSOR_TYPE_MAP[int(getattr(onnx.TensorProto, onnx_name))] = TensorDtypeMap(
             np.dtype(getattr(ml_dtypes, ml_name)),
             int(getattr(onnx.TensorProto, storage_name)),
-            f"TensorProto.{onnx_name}"
+            f"TensorProto.{onnx_name}",
         )
 
 

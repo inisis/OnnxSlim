@@ -16,6 +16,36 @@ from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 
 logger = logging.getLogger("onnxslim")
 
+import ml_dtypes
+from onnx import TensorProto
+from onnx.mapping import TensorDtypeMap
+TENSOR_TYPE_MAP = {}
+# Base entries (always available in ONNX)
+base_types = {
+    "BFLOAT16": (ml_dtypes.bfloat16, "UINT16"),
+}
+
+# Optional / newer entries
+optional_types = {
+    "FLOAT8E4M3FN":    (ml_dtypes.float8_e4m3fn, "UINT8"),
+    "FLOAT8E4M3FNUZ":  (ml_dtypes.float8_e4m3fnuz, "UINT8"),
+    "FLOAT8E5M2":      (ml_dtypes.float8_e5m2, "UINT8"),
+    "FLOAT8E5M2FNUZ":  (ml_dtypes.float8_e5m2fnuz, "UINT8"),
+    "UINT4":           (ml_dtypes.uint4, "INT32"),
+    "INT4":            (ml_dtypes.int4, "INT32"),
+    "FLOAT4E2M1":      (ml_dtypes.float4_e2m1fn, "UINT8"),
+}
+
+for name, (np_dtype, storage) in base_types.items():
+    TENSOR_TYPE_MAP[int(getattr(onnx.TensorProto, name))] = TensorDtypeMap(
+        np.dtype(np_dtype), int(getattr(onnx.TensorProto, storage)), f"TensorProto.{name}"
+    )
+
+for name, (np_dtype, storage) in optional_types.items():
+    if hasattr(onnx.TensorProto, name):
+        TENSOR_TYPE_MAP[int(getattr(onnx.TensorProto, name))] = TensorDtypeMap(
+            np.dtype(np_dtype), int(getattr(onnx.TensorProto, storage)), f"TensorProto.{name}"
+        )
 
 def init_logging(verbose=False):
     """Configure the logging settings for the application based on the verbosity level."""
@@ -68,37 +98,8 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
     else:
         return f"{formatted_sizes[0]} ({formatted_sizes[1]})"
 
-
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     """Maps an ONNX dtype to its corresponding NumPy dtype."""
-    import ml_dtypes
-    from onnx import TensorProto
-    from onnx.mapping import TensorDtypeMap
-
-    TENSOR_TYPE_MAP = {
-        int(TensorProto.BFLOAT16): TensorDtypeMap(
-            np.dtype(ml_dtypes.bfloat16), int(TensorProto.UINT16), "TensorProto.BFLOAT16"
-        ),
-        # Native numpy does not support float8 types, so now use float32 for these types.
-        int(TensorProto.FLOAT8E4M3FN): TensorDtypeMap(
-            np.dtype(ml_dtypes.float8_e4m3fn), int(TensorProto.UINT8), "TensorProto.FLOAT8E4M3FN"
-        ),
-        int(TensorProto.FLOAT8E4M3FNUZ): TensorDtypeMap(
-            np.dtype(ml_dtypes.float8_e4m3fnuz), int(TensorProto.UINT8), "TensorProto.FLOAT8E4M3FNUZ"
-        ),
-        int(TensorProto.FLOAT8E5M2): TensorDtypeMap(
-            np.dtype(ml_dtypes.float8_e5m2), int(TensorProto.UINT8), "TensorProto.FLOAT8E5M2"
-        ),
-        int(TensorProto.FLOAT8E5M2FNUZ): TensorDtypeMap(
-            np.dtype(ml_dtypes.float8_e5m2fnuz), int(TensorProto.UINT8), "TensorProto.FLOAT8E5M2FNUZ"
-        ),
-        int(TensorProto.UINT4): TensorDtypeMap(np.dtype(ml_dtypes.uint4), int(TensorProto.INT32), "TensorProto.UINT4"),
-        int(TensorProto.INT4): TensorDtypeMap(np.dtype(ml_dtypes.int4), int(TensorProto.INT32), "TensorProto.INT4"),
-        int(TensorProto.FLOAT4E2M1): TensorDtypeMap(
-            np.dtype(ml_dtypes.float4_e2m1fn), int(TensorProto.UINT8), "TensorProto.FLOAT4E2M1"
-        ),
-    }
-
     tensor_dtype = TENSOR_TYPE_MAP.get(onnx_dtype)
 
     if tensor_dtype:
@@ -572,12 +573,27 @@ data_type_sizes = {
     onnx.TensorProto.BOOL: 1,
 }
 
+def get_itemsize(dtype):
+    if dtype in data_type_sizes:
+        return data_type_sizes[dtype]
+
+    if dtype == onnx.TensorProto.BFLOAT16:
+        return 2
+
+    if dtype in [
+        onnx.TensorProto.FLOAT8E4M3FN,
+        onnx.TensorProto.FLOAT8E4M3FNUZ,
+        onnx.TensorProto.FLOAT8E5M2,
+        onnx.TensorProto.FLOAT8E5M2FNUZ,
+    ]:
+        return 1
+
 
 def calculate_tensor_size(tensor):
     """Calculates the size of an ONNX tensor in bytes based on its shape and data type size."""
     shape = tensor.dims
     num_elements = np.prod(shape) if shape else 0
-    element_size = data_type_sizes.get(tensor.data_type, 0)
+    element_size = get_itemsize(tensor.data_type)
     return num_elements * element_size
 
 

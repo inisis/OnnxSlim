@@ -30,7 +30,7 @@ jobs:
       - name: Create coverage config
         run: |
           echo "[run]" > .coveragerc
-          echo "omit = onnxslim/third_party/*, onnxslim/misc/*, config.py, config-3.py" >> .coveragerc
+          echo "omit = onnxslim/third_party/*, onnxslim/misc/*, config.py, config-3.py, onnxslim/tests/test_benchmark.py, onnxslim/tests/conftest.py" >> .coveragerc
 
       # - name: yolo test
       #   if: matrix.python-version <= '3.11'

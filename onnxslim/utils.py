@@ -17,8 +17,8 @@ from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 logger = logging.getLogger("onnxslim")
 
 import ml_dtypes
-from onnx import TensorProto
 from onnx.mapping import TensorDtypeMap
+
 TENSOR_TYPE_MAP = {}
 # Base entries (always available in ONNX)
 base_types = {
@@ -27,13 +27,13 @@ base_types = {
 
 # Optional / newer entries
 optional_types = {
-    "FLOAT8E4M3FN":    (ml_dtypes.float8_e4m3fn, "UINT8"),
-    "FLOAT8E4M3FNUZ":  (ml_dtypes.float8_e4m3fnuz, "UINT8"),
-    "FLOAT8E5M2":      (ml_dtypes.float8_e5m2, "UINT8"),
-    "FLOAT8E5M2FNUZ":  (ml_dtypes.float8_e5m2fnuz, "UINT8"),
-    "UINT4":           (ml_dtypes.uint4, "INT32"),
-    "INT4":            (ml_dtypes.int4, "INT32"),
-    "FLOAT4E2M1":      (ml_dtypes.float4_e2m1fn, "UINT8"),
+    "FLOAT8E4M3FN": (ml_dtypes.float8_e4m3fn, "UINT8"),
+    "FLOAT8E4M3FNUZ": (ml_dtypes.float8_e4m3fnuz, "UINT8"),
+    "FLOAT8E5M2": (ml_dtypes.float8_e5m2, "UINT8"),
+    "FLOAT8E5M2FNUZ": (ml_dtypes.float8_e5m2fnuz, "UINT8"),
+    "UINT4": (ml_dtypes.uint4, "INT32"),
+    "INT4": (ml_dtypes.int4, "INT32"),
+    "FLOAT4E2M1": (ml_dtypes.float4_e2m1fn, "UINT8"),
 }
 
 for name, (np_dtype, storage) in base_types.items():
@@ -46,6 +46,7 @@ for name, (np_dtype, storage) in optional_types.items():
         TENSOR_TYPE_MAP[int(getattr(onnx.TensorProto, name))] = TensorDtypeMap(
             np.dtype(np_dtype), int(getattr(onnx.TensorProto, storage)), f"TensorProto.{name}"
         )
+
 
 def init_logging(verbose=False):
     """Configure the logging settings for the application based on the verbosity level."""
@@ -97,6 +98,7 @@ def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
         return formatted_sizes[0]
     else:
         return f"{formatted_sizes[0]} ({formatted_sizes[1]})"
+
 
 def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     """Maps an ONNX dtype to its corresponding NumPy dtype."""
@@ -572,6 +574,7 @@ data_type_sizes = {
     onnx.TensorProto.INT16: 2,
     onnx.TensorProto.BOOL: 1,
 }
+
 
 def get_itemsize(dtype):
     if dtype in data_type_sizes:

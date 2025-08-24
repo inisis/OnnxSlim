@@ -100,8 +100,10 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
     if tensor_dtype:
         return tensor_dtype.np_dtype
 
-    # Native numpy dtypes.
-    return np.dtype(helper.tensor_dtype_to_np_dtype(onnx_dtype))
+    if onnx_dtype in onnx.helper.get_all_tensor_dtypes():
+        return np.dtype(helper.tensor_dtype_to_np_dtype(onnx_dtype))
+    
+    return "UNDEFINED"
 
 
 def gen_onnxruntime_input_data(

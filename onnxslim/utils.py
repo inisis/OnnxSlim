@@ -556,22 +556,32 @@ def check_result(raw_onnx_output, slimmed_onnx_output):
     return True
 
 
-data_type_sizes = {
-    onnx.TensorProto.FLOAT: 4,
-    onnx.TensorProto.DOUBLE: 8,
-    onnx.TensorProto.INT32: 4,
-    onnx.TensorProto.INT64: 8,
-    onnx.TensorProto.UINT8: 1,
-    onnx.TensorProto.INT8: 1,
-    onnx.TensorProto.UINT16: 2,
-    onnx.TensorProto.INT16: 2,
-    onnx.TensorProto.BOOL: 1,
-}
+def get_numpy_type(onnx_type):
+    if not isinstance(onnx_type, int):
+        # Already a NumPy type
+        return onnx_type
 
+    numpy_unsupported_types = [
+        onnx.TensorProto.BFLOAT16,
+        onnx.TensorProto.FLOAT8E4M3FN,
+        onnx.TensorProto.FLOAT8E4M3FNUZ,
+        onnx.TensorProto.FLOAT8E5M2,
+        onnx.TensorProto.FLOAT8E5M2FNUZ,
+    ]
+
+    # TENSOR_TYPE_TO_NP_TYPE maps types unsupported by NumPy to random other types.
+    # This obviously breaks things, so we need to treat this as a special case.
+    if (
+        onnx_type not in numpy_unsupported_types
+        and onnx_type in onnx.helper.get_all_tensor_dtypes()
+    ):
+        return onnx.helper.tensor_dtype_to_np_dtype(onnx_type)
+    return None
 
 def get_itemsize(dtype):
-    if dtype in data_type_sizes:
-        return data_type_sizes[dtype]
+    np_dtype = get_numpy_type(dtype)
+    if np_dtype is not None:
+        return np.dtype(np_dtype).itemsize
 
     if dtype == onnx.TensorProto.BFLOAT16:
         return 2
@@ -583,6 +593,9 @@ def get_itemsize(dtype):
         onnx.TensorProto.FLOAT8E5M2FNUZ,
     ]:
         return 1
+    
+    print(dtype)
+    raise
 
 
 def calculate_tensor_size(tensor):

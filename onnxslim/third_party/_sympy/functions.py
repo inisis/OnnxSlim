@@ -1,7 +1,7 @@
 # mypy: allow-untyped-defs
 import functools
 import math
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 import sympy
 from sympy.core.numbers import equal_valued
@@ -48,17 +48,13 @@ def simple_floordiv_gcd(p: sympy.Basic, q: sympy.Basic) -> sympy.Basic:
     """
     Fast path for sympy.gcd, using a simple factoring strategy.
 
-    We try to rewrite p and q in the form n*e*p1 + n*e*p2 and n*e*q0,
-    where n is the greatest common integer factor and e is the largest
-    syntactic common factor (i.e., common sub-expression) in p and q.
-    Then the gcd returned is n*e, cancelling which we would be left with
-    p1 + p2 and q0.
+    We try to rewrite p and q in the form n*e*p1 + n*e*p2 and n*e*q0, where n is the greatest common integer factor and
+    e is the largest syntactic common factor (i.e., common sub-expression) in p and q. Then the gcd returned is n*e,
+    cancelling which we would be left with p1 + p2 and q0.
 
-    Note that further factoring of p1 + p2 and q0 might be possible with
-    sympy.factor (which uses domain-specific theories). E.g., we are unable
-    to find that x*y + x + y + 1 is divisible by x + 1. More generally,
-    when q is of the form q1 + q2 (instead of being already factored) it
-    might be necessary to fall back on sympy.gcd.
+    Note that further factoring of p1 + p2 and q0 might be possible with sympy.factor (which uses domain-specific
+    theories). E.g., we are unable to find that x*y + x + y + 1 is divisible by x + 1. More generally, when q is of the
+    form q1 + q2 (instead of being already factored) it might be necessary to fall back on sympy.gcd.
     """
 
     def integer_coefficient(x: sympy.Basic) -> int:
@@ -109,7 +105,7 @@ class FloorDiv(sympy.Function):
     NB: This is Python-style floor division, round to -Inf
     """
 
-    nargs: Tuple[int, ...] = (2,)
+    nargs: tuple[int, ...] = (2,)
     precedence: int = 35  # lower precedence than add
     is_integer: bool = True
 

@@ -16,7 +16,7 @@
 #
 
 from collections import OrderedDict
-from typing import List, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 from onnx import AttributeProto
@@ -122,11 +122,11 @@ def _init_dicts():
         AttributeProto.GRAPH: Graph,
         AttributeProto.SPARSE_TENSOR: AttributeProto.SPARSE_TENSOR,
         AttributeProto.TYPE_PROTO: AttributeProto.TYPE_PROTO,
-        AttributeProto.FLOATS: List[float],
-        AttributeProto.INTS: List[int],
-        AttributeProto.STRINGS: List[str],
-        AttributeProto.TENSORS: List[Tensor],
-        AttributeProto.GRAPHS: List[Graph],
+        AttributeProto.FLOATS: list[float],
+        AttributeProto.INTS: list[int],
+        AttributeProto.STRINGS: list[str],
+        AttributeProto.TENSORS: list[Tensor],
+        AttributeProto.GRAPHS: list[Graph],
         AttributeProto.SPARSE_TENSORS: AttributeProto.SPARSE_TENSORS,
         AttributeProto.TYPE_PROTOS: AttributeProto.TYPE_PROTOS,
     }
@@ -224,11 +224,11 @@ class SynchronizedList(list):
             self._remove_from_elem(elem)
         super().clear()
 
-    def __add__(self, other_list: List[object]):
+    def __add__(self, other_list: list[object]):
         """Concatenate the current list with another list and return the resulting list."""
         return list(self) + list(other_list)
 
-    def __iadd__(self, other_list: List[object]):
+    def __iadd__(self, other_list: list[object]):
         """Append elements from another list to the current list and return the modified list."""
         self.extend(other_list)
         return self

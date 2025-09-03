@@ -17,7 +17,7 @@
 
 import copy
 from collections import OrderedDict
-from typing import Any, List, Union
+from typing import Any, Union
 
 import numpy as np
 import onnx
@@ -53,7 +53,7 @@ ONNX_PYTHON_ATTR_MAPPING = {
 }
 
 
-def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> List[int]:
+def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> list[int]:
     """Returns the shape of an ONNX tensor as a list of dimensions."""
     shape = None
     if isinstance(onnx_tensor, (onnx.TensorProto, onnx.SparseTensorProto)):
@@ -247,7 +247,7 @@ class OnnxImporter(BaseImporter):
 
     @staticmethod
     def import_attributes(
-        onnx_attributes: List[onnx.AttributeProto],
+        onnx_attributes: list[onnx.AttributeProto],
         tensor_map: "OrderedDict[str, Tensor]",
         subgraph_tensor_map: "OrderedDict[str, Tensor]",
         opset: int,
@@ -327,13 +327,13 @@ class OnnxImporter(BaseImporter):
             return subgraph_tensor_map[name]
 
         # Retrieve Tensors for node inputs/outputs. Only empty tensors should need to be newly added.
-        def retrieve_node_inputs() -> List[Tensor]:
+        def retrieve_node_inputs() -> list[Tensor]:
             inputs = []  # List[Tensor]
             for input_name in onnx_node.input:
                 inputs.append(get_tensor(input_name))
             return inputs
 
-        def retrieve_node_outputs() -> List[Tensor]:
+        def retrieve_node_outputs() -> list[Tensor]:
             outputs = []  # List[Tensor]
             for output_name in onnx_node.output:
                 # Node outputs cannot come from the outer graph, they must be created within the inner graph.
@@ -410,7 +410,7 @@ class OnnxImporter(BaseImporter):
         ir_version=None,
         producer_name: str = None,
         producer_version: str = None,
-        functions: List[Function] = None,
+        functions: list[Function] = None,
         metadata_props=None,
     ) -> Graph:
         """
@@ -526,7 +526,7 @@ def import_onnx(onnx_model: "onnx.ModelProto") -> Graph:
     model_opset = OnnxImporter.get_opset(onnx_model)
     model_ir_version = OnnxImporter.get_ir_version(onnx_model)
     model_import_domains = OnnxImporter.get_import_domains(onnx_model)
-    functions: List[Function] = [
+    functions: list[Function] = [
         OnnxImporter.import_function(
             onnx_function,
             model_opset=model_opset,

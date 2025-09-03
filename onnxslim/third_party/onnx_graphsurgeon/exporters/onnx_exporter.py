@@ -15,7 +15,8 @@
 # limitations under the License.
 #
 from collections import OrderedDict
-from typing import List, Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 import onnx
@@ -174,9 +175,9 @@ class OnnxExporter(BaseExporter):
         return onnx_tensor
 
     @staticmethod
-    def export_attributes(attrs: dict, subgraph_tensor_map=None) -> List[onnx.AttributeProto]:
+    def export_attributes(attrs: dict, subgraph_tensor_map=None) -> list[onnx.AttributeProto]:
         """Convert function attributes to ONNX AttributeProtos for model export."""
-        onnx_attrs: List[onnx.AttributeProto] = []
+        onnx_attrs: list[onnx.AttributeProto] = []
         for key, val in attrs.items():
             if isinstance(val, Tensor):
                 val = OnnxExporter.export_tensor_proto(val)

@@ -17,7 +17,6 @@
 
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List
 
 from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import Constant, Tensor, Variable
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
@@ -43,9 +42,9 @@ class Node:
         self,
         op: str,
         name: str = None,
-        attrs: Dict[str, object] = None,
-        inputs: List["Tensor"] = None,
-        outputs: List["Tensor"] = None,
+        attrs: dict[str, object] = None,
+        inputs: list["Tensor"] = None,
+        outputs: list["Tensor"] = None,
         domain: str = None,
     ):
         """
@@ -152,8 +151,8 @@ class Node:
 
     def copy(
         self,
-        inputs: List["Tensor"] = None,
-        outputs: List["Tensor"] = None,
+        inputs: list["Tensor"] = None,
+        outputs: list["Tensor"] = None,
         tensor_map=None,
     ):
         """

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-from typing import Dict, List, Union
+from typing import Union
 
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Constant, Graph, Node
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
@@ -104,18 +104,18 @@ class GraphPattern:
         self.op = None  # op (str)
         self.check_func = None  # callback function for single node
         # pattern node name -> GraphPattern nodes(single or subpattern)
-        self.nodes: Dict[str, GraphPattern] = {}
+        self.nodes: dict[str, GraphPattern] = {}
         # pattern node name -> input tensors
-        self.node_inputs: Dict[str, List[int]] = {}
+        self.node_inputs: dict[str, list[int]] = {}
         # pattern node name -> output tensors
-        self.node_outputs: Dict[str, List[int]] = {}
+        self.node_outputs: dict[str, list[int]] = {}
         self.num_tensors = 0  # number of all tensors in the pattern
-        self.tensor_inputs: Dict[int, List[str]] = {}  # tensor id -> input node
-        self.tensor_outputs: Dict[int, List[str]] = {}  # tensor id -> output nodes
-        self.input_tensors: List[int] = []  # a list of input tensor ids of this pattern
-        self.output_tensors: List[int] = []
+        self.tensor_inputs: dict[int, list[str]] = {}  # tensor id -> input node
+        self.tensor_outputs: dict[int, list[str]] = {}  # tensor id -> output nodes
+        self.input_tensors: list[int] = []  # a list of input tensor ids of this pattern
+        self.output_tensors: list[int] = []
         # tensor id -> tensor name of constant tensors.
-        self.constant_tensors: Dict[int, str] = {}
+        self.constant_tensors: dict[int, str] = {}
         """Assigns a unique tensor ID, tracks its input node if provided, and initializes output node tracking."""
 
     def _add_tensor(self, input_node=None) -> int:
@@ -438,7 +438,7 @@ class GraphPattern:
                     return False
         return True
 
-    def match_all(self, graph: Graph) -> List[PatternMapping]:
+    def match_all(self, graph: Graph) -> list[PatternMapping]:
         """
         Find all the matched instances of subgraph with the current pattern in the given graph.
 

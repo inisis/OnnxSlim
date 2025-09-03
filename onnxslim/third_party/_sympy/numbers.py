@@ -10,7 +10,8 @@ from sympy.core.singleton import S, Singleton
 
 
 class IntInfinity(Number, metaclass=Singleton):
-    r"""Positive integer infinite quantity.
+    r"""
+    Positive integer infinite quantity.
 
     Integer infinity is a value in an extended integers which
     is greater than all other integers.  We distinguish it from
@@ -204,7 +205,8 @@ int_oo = S.IntInfinity
 
 
 class NegativeIntInfinity(Number, metaclass=Singleton):
-    """Negative integer infinite quantity.
+    """
+    Negative integer infinite quantity.
 
     NegativeInfinity is a singleton, and can be accessed
     by ``S.NegativeInfinity``.

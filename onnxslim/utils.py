@@ -4,7 +4,7 @@ import os
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import onnx
@@ -68,7 +68,7 @@ def init_logging(verbose=False):
     return logger
 
 
-def format_bytes(size: Union[int, Tuple[int, ...]]) -> str:
+def format_bytes(size: Union[int, tuple[int, ...]]) -> str:
     """Convert byte sizes into human-readable format with appropriate units (B, KB, MB, GB)."""
     if isinstance(size, int):
         size = (size,)
@@ -107,8 +107,8 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
 
 
 def gen_onnxruntime_input_data(
-    model: onnx.ModelProto, model_check_inputs: Optional[List[str]] = None
-) -> Dict[str, np.ndarray]:
+    model: onnx.ModelProto, model_check_inputs: Optional[list[str]] = None
+) -> dict[str, np.ndarray]:
     """Generate random input data for an ONNX model considering potential specific input shapes and types."""
     input_info = {}
     for input_tensor in model.graph.input:
@@ -162,7 +162,7 @@ def gen_onnxruntime_input_data(
     return input_data_dict
 
 
-def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str, np.array]:
+def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> dict[str, np.array]:
     """Perform inference using ONNX Runtime on the given model and input data."""
     import os
     import tempfile
@@ -199,7 +199,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> Dict[str,
     return onnx_output, model
 
 
-def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
+def format_model_info(model_info_list: Union[dict, list[dict]], elapsed_time: float = None):
     assert model_info_list, "model_info_list must contain more than one model info"
     from colorama import Fore, init
 
@@ -275,7 +275,7 @@ def format_model_info(model_info_list: Union[Dict, List[Dict]], elapsed_time: fl
     return final_op_info
 
 
-def print_model_info_as_table(model_info_list: Union[Dict, List[Dict]], elapsed_time: float = None):
+def print_model_info_as_table(model_info_list: Union[dict, list[dict]], elapsed_time: float = None):
     """Prints the model information as a formatted table for the given model name and list of model details."""
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
@@ -299,7 +299,7 @@ def print_model_info_as_table(model_info_list: Union[Dict, List[Dict]], elapsed_
     print(output)
 
 
-def dump_model_info_to_disk(model_info: Dict):
+def dump_model_info_to_disk(model_info: dict):
     """Writes model information to a CSV file for a given model name and dictionary of model info."""
     import csv
 
@@ -360,7 +360,7 @@ def get_ir_version(model: onnx.ModelProto) -> int:
 class TensorInfo:
     def __init__(self, tensor):
         self.dtype: np.dtype = np.float32
-        self.shape: Tuple[Union[str, int]] = None
+        self.shape: tuple[Union[str, int]] = None
 
         self._extract_info(tensor)
 
@@ -405,10 +405,10 @@ class ModelInfo:
         self.model_size: int = -1
         self.op_set: str = None
         self.ir_version: str = None
-        self.op_type_counts: Dict[str, int] = defaultdict(int)
-        self.op_info: Dict[str, Dict] = {}
-        self.input_info: List[str, Tuple[str, Tuple]] = []
-        self.output_info: List[str, Tuple[str, Tuple]] = []
+        self.op_type_counts: dict[str, int] = defaultdict(int)
+        self.op_info: dict[str, dict] = {}
+        self.input_info: list[str, tuple[str, tuple]] = []
+        self.output_info: list[str, tuple[str, tuple]] = []
 
         self._summarize_model(model)
 
@@ -425,7 +425,7 @@ class ModelInfo:
 
         value_info_dict = {value_info.name: value_info for value_info in model.graph.value_info}
 
-        def get_graph_node_info(graph: onnx.GraphProto) -> Dict[str, List[str]]:
+        def get_graph_node_info(graph: onnx.GraphProto) -> dict[str, list[str]]:
             for node in graph.node:
                 op_type = node.op_type
                 self.op_type_counts[op_type] += 1
@@ -460,7 +460,7 @@ class ModelInfo:
         return self.output_dict
 
 
-def summarize_model(model: Union[str, onnx.ModelProto], tag="OnnxModel") -> Dict:
+def summarize_model(model: Union[str, onnx.ModelProto], tag="OnnxModel") -> dict:
     """Generates a summary of the ONNX model, including model size, operations, and tensor shapes."""
     logger.debug("Start summarizing model.")
     model_info = ModelInfo(model, tag)
@@ -500,7 +500,7 @@ def save(
     model_path: str,
     model_check: bool = False,
     save_as_external_data: bool = False,
-    model_info: Dict = None,
+    model_info: dict = None,
 ):
     """Save an ONNX model to a specified path, with optional model checking for validity."""
     if model_check:

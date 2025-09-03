@@ -197,8 +197,8 @@ class GemmMulPatternMatcher(PatternMatcher):
         return "FusionGemmMul"
 
     def rewrite(self, opset=11):
-        """Rewrites the graph for the fusion pattern 'FusionGemmMul' based on matching criteria and constant variables in
-        gemm nodes.
+        """Rewrites the graph for the fusion pattern 'FusionGemmMul' based on matching criteria and constant variables
+        in gemm nodes.
         """
         match_case = {}
         gemm_node = self.gemm_0
@@ -273,8 +273,8 @@ class GemmAddPatternMatcher(PatternMatcher):
         return "FusionGemmAdd"
 
     def rewrite(self, opset=11):
-        """Rewrites the graph for the fusion pattern 'FusionGemmAdd' based on matching criteria and constant variables in
-        gemm nodes.
+        """Rewrites the graph for the fusion pattern 'FusionGemmAdd' based on matching criteria and constant variables
+        in gemm nodes.
         """
         match_case = {}
         gemm_node = self.gemm_0

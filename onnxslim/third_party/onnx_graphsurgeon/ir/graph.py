@@ -18,7 +18,7 @@
 import copy
 import numbers
 from collections import OrderedDict, defaultdict
-from typing import List, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -203,7 +203,7 @@ class Graph:
         return super().__setattr__(name, value)
 
     @property
-    def functions(self) -> "List[Function]":
+    def functions(self) -> "list[Function]":
         """Returns the list of subgraph functions associated with this graph."""
         return self._functions
 

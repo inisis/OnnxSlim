@@ -16,7 +16,7 @@
 #
 
 import copy
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from onnxslim.third_party.onnx_graphsurgeon.ir.graph import Graph
 from onnxslim.third_party.onnx_graphsurgeon.ir.node import Node
@@ -142,7 +142,7 @@ class Function(Graph):
             mode=mode,
         )
 
-    def __call__(self, graph, inputs=None, outputs=None, *args, **kwargs) -> List[Tensor]:
+    def __call__(self, graph, inputs=None, outputs=None, *args, **kwargs) -> list[Tensor]:
         """
         Creates a Node which is an instance of this function. The created node can be used in a Graph or another
         Function.

@@ -33,7 +33,7 @@ class OptimizationSettings:
         ]
 
     @classmethod
-    def reset(cls, skip_optimizations: Optional[List[str]] = None):
+    def reset(cls, skip_optimizations: Optional[list[str]] = None):
         for key in cls.keys():
             if skip_optimizations and key in skip_optimizations:
                 setattr(cls, key, False)
@@ -84,7 +84,7 @@ def replace_custom_layer(
     self,
     op: str,
     inputs,
-    outputs: List[str],
+    outputs: list[str],
     name: str,
     attrs: dict = None,
     domain: str = "ai.onnx.contrib",

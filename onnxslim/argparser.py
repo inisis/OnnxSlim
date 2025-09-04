@@ -2,7 +2,7 @@ import argparse
 import dataclasses
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from dataclasses import dataclass, field
-from typing import Optional, Union, get_args, get_origin
+from typing import List, Optional, Type, Union, get_args, get_origin
 
 import onnxslim
 
@@ -38,14 +38,14 @@ class OptimizationArguments:
     """
 
     no_shape_infer: bool = field(default=False, metadata={"help": "whether to disable shape_infer, default false."})
-    skip_optimizations: Optional[list[str]] = field(
+    skip_optimizations: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "whether to skip some optimizations",
             "choices": list(onnxslim.OptimizationSettings.keys()),
         },
     )
-    skip_fusion_patterns: Optional[list[str]] = field(
+    skip_fusion_patterns: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "whether to skip the fusion of some patterns",
@@ -73,19 +73,19 @@ class ModificationArguments:
         save_as_external_data (bool, optional): Flag indicating whether to split onnx as model and weight. Default is False.
     """
 
-    input_shapes: Optional[list[str]] = field(
+    input_shapes: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "input shape of the model, INPUT_NAME:SHAPE, e.g. x:1,3,224,224 or x1:1,3,224,224 x2:1,3,224,224"
         },
     )
-    inputs: Optional[list[str]] = field(
+    inputs: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "input of the model, INPUT_NAME:DTYPE, e.g. y:fp32 or y1:fp32 y2:fp32. If dtype is not specified, the dtype of the input will be the same as the original model if it has dtype, otherwise it will be fp32, available dtype: fp16, fp32, int32"
         },
     )
-    outputs: Optional[list[str]] = field(
+    outputs: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "output of the model, OUTPUT_NAME:DTYPE, e.g. y:fp32 or y1:fp32 y2:fp32. If dtype is not specified, the dtype of the output will be the same as the original model if it has dtype, otherwise it will be fp32, available dtype: fp16, fp32, int32"
@@ -115,7 +115,7 @@ class CheckerArguments:
     """
 
     model_check: bool = field(default=False, metadata={"help": "enable model check"})
-    model_check_inputs: Optional[list[str]] = field(
+    model_check_inputs: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "Works only when model_check is enabled, Input shape of the model or numpy data path, INPUT_NAME:SHAPE or INPUT_NAME:DATAPATH, e.g. x:1,3,224,224 or x1:1,3,224,224 x2:data.npy. Useful when input shapes are dynamic."
@@ -127,7 +127,7 @@ class CheckerArguments:
 
 
 class OnnxSlimArgumentParser(ArgumentParser):
-    def __init__(self, *argument_dataclasses: type, **kwargs):
+    def __init__(self, *argument_dataclasses: Type, **kwargs):
         if "formatter_class" not in kwargs:
             kwargs["formatter_class"] = ArgumentDefaultsHelpFormatter
         super().__init__(**kwargs)

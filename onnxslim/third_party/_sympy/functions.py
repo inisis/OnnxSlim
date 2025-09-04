@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+from __future__ import annotations
 import functools
 import math
 from typing import TYPE_CHECKING, Union

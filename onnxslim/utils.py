@@ -17,7 +17,11 @@ from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 logger = logging.getLogger("onnxslim")
 
 import ml_dtypes
-from onnx._mapping import TensorDtypeMap
+
+try:
+    from onnx._mapping import TensorDtypeMap
+except ImportError:
+    from onnx.mapping import TensorDtypeMap
 
 TENSOR_TYPE_MAP = {}
 

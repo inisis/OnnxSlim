@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 import importlib.util
 import logging
 import os
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Union
 
 import numpy as np
 import onnx
@@ -73,7 +73,7 @@ def init_logging(verbose=False):
     return logger
 
 
-def format_bytes(size: Union[int, tuple[int, ...]]) -> str:
+def format_bytes(size: int | tuple[int, ...]) -> str:
     """Convert byte sizes into human-readable format with appropriate units (B, KB, MB, GB)."""
     if isinstance(size, int):
         size = (size,)
@@ -112,7 +112,7 @@ def onnx_dtype_to_numpy(onnx_dtype: int) -> np.dtype:
 
 
 def gen_onnxruntime_input_data(
-    model: onnx.ModelProto, model_check_inputs: Optional[list[str]] = None
+    model: onnx.ModelProto, model_check_inputs: list[str] | None = None
 ) -> dict[str, np.ndarray]:
     """Generate random input data for an ONNX model considering potential specific input shapes and types."""
     input_info = {}
@@ -204,7 +204,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> dict[str,
     return onnx_output, model
 
 
-def format_model_info(model_info_list: Union[dict, list[dict]], elapsed_time: float = None):
+def format_model_info(model_info_list: dict | list[dict], elapsed_time: float = None):
     assert model_info_list, "model_info_list must contain more than one model info"
     from colorama import Fore, init
 
@@ -280,7 +280,7 @@ def format_model_info(model_info_list: Union[dict, list[dict]], elapsed_time: fl
     return final_op_info
 
 
-def print_model_info_as_table(model_info_list: Union[dict, list[dict]], elapsed_time: float = None):
+def print_model_info_as_table(model_info_list: dict | list[dict], elapsed_time: float = None):
     """Prints the model information as a formatted table for the given model name and list of model details."""
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
@@ -365,7 +365,7 @@ def get_ir_version(model: onnx.ModelProto) -> int:
 class TensorInfo:
     def __init__(self, tensor):
         self.dtype: np.dtype = np.float32
-        self.shape: tuple[Union[str, int]] = None
+        self.shape: tuple[str | int] = None
 
         self._extract_info(tensor)
 
@@ -401,7 +401,7 @@ class OperatorInfo:
 
 
 class ModelInfo:
-    def __init__(self, model: Union[str, onnx.ModelProto], tag: str = "OnnxSlim"):
+    def __init__(self, model: str | onnx.ModelProto, tag: str = "OnnxSlim"):
         if isinstance(model, str):
             tag = Path(model).name
             model = onnx.load(model)
@@ -465,7 +465,7 @@ class ModelInfo:
         return self.output_dict
 
 
-def summarize_model(model: Union[str, onnx.ModelProto], tag="OnnxModel") -> dict:
+def summarize_model(model: str | onnx.ModelProto, tag="OnnxModel") -> dict:
     """Generates a summary of the ONNX model, including model size, operations, and tensor shapes."""
     logger.debug("Start summarizing model.")
     model_info = ModelInfo(model, tag)

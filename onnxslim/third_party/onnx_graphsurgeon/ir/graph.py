@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 import copy
 import numbers
 from collections import OrderedDict, defaultdict
@@ -109,7 +110,7 @@ class Graph:
         ir_version=None,
         producer_name: str = None,
         producer_version: str = None,
-        functions: "Sequence[Function]" = None,
+        functions: Sequence[Function] = None,
         metadata_props=None,
     ):
         """
@@ -203,12 +204,12 @@ class Graph:
         return super().__setattr__(name, value)
 
     @property
-    def functions(self) -> "list[Function]":
+    def functions(self) -> list[Function]:
         """Returns the list of subgraph functions associated with this graph."""
         return self._functions
 
     @functions.setter
-    def functions(self, new_fns: "Sequence[Function]"):
+    def functions(self, new_fns: Sequence[Function]):
         """Get or set the list of functions, ensuring changes propagate to all associated subgraphs and functions."""
         # this graph, its subgraphs, and its functions.
         # If the user sets a new value for self.functions,
@@ -216,7 +217,7 @@ class Graph:
         self._functions.clear()
         self._functions += list(new_fns)
 
-    def __eq__(self, other: "Graph"):
+    def __eq__(self, other: Graph):
         """Check for equality between two Graph objects by comparing their nodes, inputs, and outputs."""
         nodes_match = misc.sequences_equal(self.nodes, other.nodes)
         if not nodes_match:
@@ -1408,7 +1409,7 @@ class Graph:
         self.nodes.append(node)
         return node.outputs
 
-    def copy(self, tensor_map: "OrderedDict[str, Tensor]" = None):
+    def copy(self, tensor_map: OrderedDict[str, Tensor] = None):
         """
         Copy the graph.
 

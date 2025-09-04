@@ -1,5 +1,6 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
+
 import mpmath.libmp as mlib  # type: ignore[import-untyped]
 import sympy
 from sympy import Expr

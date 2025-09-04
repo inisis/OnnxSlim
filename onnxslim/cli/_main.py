@@ -1,10 +1,9 @@
 from __future__ import annotations
-from typing import Union
 
 import onnx
 
 
-def slim(model: Union[str, onnx.ModelProto, list[Union[str, onnx.ModelProto]]], *args, **kwargs):
+def slim(model: str | onnx.ModelProto | list[str | onnx.ModelProto], *args, **kwargs):
     import os
     import time
     from pathlib import Path

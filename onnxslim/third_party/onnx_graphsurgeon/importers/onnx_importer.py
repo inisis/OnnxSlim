@@ -15,9 +15,10 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 import copy
 from collections import OrderedDict
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 import onnx
@@ -53,7 +54,7 @@ ONNX_PYTHON_ATTR_MAPPING = {
 }
 
 
-def get_onnx_tensor_shape(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> list[int]:
+def get_onnx_tensor_shape(onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto) -> list[int]:
     """Returns the shape of an ONNX tensor as a list of dimensions."""
     shape = None
     if isinstance(onnx_tensor, (onnx.TensorProto, onnx.SparseTensorProto)):
@@ -118,8 +119,8 @@ def get_numpy_type(onnx_type):
 
 
 def get_onnx_tensor_dtype(
-    onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto],
-) -> Union[np.dtype, "onnx.TensorProto.DataType"]:
+    onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto,
+) -> np.dtype | onnx.TensorProto.DataType:
     """Determine the NumPy dtype or ONNX tensor data type from an ONNX tensor."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         onnx_dtype = onnx_tensor.data_type
@@ -150,7 +151,7 @@ def get_onnx_tensor_dtype(
     return onnx_dtype
 
 
-def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
+def get_onnx_tensor_type(onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto) -> str:
     """Determine the ONNX tensor type from a given ONNX TensorProto or ValueInfoProto."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         return "tensor_type"
@@ -170,7 +171,7 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
         return None
 
 
-def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto]) -> str:
+def get_onnx_tensor_type(onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto) -> str:
     """Identifies and returns the specific data type category of a given ONNX tensor."""
     if isinstance(onnx_tensor, onnx.TensorProto):
         return "tensor_type"
@@ -192,7 +193,7 @@ def get_onnx_tensor_type(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProt
 
 class OnnxImporter(BaseImporter):
     @staticmethod
-    def get_opset(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
+    def get_opset(model_or_func: onnx.ModelProto | onnx.FunctionProto):
         """Return the ONNX opset version for the given ONNX model or function, or None if the information is
         unavailable.
         """
@@ -208,12 +209,12 @@ class OnnxImporter(BaseImporter):
             return None
 
     @staticmethod
-    def get_import_domains(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
+    def get_import_domains(model_or_func: onnx.ModelProto | onnx.FunctionProto):
         """Retrieves the import domains from an ONNX model or function."""
         return model_or_func.opset_import
 
     @staticmethod
-    def get_ir_version(model_or_func: Union[onnx.ModelProto, onnx.FunctionProto]):
+    def get_ir_version(model_or_func: onnx.ModelProto | onnx.FunctionProto):
         """Retrieves the ir_version from an ONNX model or function."""
         try:
             return model_or_func.ir_version
@@ -221,7 +222,7 @@ class OnnxImporter(BaseImporter):
             return None
 
     @staticmethod
-    def import_tensor(onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto]) -> Tensor:
+    def import_tensor(onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto | onnx.SparseTensorProto) -> Tensor:
         """Converts an ONNX tensor into a corresponding internal Tensor representation."""
         if isinstance(onnx_tensor, onnx.SparseTensorProto):
             return Constant(
@@ -248,11 +249,11 @@ class OnnxImporter(BaseImporter):
     @staticmethod
     def import_attributes(
         onnx_attributes: list[onnx.AttributeProto],
-        tensor_map: "OrderedDict[str, Tensor]",
-        subgraph_tensor_map: "OrderedDict[str, Tensor]",
+        tensor_map: OrderedDict[str, Tensor],
+        subgraph_tensor_map: OrderedDict[str, Tensor],
         opset: int,
         import_domains: onnx.OperatorSetIdProto,
-    ) -> "OrderedDict[str, Any]":
+    ) -> OrderedDict[str, Any]:
         """Import ONNX attribute values into Python dictionary format, handling various ONNX attribute types."""
         attr_dict = OrderedDict()
         for attr in onnx_attributes:
@@ -297,8 +298,8 @@ class OnnxImporter(BaseImporter):
     @staticmethod
     def import_node(
         onnx_node: onnx.NodeProto,
-        tensor_map: "OrderedDict[str, Tensor]",
-        subgraph_tensor_map: "OrderedDict[str, Tensor]",
+        tensor_map: OrderedDict[str, Tensor],
+        subgraph_tensor_map: OrderedDict[str, Tensor],
         opset,
         import_domains: onnx.OperatorSetIdProto,
     ) -> Node:
@@ -404,7 +405,7 @@ class OnnxImporter(BaseImporter):
     @staticmethod
     def import_graph(
         onnx_graph: onnx.GraphProto,
-        tensor_map: "OrderedDict[str, Tensor]" = None,
+        tensor_map: OrderedDict[str, Tensor] = None,
         opset=None,
         import_domains: onnx.OperatorSetIdProto = None,
         ir_version=None,
@@ -433,7 +434,7 @@ class OnnxImporter(BaseImporter):
         # If overwrite=True, this function will overwrite previously imported tensors
         # if the new tensor has more information available.
         def get_tensor(
-            onnx_tensor: Union[onnx.ValueInfoProto, onnx.TensorProto, onnx.SparseTensorProto],
+            onnx_tensor: onnx.ValueInfoProto | onnx.TensorProto | onnx.SparseTensorProto,
             overwrite=False,
             check_outer_graph=True,
         ) -> Tensor:
@@ -513,7 +514,7 @@ class OnnxImporter(BaseImporter):
         )
 
 
-def import_onnx(onnx_model: "onnx.ModelProto") -> Graph:
+def import_onnx(onnx_model: onnx.ModelProto) -> Graph:
     """
     Import an onnx-graphsurgeon Graph from the provided ONNX model.
 

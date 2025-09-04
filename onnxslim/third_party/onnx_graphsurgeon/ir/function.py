@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 import copy
 from collections.abc import Sequence
 
@@ -48,8 +49,8 @@ class Function(Graph):
         outputs: Sequence[Tensor] = None,
         doc_string: str = None,
         opset: int = None,
-        import_domains: "Sequence[onnx.OperatorSetIdProto]" = None,
-        functions: "Sequence[Function]" = None,
+        import_domains: Sequence[onnx.OperatorSetIdProto] = None,
+        functions: Sequence[Function] = None,
         attrs: dict = None,
     ):
         """
@@ -245,7 +246,7 @@ class Function(Graph):
             attrs=new_attrs,
         )
 
-    def __eq__(self, other: "Function"):
+    def __eq__(self, other: Function):
         """Checks equality of self with another Function object based on their attributes."""
 
         def sequences_equal(seq1, seq2):

@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 from collections import OrderedDict
 from dataclasses import dataclass
 
@@ -43,8 +44,8 @@ class Node:
         op: str,
         name: str = None,
         attrs: dict[str, object] = None,
-        inputs: list["Tensor"] = None,
-        outputs: list["Tensor"] = None,
+        inputs: list[Tensor] = None,
+        outputs: list[Tensor] = None,
         domain: str = None,
     ):
         """
@@ -151,8 +152,8 @@ class Node:
 
     def copy(
         self,
-        inputs: list["Tensor"] = None,
-        outputs: list["Tensor"] = None,
+        inputs: list[Tensor] = None,
+        outputs: list[Tensor] = None,
         tensor_map=None,
     ):
         """
@@ -248,7 +249,7 @@ class Node:
                 self.inputs.clear()
                 self.outputs.clear()
 
-    def replace_all_uses_with(self, node: "Node"):
+    def replace_all_uses_with(self, node: Node):
         """Replace all uses of this node with the given node."""
         for user in self.users:
             for inp in user.inputs:

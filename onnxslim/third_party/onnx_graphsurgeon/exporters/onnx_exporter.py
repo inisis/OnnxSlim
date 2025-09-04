@@ -15,9 +15,9 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 from collections import OrderedDict
 from collections.abc import Sequence
-from typing import Union
 
 import numpy as np
 import onnx
@@ -39,7 +39,7 @@ from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
 
-def dtype_to_onnx(dtype: Union[np.dtype, "onnx.TensorProto.DataType"]) -> int:
+def dtype_to_onnx(dtype: np.dtype | onnx.TensorProto.DataType) -> int:
     """Converts a numpy dtype or ONNX data type to its integer representation."""
     if isinstance(dtype, int):
         return dtype
@@ -278,8 +278,8 @@ class OnnxExporter(BaseExporter):
     def export_graph(
         graph_proto: onnx.GraphProto,
         graph: Graph,
-        tensor_map: "OrderedDict[str, Tensor]" = None,
-        subgraph_tensor_map: "OrderedDict[str, Tensor]" = None,
+        tensor_map: OrderedDict[str, Tensor] = None,
+        subgraph_tensor_map: OrderedDict[str, Tensor] = None,
         do_type_check=True,
     ) -> None:
         """
@@ -350,7 +350,7 @@ class OnnxExporter(BaseExporter):
         return graph_proto
 
 
-def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> "onnx.ModelProto":
+def export_onnx(graph: Graph, do_type_check=True, **kwargs) -> onnx.ModelProto:
     """
     Exports an onnx-graphsurgeon Graph to an ONNX model.
 

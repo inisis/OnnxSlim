@@ -15,8 +15,8 @@
 # limitations under the License.
 #
 from __future__ import annotations
+
 from collections.abc import Sequence
-from typing import Union
 
 import numpy as np
 
@@ -66,7 +66,7 @@ class Tensor:
         self,
         values: np.ndarray,
         data_location: int = None,
-        export_dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
+        export_dtype: np.dtype | onnx.TensorProto.DataType = None,
     ):
         """
         Modifies this tensor in-place to convert it to a Constant. This means that all consumers/producers of the tensor
@@ -91,9 +91,7 @@ class Tensor:
 
         return self
 
-    def to_variable(
-        self, dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None, shape: Sequence[Union[int, str]] = None
-    ):
+    def to_variable(self, dtype: np.dtype | onnx.TensorProto.DataType = None, shape: Sequence[int | str] = None):
         """
         Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor
         will see the update.
@@ -200,8 +198,8 @@ class Variable(Tensor):
     def __init__(
         self,
         name: str,
-        dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
-        shape: Sequence[Union[int, str]] = None,
+        dtype: np.dtype | onnx.TensorProto.DataType = None,
+        shape: Sequence[int | str] = None,
         type: str = "tensor_type",
     ):
         """
@@ -223,7 +221,7 @@ class Variable(Tensor):
     def to_constant(
         self,
         values: np.ndarray,
-        export_dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
+        export_dtype: np.dtype | onnx.TensorProto.DataType = None,
     ):
         """Converts the Variable to a Constant with given values and optional export data type."""
         del self.dtype
@@ -258,7 +256,7 @@ class Variable(Tensor):
 
         return name_match and inputs_match and outputs_match and dtype_match and shape_match and type_match
 
-    def replace_all_uses_with(self, var: "Variable"):
+    def replace_all_uses_with(self, var: Variable):
         # replace all the uses of this variable with another variable
         for feed_node in list(self.inputs):
             for i, input_var in enumerate(feed_node.outputs):
@@ -391,9 +389,9 @@ class Constant(Tensor):
     def __init__(
         self,
         name: str,
-        values: Union[np.ndarray, LazyValues],
+        values: np.ndarray | LazyValues,
         data_location: int = None,
-        export_dtype: Union[np.dtype, "onnx.TensorProto.DataType"] = None,
+        export_dtype: np.dtype | onnx.TensorProto.DataType = None,
     ):
         """
         Represents a Tensor whose value is known.
@@ -428,7 +426,7 @@ class Constant(Tensor):
         self.data_location = data_location
         self._export_dtype = export_dtype
 
-    def to_variable(self, dtype: np.dtype = None, shape: Sequence[Union[int, str]] = None):
+    def to_variable(self, dtype: np.dtype = None, shape: Sequence[int | str] = None):
         """Convert instance values to an appropriate variable with specified dtype and shape."""
         if shape is None:
             shape = []
@@ -458,7 +456,7 @@ class Constant(Tensor):
         return self._values
 
     @values.setter
-    def values(self, values: Union[np.ndarray, LazyValues]):
+    def values(self, values: np.ndarray | LazyValues):
         """Return the values of the tensor, loading them if accessed for the first time."""
         self._values = values
 

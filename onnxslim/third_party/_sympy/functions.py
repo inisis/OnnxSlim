@@ -1,8 +1,9 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
+
 import functools
 import math
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import sympy
 from sympy.core.numbers import equal_valued
@@ -126,7 +127,7 @@ class FloorDiv(sympy.Function):
     # Automatic evaluation.
     # https://docs.sympy.org/latest/guides/custom-functions.html#best-practices-for-eval
     @classmethod
-    def eval(cls, base: sympy.Integer, divisor: sympy.Integer) -> Union[sympy.Basic, None]:
+    def eval(cls, base: sympy.Integer, divisor: sympy.Integer) -> sympy.Basic | None:
         # python test/test_dynamic_shapes.py -k TestDimConstraints.test_dim_constraints_solve_full
         # Assert triggered by inequality solver
         # assert base.is_integer, base

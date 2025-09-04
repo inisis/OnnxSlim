@@ -1,6 +1,7 @@
 from typing import Union
 
 import onnx
+from __future__ import annotations
 
 
 def slim(model: Union[str, onnx.ModelProto, list[Union[str, onnx.ModelProto]]], *args, **kwargs):

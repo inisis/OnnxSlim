@@ -1,3 +1,6 @@
+# fmt: skip
+# ruff: noqa
+
 import argparse
 import dataclasses
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser

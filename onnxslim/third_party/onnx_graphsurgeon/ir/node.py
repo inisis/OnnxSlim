@@ -221,6 +221,7 @@ class Node:
         users = []
         for output in self.outputs:  # output is a Variable
             if output.is_output:
+                output.op = "output"
                 users.append(output)
             users.extend(iter(output.outputs))
         return users

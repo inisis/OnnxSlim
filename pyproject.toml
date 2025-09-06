@@ -1,0 +1,9 @@
+[tool.ruff]
+exclude = ["onnxslim/argparser.py"]
+
+[tool.black]
+exclude = '''
+(
+  onnxslim/argparser.py
+)
+'''

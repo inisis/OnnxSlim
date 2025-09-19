@@ -176,6 +176,15 @@ class TestModelZoo:
             summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
             assert summary.op_type_counts["Cast"] == 3
 
+    def test_custom(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert len(summary.op_info["/avgpool/GlobalAveragePool"].outputs) == 1
+            assert summary.op_info["/avgpool/GlobalAveragePool"].outputs[0].shape == (1, 2048, 1, 1)
 
 if __name__ == "__main__":
     import sys

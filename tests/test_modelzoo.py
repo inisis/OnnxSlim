@@ -186,6 +186,7 @@ class TestModelZoo:
             assert len(summary.op_info["/avgpool/GlobalAveragePool"].outputs) == 1
             assert summary.op_info["/avgpool/GlobalAveragePool"].outputs[0].shape == (1, 2048, 1, 1)
 
+
 if __name__ == "__main__":
     import sys
 

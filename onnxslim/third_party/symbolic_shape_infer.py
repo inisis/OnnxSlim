@@ -2826,7 +2826,6 @@ class SymbolicShapeInference:
     def _infer_impl(self, start_sympy_data=None):
         """Infer implementation details and update symbolic data and input symbols."""
         self.sympy_data_ = start_sympy_data or {}
-        self.out_mp_.graph.ClearField("value_info")
         self._apply_suggested_merge(graph_input_only=True)
         self.input_symbols_ = set()
         for i in self.out_mp_.graph.input:

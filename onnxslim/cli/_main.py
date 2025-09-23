@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import onnx
+
 from onnxslim.argparser import OnnxSlimKwargs
 
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import onnx
+from onnxslim.argparser import OnnxSlimKwargs
 
 
-def slim(model: str | onnx.ModelProto | list[str | onnx.ModelProto], *args, **kwargs):
+def slim(model: str | onnx.ModelProto | list[str | onnx.ModelProto], *args, **kwargs: OnnxSlimKwargs):
     import os
     import time
     from pathlib import Path

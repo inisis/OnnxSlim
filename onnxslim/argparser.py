@@ -2,10 +2,28 @@ import argparse
 import dataclasses
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from dataclasses import dataclass, field
-from typing import List, Optional, Type, Union, get_args, get_origin
+from typing import List, Optional, Type, Union, get_args, get_origin, TypedDict, Dict, Literal
 
-import onnxslim
+from .core.optimization import OptimizationSettings
+from .core.pattern.registry import DEFAULT_FUSION_PATTERNS
+from .version import __version__
 
+
+class OnnxSlimKwargs(TypedDict, total=False):
+    model_check: bool
+    input_shapes: Dict[str, List[int]]
+    inputs: List[str]
+    outputs: List[str]
+    no_shape_infer: bool
+    skip_optimizations: List[str]
+    dtype: Literal["float16", "float32", "uint8", "int8"]
+    skip_fusion_patterns: List[str]
+    size_threshold: int
+    inspect: bool
+    dump_to_disk: bool
+    save_as_external_data: bool
+    model_check_inputs: Optional[List[str]]
+    verbose: bool
 
 def _get_inner_type(arg_type):
     if get_origin(arg_type) is Union:
@@ -42,14 +60,14 @@ class OptimizationArguments:
         default=None,
         metadata={
             "help": "whether to skip some optimizations",
-            "choices": list(onnxslim.OptimizationSettings.keys()),
+            "choices": list(OptimizationSettings.keys()),
         },
     )
     skip_fusion_patterns: Optional[List[str]] = field(
         default=None,
         metadata={
             "help": "whether to skip the fusion of some patterns",
-            "choices": list(onnxslim.DEFAULT_FUSION_PATTERNS.keys()),
+            "choices": list(DEFAULT_FUSION_PATTERNS.keys()),
         },
     )
     size_threshold: int = field(
@@ -173,7 +191,7 @@ class OnnxSlimArgumentParser(ArgumentParser):
         # Add positional arguments separately for ModelArguments
         self.parser.add_argument("input_model", help="input onnx model")
         self.parser.add_argument("output_model", nargs="?", default=None, help="output onnx model")
-        self.parser.add_argument("-v", "--version", action="version", version=onnxslim.__version__)
+        self.parser.add_argument("-v", "--version", action="version", version=__version__)
 
     def parse_args_into_dataclasses(self):
         # Pre-parse arguments to check for `--inspect`

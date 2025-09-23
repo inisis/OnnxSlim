@@ -2,9 +2,7 @@ import os
 import warnings
 
 from onnxslim.cli import slim
-from onnxslim.core.optimization import OptimizationSettings
 from onnxslim.core.pattern.registry import (
-    DEFAULT_FUSION_PATTERNS,
     register_fusion_pattern,
 )
 from onnxslim.version import __version__

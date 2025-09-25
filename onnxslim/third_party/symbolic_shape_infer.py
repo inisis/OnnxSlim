@@ -1944,8 +1944,8 @@ class SymbolicShapeInference:
 
     def _infer_Shape(self, node):  # noqa: N802
         """Infers and sets the symbolic shape for the output node in the computation graph."""
-        start = node.attrs.get("start", 0)
-        end = node.attrs.get("end", -1)
+        start = get_attribute(node, "start", 0)
+        end = get_attribute(node, "end", -1)
 
         full_sympy_shape = self._get_sympy_shape(node, 0)
         num_dims = len(full_sympy_shape)
@@ -1958,7 +1958,7 @@ class SymbolicShapeInference:
         assert 0 <= start <= end < num_dims, \
             f"reshape start/end invalid: start={start}, end={end}, total_dims={num_dims}"
 
-        target_sympy_shape = full_sympy_shape[start:end+1]
+        target_sympy_shape = full_sympy_shape[start:end]
         self.sympy_data_[node.output[0]] = target_sympy_shape
 
     def _infer_Size(self, node):  # noqa: N802

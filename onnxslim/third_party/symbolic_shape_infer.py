@@ -1955,8 +1955,9 @@ class SymbolicShapeInference:
         if end < 0:
             end = num_dims + end
 
-        assert 0 <= start <= end < num_dims, \
+        assert 0 <= start <= end < num_dims, (
             f"reshape start/end invalid: start={start}, end={end}, total_dims={num_dims}"
+        )
 
         target_sympy_shape = full_sympy_shape[start:end]
         self.sympy_data_[node.output[0]] = target_sympy_shape

@@ -1953,7 +1953,7 @@ class SymbolicShapeInference:
         if start < 0:
             start = num_dims + start
         if end is None:
-            end = num_dims            
+            end = num_dims
         elif end < 0:
             end = num_dims + end
 

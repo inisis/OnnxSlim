@@ -105,6 +105,10 @@ def replace_custom_layer(
 def find_matches(graph: Graph, fusion_patterns: dict):
     """Find matching patterns in the graph based on provided fusion patterns."""
     match_map = {}
+
+    for subgraph in graph.subgraphs():
+        match_map = find_matches(subgraph, fusion_patterns)
+
     counter = Counter()
     for node in reversed(graph.nodes):
         if node.name not in match_map:

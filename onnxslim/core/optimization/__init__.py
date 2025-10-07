@@ -57,10 +57,7 @@ def optimize_model(model: onnx.ModelProto | gs.Graph, skip_fusion_patterns: str 
     if OptimizationSettings.graph_fusion:
         logger.debug("Start graph_fusion.")
         fusion_patterns = get_fusion_patterns(skip_fusion_patterns)
-        fusion_pairs = find_matches(graph, fusion_patterns)
-        for match in fusion_pairs.values():
-            graph.replace_custom_layer(**match)
-        graph.cleanup(remove_unused_graph_inputs=True).toposort()
+        graph_fusion(graph, fusion_patterns)
         logger.debug("Finish graph_fusion.")
     if OptimizationSettings.dead_node_elimination:
         logger.debug("Start dead_node_elimination.")
@@ -101,13 +98,23 @@ def replace_custom_layer(
         domain=domain,
     )
 
+def graph_fusion(graph: Graph, fusion_patterns: dict):
+    for subgraph in graph.subgraphs():
+        graph_fusion(subgraph, fusion_patterns)
+
+    fusion_pairs = find_matches(graph, fusion_patterns)
+    for match in fusion_pairs.values():
+        graph.replace_custom_layer(**match)
+
+    graph.cleanup(remove_unused_graph_inputs=True).toposort()
+
+
 
 def find_matches(graph: Graph, fusion_patterns: dict):
     """Find matching patterns in the graph based on provided fusion patterns."""
     match_map = {}
 
-    for subgraph in graph.subgraphs():
-        match_map = find_matches(subgraph, fusion_patterns)
+
 
     counter = Counter()
     for node in reversed(graph.nodes):

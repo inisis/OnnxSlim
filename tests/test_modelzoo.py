@@ -26,6 +26,9 @@ class TestModelZoo:
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
             ort_sess.run(None, {"input": input, "sr": sr, "state": state})
 
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["Slice"] == 4
+
     def test_decoder_with_past_model(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"

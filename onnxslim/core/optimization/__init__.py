@@ -98,6 +98,7 @@ def replace_custom_layer(
         domain=domain,
     )
 
+
 def graph_fusion(graph: Graph, fusion_patterns: dict):
     for subgraph in graph.subgraphs():
         graph_fusion(subgraph, fusion_patterns)
@@ -109,12 +110,9 @@ def graph_fusion(graph: Graph, fusion_patterns: dict):
     graph.cleanup(remove_unused_graph_inputs=True).toposort()
 
 
-
 def find_matches(graph: Graph, fusion_patterns: dict):
     """Find matching patterns in the graph based on provided fusion patterns."""
     match_map = {}
-
-
 
     counter = Counter()
     for node in reversed(graph.nodes):

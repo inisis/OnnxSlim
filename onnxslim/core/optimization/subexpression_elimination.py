@@ -63,6 +63,9 @@ def subexpression_elimination(graph):
     """Perform subexpression elimination on a computational graph to optimize node operations."""
     nodes_by_op = {}
 
+    for subgraph in graph.subgraphs():
+        subexpression_elimination(subgraph)
+
     for node in graph.nodes:
         op = node.op
         if op not in nodes_by_op:

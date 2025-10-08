@@ -599,8 +599,8 @@ def get_itemsize(dtype):
     ]:
         return 1
 
-    print(dtype)
-    raise
+    print(f"Unknown ONNX dtype: {dtype}")
+    raise ValueError(f"Unsupported TensorProto dtype: {dtype}")
 
 
 def calculate_tensor_size(tensor):

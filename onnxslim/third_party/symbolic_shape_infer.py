@@ -530,7 +530,7 @@ class SymbolicShapeInference:
             # (2) opset version >= 9. In older version, initializer is required in graph input by onnx spec.
             # (3) The initializer is not in graph input. The means the node input is "constant" in inference.
             initializers = []
-            if (get_opset(self.out_mp_) >= 9) and node.op_type == "Unsqueeze":
+            if (get_opset(self.out_mp_) >= 9) and (node.op_type == "Unsqueeze" or node.op_type == "ReduceMax"):
                 initializers = [
                     self.initializers_[name]
                     for name in node.input
@@ -1042,6 +1042,9 @@ class SymbolicShapeInference:
     def _infer_Constant(self, node):  # noqa: N802
         """Infer the constant value for a given node and store it in sympy_data_."""
         t = get_attribute(node, "value")
+        # Lower constant nodes to initializers
+        t.name = node.output[0]
+        self.initializers_[node.output[0]] = t
         self.sympy_data_[node.output[0]] = numpy_helper.to_array(t)
 
     def _infer_ConstantOfShape(self, node):  # noqa: N802

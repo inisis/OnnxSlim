@@ -99,15 +99,15 @@ def replace_custom_layer(
     )
 
 
-def graph_fusion(graph: Graph, fusion_patterns: dict):
+def graph_fusion(graph: Graph, fusion_patterns: dict, is_subgraph=False):
     for subgraph in graph.subgraphs():
-        graph_fusion(subgraph, fusion_patterns)
+        graph_fusion(subgraph, fusion_patterns, is_subgraph=True)
 
     fusion_pairs = find_matches(graph, fusion_patterns)
     for match in fusion_pairs.values():
         graph.replace_custom_layer(**match)
 
-    graph.cleanup(remove_unused_graph_inputs=True).toposort()
+    graph.cleanup(remove_unused_graph_inputs=True if not is_subgraph else False).toposort()
 
 
 def find_matches(graph: Graph, fusion_patterns: dict):

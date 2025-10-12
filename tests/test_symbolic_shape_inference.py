@@ -11,8 +11,8 @@ os.environ["ONNXSLIM_FORCE_ONNXRUNTIME_SHAPE_INFERENCE"] = "1"
 from onnxslim.core import shape_infer
 from onnxslim.utils import print_model_info_as_table, summarize_model
 
-
 MODELZOO_PATH = "/data/modelzoo"
+
 
 class TestSymbolicShapeInference:
     def test_einsum(self, request):
@@ -79,7 +79,6 @@ class TestSymbolicShapeInference:
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
         model = onnx.load(filename)
         model = shape_infer(model)
-
 
 
 if __name__ == "__main__":

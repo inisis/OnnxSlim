@@ -51,6 +51,7 @@ jobs:
           coverage run --parallel-mode -m pytest tests/test_fusion_patterns.py
           coverage run --parallel-mode -m pytest tests/test_cli_main.py
           coverage run --parallel-mode -m pytest tests/test_utils.py
+          coverage run --parallel-mode -m pytest tests/test_symbolic_shape_inference.py
 
       - name: Combine and Generate Coverage Report
         run: |

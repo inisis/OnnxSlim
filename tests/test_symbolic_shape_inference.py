@@ -6,9 +6,13 @@ import pytest
 import torch
 import torch.nn as nn
 
-from onnxslim.third_party.symbolic_shape_infer import SymbolicShapeInference
+os.environ["ONNXSLIM_FORCE_ONNXRUNTIME_SHAPE_INFERENCE"] = "1"
+
+from onnxslim.core import shape_infer
 from onnxslim.utils import print_model_info_as_table, summarize_model
 
+
+MODELZOO_PATH = "/data/modelzoo"
 
 class TestSymbolicShapeInference:
     def test_einsum(self, request):
@@ -41,7 +45,7 @@ class TestSymbolicShapeInference:
                     if output.type.HasField("tensor_type"):
                         output.type.tensor_type.shape.Clear()
 
-                model = SymbolicShapeInference.infer_shapes(model, auto_merge=True)
+                model = shape_infer(model)
                 summary = summarize_model(model)
                 if verbose:
                     print_model_info_as_table(summary)
@@ -69,6 +73,13 @@ class TestSymbolicShapeInference:
 
         summary, output = transform(((2, 5), (3, 5, 4), (2, 4)), "bn,anm,bm->ba")
         assert summary.output_info[0].shape == output.shape
+
+    def test_layer_normalization_2d_axis0_expanded_ver18(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+        model = onnx.load(filename)
+        model = shape_infer(model)
+
 
 
 if __name__ == "__main__":

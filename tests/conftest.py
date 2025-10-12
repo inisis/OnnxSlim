@@ -1,7 +1,6 @@
-from test_benchmark import TestModelZoo
-
-
 def pytest_sessionfinish(session, exitstatus):
+    from test_benchmark import TestModelZoo
+
     if any("test_benchmark.py" in str(item.nodeid) for item in session.items):
         import matplotlib.pyplot as plt
         import numpy as np

@@ -530,7 +530,7 @@ class SymbolicShapeInference:
             # (2) opset version >= 9. In older version, initializer is required in graph input by onnx spec.
             # (3) The initializer is not in graph input. The means the node input is "constant" in inference.
             initializers = []
-            if (get_opset(self.out_mp_) >= 9) and (node.op_type == "Unsqueeze" or node.op_type == "ReduceMax"):
+            if (get_opset(self.out_mp_) >= 9) and (node.op_type == "Unsqueeze" or node.op_type == "ReduceMax" or node.op_type == "ReduceMean"):
                 initializers = [
                     self.initializers_[name]
                     for name in node.input

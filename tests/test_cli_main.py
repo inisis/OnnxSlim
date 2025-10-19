@@ -16,13 +16,13 @@ pytestmark = pytest.mark.skipif(not is_onnxruntime_available(), reason="ONNXRunt
 # Use a simple model for testing
 def create_test_model():
     # Create a simple model with Add op
-    input1 = onnx.helper.make_tensor_value_info("input1", onnx.TensorProto.FLOAT, [1, 3, 224, 224])
-    input2 = onnx.helper.make_tensor_value_info("input2", onnx.TensorProto.FLOAT, [1, 3, 224, 224])
+    input1 = onnx.helper.make_tensor_value_info("input:1", onnx.TensorProto.FLOAT, [1, 3, 224, 224])
+    input2 = onnx.helper.make_tensor_value_info("input:2", onnx.TensorProto.FLOAT, [1, 3, 224, 224])
     output = onnx.helper.make_tensor_value_info("output", onnx.TensorProto.FLOAT, [1, 3, 224, 224])
 
     add_node = onnx.helper.make_node(
         "Add",
-        ["input1", "input2"],
+        ["input:1", "input:2"],
         ["output"],
     )
 
@@ -74,7 +74,7 @@ class TestCliMain:
             onnx.save(model, input_path)
 
             # Test slim function with input shape modification
-            slim(input_path, output_path, input_shapes=["input1:1,3,112,112", "input2:1,3,112,112"])
+            slim(input_path, output_path, input_shapes=["input:1:1,3,112,112", "input:2:1,3,112,112"])
 
             # Load the output model and verify
             output_model = onnx.load(output_path)
@@ -125,7 +125,7 @@ class TestCliMain:
                 input_path,
                 output_path,
                 model_check=True,
-                model_check_inputs=[f"input1:{input1_path}", f"input2:{input2_path}"],
+                model_check_inputs=[f"input:1:{input1_path}", f"input:2:{input2_path}"],
             )
 
             # Verify the output model exists
@@ -204,7 +204,7 @@ class TestCliMainEntryPoint:
             # Mock sys.argv for main function with input shapes
             with patch(
                 "sys.argv",
-                ["onnxslim", input_path, output_path, "--input-shapes", "input1:1,3,112,112", "input2:1,3,112,112"],
+                ["onnxslim", input_path, output_path, "--input-shapes", "input:1:1,3,112,112", "input:2:1,3,112,112"],
             ):
                 # Test main function
                 exit_code = main()

@@ -133,7 +133,7 @@ class PatternMatcher:
             """
             if pattern_node.op == "input":
                 if hasattr(self, pattern_node.name):
-                    if getattr(self, pattern_node.name) == pattern_node:
+                    if getattr(self, pattern_node.name) == node:
                         return True
                     else:
                         return False

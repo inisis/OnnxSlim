@@ -48,10 +48,10 @@ class TestPatternGenerator:
         os.makedirs(directory, exist_ok=True)
 
         pattern_filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(p, input, pattern_filename)
+        torch.onnx.export(p, input, pattern_filename, opset_version=17, dynamo=False)
 
         model_filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(m, input, model_filename)
+        torch.onnx.export(m, input, model_filename, opset_version=17, dynamo=False)
 
         model = onnx.load(pattern_filename)
         pgen = PatternGenerator(model)

@@ -41,7 +41,7 @@ class ConvAddMatcher(PatternMatcher):
                 conv_bias = conv_node.inputs[2].values + node.inputs[1].values.squeeze()
 
             inputs = []
-            inputs.append(list(conv_node.inputs)[0])
+            inputs.append(next(iter(conv_node.inputs)))
             inputs.append(conv_weight)
             weight_name = list(conv_node.inputs)[1].name
             if weight_name.endswith("weight"):

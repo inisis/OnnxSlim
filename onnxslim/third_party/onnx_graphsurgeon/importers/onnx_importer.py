@@ -357,7 +357,7 @@ class OnnxImporter(BaseImporter):
     @staticmethod
     def import_function(
         onnx_function: onnx.FunctionProto,
-        model_opset: int = None,
+        model_opset: int | None = None,
         model_import_domains: onnx.OperatorSetIdProto = None,
     ) -> Function:
         """Imports an ONNX function to a Function object using the model opset and import domains."""
@@ -405,13 +405,13 @@ class OnnxImporter(BaseImporter):
     @staticmethod
     def import_graph(
         onnx_graph: onnx.GraphProto,
-        tensor_map: OrderedDict[str, Tensor] = None,
+        tensor_map: OrderedDict[str, Tensor] | None = None,
         opset=None,
         import_domains: onnx.OperatorSetIdProto = None,
         ir_version=None,
-        producer_name: str = None,
-        producer_version: str = None,
-        functions: list[Function] = None,
+        producer_name: str | None = None,
+        producer_version: str | None = None,
+        functions: list[Function] | None = None,
         metadata_props=None,
     ) -> Graph:
         """

@@ -76,7 +76,7 @@ class TestTimmClass:
             pytest.skip(f"Skipping model {model_name}: estimated memory {estimated_memory:.2f} GB exceeds limit.")
 
         input_size = model.default_cfg.get("input_size")
-        x = torch.randn((1,) + input_size)
+        x = torch.randn((1, *input_size))
         directory = f"tmp/{request.node.name}"
         try:
             os.makedirs(directory, exist_ok=True)
@@ -85,7 +85,7 @@ class TestTimmClass:
             slim_filename = f"{directory}/{request.node.name}_slim.onnx"
             torch.onnx.export(model, x, filename)
         except Exception as e:
-            print(f"An unexpected error occurred: {str(e)}")
+            print(f"An unexpected error occurred: {e!s}")
             return
         if not os.path.exists(filename):
             return

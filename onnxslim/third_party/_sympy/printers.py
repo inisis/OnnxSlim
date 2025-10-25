@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import sys
-from typing import Optional
 
 import sympy
 from sympy.printing.precedence import PRECEDENCE, precedence
@@ -22,7 +23,7 @@ class ExprPrinter(StrPrinter):
     def _print_Not(self, expr: sympy.Expr) -> str:
         return f"not ({self._print(expr.args[0])})"
 
-    def _print_Add(self, expr: sympy.Expr, order: Optional[str] = None) -> str:
+    def _print_Add(self, expr: sympy.Expr, order: str | None = None) -> str:
         return self.stringify(expr.args, " + ", precedence(expr))
 
     def _print_Relational(self, expr: sympy.Expr) -> str:

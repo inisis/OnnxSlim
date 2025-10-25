@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 
 DEFAULT_FUSION_PATTERNS = OrderedDict()
@@ -12,7 +14,7 @@ def register_fusion_pattern(fusion_pattern):
     DEFAULT_FUSION_PATTERNS[layer_type] = fusion_pattern
 
 
-def get_fusion_patterns(skip_fusion_patterns: str = None):
+def get_fusion_patterns(skip_fusion_patterns: str | None = None):
     """Returns a copy of the default fusion patterns, optionally excluding specific patterns."""
     default_fusion_patterns = DEFAULT_FUSION_PATTERNS.copy()
     if skip_fusion_patterns:

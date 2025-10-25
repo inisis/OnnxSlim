@@ -53,7 +53,7 @@ class ConvBatchNormMatcher(PatternMatcher):
             conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt * bn_scale + bn_bias
 
             inputs = []
-            inputs.append(list(conv_transpose_node.inputs)[0])
+            inputs.append(next(iter(conv_transpose_node.inputs)))
             weight_name = list(conv_transpose_node.inputs)[1].name
             if weight_name.endswith("weight"):
                 bias_name = f"{weight_name[:-6]}bias"

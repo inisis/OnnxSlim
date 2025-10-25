@@ -82,7 +82,7 @@ class PatternMapping(dict):
     def __str__(self) -> str:
         """Returns a string representation of the pattern mapping, including inputs, outputs, and constants."""
         if self.onnx_node is None:
-            return "{" + str.join(", ", [f"{key}: {str(value)}" for key, value in self.items()]) + "}"
+            return "{" + str.join(", ", [f"{key}: {value!s}" for key, value in self.items()]) + "}"
         return self.onnx_node.name
 
 

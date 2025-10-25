@@ -65,7 +65,7 @@ class Tensor:
     def to_constant(
         self,
         values: np.ndarray,
-        data_location: int = None,
+        data_location: int | None = None,
         export_dtype: np.dtype | onnx.TensorProto.DataType = None,
     ):
         """
@@ -91,7 +91,7 @@ class Tensor:
 
         return self
 
-    def to_variable(self, dtype: np.dtype | onnx.TensorProto.DataType = None, shape: Sequence[int | str] = None):
+    def to_variable(self, dtype: np.dtype | onnx.TensorProto.DataType = None, shape: Sequence[int | str] | None = None):
         """
         Modifies this tensor in-place to convert it to a Variable. This means that all consumers/producers of the tensor
         will see the update.
@@ -199,7 +199,7 @@ class Variable(Tensor):
         self,
         name: str,
         dtype: np.dtype | onnx.TensorProto.DataType = None,
-        shape: Sequence[int | str] = None,
+        shape: Sequence[int | str] | None = None,
         type: str = "tensor_type",
     ):
         """
@@ -390,7 +390,7 @@ class Constant(Tensor):
         self,
         name: str,
         values: np.ndarray | LazyValues,
-        data_location: int = None,
+        data_location: int | None = None,
         export_dtype: np.dtype | onnx.TensorProto.DataType = None,
     ):
         """
@@ -426,7 +426,7 @@ class Constant(Tensor):
         self.data_location = data_location
         self._export_dtype = export_dtype
 
-    def to_variable(self, dtype: np.dtype = None, shape: Sequence[int | str] = None):
+    def to_variable(self, dtype: np.dtype = None, shape: Sequence[int | str] | None = None):
         """Convert instance values to an appropriate variable with specified dtype and shape."""
         if shape is None:
             shape = []

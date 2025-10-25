@@ -58,7 +58,7 @@ class SlicePatternMatcher(PatternMatcher):
                     inputs = []
                     inputs.extend(
                         (
-                            list(first_slice_node.inputs)[0],
+                            next(iter(first_slice_node.inputs)),
                             gs.Constant(
                                 second_slice_node_inputs[1].name + "_starts",
                                 values=np.array(new_starts, dtype=np.int64),

@@ -100,17 +100,17 @@ class Graph:
 
     def __init__(
         self,
-        nodes: Sequence[Node] = None,
-        inputs: Sequence[Tensor] = None,
-        outputs: Sequence[Tensor] = None,
+        nodes: Sequence[Node] | None = None,
+        inputs: Sequence[Tensor] | None = None,
+        outputs: Sequence[Tensor] | None = None,
         name=None,
         doc_string=None,
         opset=None,
         import_domains=None,
         ir_version=None,
-        producer_name: str = None,
-        producer_version: str = None,
-        functions: Sequence[Function] = None,
+        producer_name: str | None = None,
+        producer_version: str | None = None,
+        functions: Sequence[Function] | None = None,
         metadata_props=None,
     ):
         """
@@ -347,7 +347,7 @@ class Graph:
                     func_ids.add(func.unique_id)
             return self.functions
 
-        for graph in self.functions + [self]:
+        for graph in [*self.functions, self]:
             for subgraph in graph.subgraphs(recursive=True):
                 new_list = absorb_function_list(subgraph.functions)
                 subgraph._functions = new_list
@@ -774,7 +774,7 @@ class Graph:
                     if len(node.attrs) != 1:
                         G_LOGGER.warning("Constant node must contain exactly one attribute")
                         continue
-                    attr_name, attr_val = list(node.attrs.items())[0]
+                    attr_name, attr_val = next(iter(node.attrs.items()))
                     allowed_attrs = {
                         "value",
                         "value_float",
@@ -975,7 +975,7 @@ class Graph:
 
         def get_scalar_value(tensor):
             """Gets the scalar value of a constant tensor with a single item."""
-            return list(tensor.values)[0] if tensor.shape else tensor.values
+            return next(iter(tensor.values)) if tensor.shape else tensor.values
 
         def fold_shape(tensor):
             """Returns the input tensor shape if available, otherwise returns None."""
@@ -1409,7 +1409,7 @@ class Graph:
         self.nodes.append(node)
         return node.outputs
 
-    def copy(self, tensor_map: OrderedDict[str, Tensor] = None):
+    def copy(self, tensor_map: OrderedDict[str, Tensor] | None = None):
         """
         Copy the graph.
 

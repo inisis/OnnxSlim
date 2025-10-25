@@ -24,7 +24,7 @@ def _is_file(f):
     return isinstance(f, io.IOBase)
 
 
-__all__ = ["tabulate", "tabulate_formats", "simple_separated_format"]
+__all__ = ["simple_separated_format", "tabulate", "tabulate_formats"]
 try:
     from .version import version as __version__  # noqa: F401
 except ImportError:
@@ -1202,7 +1202,7 @@ def _format(val, valtype, floatfmt, intfmt, missingval="", has_invisible=True):
     if val is None:
         return missingval
 
-    if valtype is str or valtype is not int and valtype is not bytes and valtype is not float:
+    if valtype is str or (valtype is not int and valtype is not bytes and valtype is not float):
         return f"{val}"
     elif valtype is int:
         return format(val, intfmt)
@@ -1276,7 +1276,7 @@ def _prepend_row_index(rows, index):
     index_iter = iter(index)
     for row in sans_rows:
         index_v = next(index_iter)
-        new_rows.append([index_v] + list(row))
+        new_rows.append([index_v, *list(row)])
     rows = new_rows
     _reinsert_separating_lines(rows, separating_lines)
     return rows
@@ -1325,7 +1325,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
     """
     try:
         bool(headers)
-        is_headers2bool_broken = False  # noqa
+        is_headers2bool_broken = False
     except ValueError:  # numpy.ndarray, pandas.core.index.Index, ...
         is_headers2bool_broken = True  # noqa
         headers = list(headers)
@@ -1423,7 +1423,7 @@ def _normalize_tabular_data(tabular_data, headers, showindex="default"):
     if headers == "firstrow":
         if len(rows) > 0:
             if index is not None:
-                headers = [index[0]] + list(rows[0])
+                headers = [index[0], *list(rows[0])]
                 index = index[1:]
             else:
                 headers = rows[0]
@@ -2534,8 +2534,10 @@ class _CustomTextWrap(textwrap.TextWrapper):
                 if (
                     self.max_lines is None
                     or len(lines) + 1 < self.max_lines
-                    or (not chunks or self.drop_whitespace and len(chunks) == 1 and not chunks[0].strip())
-                    and cur_len <= width
+                    or (
+                        (not chunks or (self.drop_whitespace and len(chunks) == 1 and not chunks[0].strip()))
+                        and cur_len <= width
+                    )
                 ):
                     # Convert current line back to a string and store it in
                     # list of all lines (return value).

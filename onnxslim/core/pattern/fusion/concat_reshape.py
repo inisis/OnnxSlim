@@ -36,7 +36,7 @@ class ConcatReshapeMatcher(PatternMatcher):
     def rewrite(self, opset=11):
         match_case = {}
         concat_node = self.concat_0
-        index = [idx for idx, i in enumerate(concat_node.inputs) if isinstance(i, gs.Variable)][0]
+        index = next(idx for idx, i in enumerate(concat_node.inputs) if isinstance(i, gs.Variable))
         constant = gs.Constant(
             concat_node.inputs[index].name + "_fixed",
             values=np.array([-1], dtype=np.int64),

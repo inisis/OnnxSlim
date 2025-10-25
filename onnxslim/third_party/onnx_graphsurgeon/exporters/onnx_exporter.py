@@ -278,8 +278,8 @@ class OnnxExporter(BaseExporter):
     def export_graph(
         graph_proto: onnx.GraphProto,
         graph: Graph,
-        tensor_map: OrderedDict[str, Tensor] = None,
-        subgraph_tensor_map: OrderedDict[str, Tensor] = None,
+        tensor_map: OrderedDict[str, Tensor] | None = None,
+        subgraph_tensor_map: OrderedDict[str, Tensor] | None = None,
         do_type_check=True,
     ) -> None:
         """

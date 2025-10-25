@@ -42,11 +42,11 @@ class Node:
     def __init__(
         self,
         op: str,
-        name: str = None,
-        attrs: dict[str, object] = None,
-        inputs: list[Tensor] = None,
-        outputs: list[Tensor] = None,
-        domain: str = None,
+        name: str | None = None,
+        attrs: dict[str, object] | None = None,
+        inputs: list[Tensor] | None = None,
+        outputs: list[Tensor] | None = None,
+        domain: str | None = None,
     ):
         """
         A node represents an operation in a graph, and consumes zero or more Tensors, and produces zero or more Tensors.
@@ -152,8 +152,8 @@ class Node:
 
     def copy(
         self,
-        inputs: list[Tensor] = None,
-        outputs: list[Tensor] = None,
+        inputs: list[Tensor] | None = None,
+        outputs: list[Tensor] | None = None,
         tensor_map=None,
     ):
         """

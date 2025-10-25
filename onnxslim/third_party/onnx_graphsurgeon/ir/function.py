@@ -43,15 +43,15 @@ class Function(Graph):
     def __init__(
         self,
         name: str,
-        domain: str = None,
-        nodes: Sequence[Node] = None,
-        inputs: Sequence[Tensor] = None,
-        outputs: Sequence[Tensor] = None,
-        doc_string: str = None,
-        opset: int = None,
-        import_domains: Sequence[onnx.OperatorSetIdProto] = None,
-        functions: Sequence[Function] = None,
-        attrs: dict = None,
+        domain: str | None = None,
+        nodes: Sequence[Node] | None = None,
+        inputs: Sequence[Tensor] | None = None,
+        outputs: Sequence[Tensor] | None = None,
+        doc_string: str | None = None,
+        opset: int | None = None,
+        import_domains: Sequence[onnx.OperatorSetIdProto] | None = None,
+        functions: Sequence[Function] | None = None,
+        attrs: dict | None = None,
     ):
         """
         Args:

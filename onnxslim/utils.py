@@ -17,6 +17,7 @@ from onnxslim.third_party.onnx_graphsurgeon.logger.logger import G_LOGGER
 
 logger = logging.getLogger("onnxslim")
 
+
 import ml_dtypes
 
 try:
@@ -204,7 +205,7 @@ def onnxruntime_inference(model: onnx.ModelProto, input_data: dict) -> dict[str,
     return onnx_output, model
 
 
-def format_model_info(model_info_list: dict | list[dict], elapsed_time: float = None):
+def format_model_info(model_info_list: dict | list[dict], elapsed_time: float | None = None):
     assert model_info_list, "model_info_list must contain more than one model info"
     from colorama import Fore, init
 
@@ -273,14 +274,14 @@ def format_model_info(model_info_list: dict | list[dict], elapsed_time: float = 
         final_op_info.extend(
             (
                 [SEPARATING_LINE] * (len(model_info_list) + 1),
-                ["Elapsed Time"] + [f"{elapsed_time:.2f} s"],
+                ["Elapsed Time", f"{elapsed_time:.2f} s"],
             )
         )
 
     return final_op_info
 
 
-def print_model_info_as_table(model_info_list: dict | list[dict], elapsed_time: float = None):
+def print_model_info_as_table(model_info_list: dict | list[dict], elapsed_time: float | None = None):
     """Prints the model information as a formatted table for the given model name and list of model details."""
     if not isinstance(model_info_list, (list, tuple)):
         model_info_list = [model_info_list]
@@ -505,7 +506,7 @@ def save(
     model_path: str,
     model_check: bool = False,
     save_as_external_data: bool = False,
-    model_info: dict = None,
+    model_info: dict | None = None,
 ):
     """Save an ONNX model to a specified path, with optional model checking for validity."""
     if model_check:
@@ -776,9 +777,7 @@ def update_outputs_dims(
         elif isinstance(dim, str):
             dim_proto.dim_param = dim
         else:
-            raise ValueError(  # noqa: TRY004
-                f"Only int or str is accepted as dimension value, incorrect type: {type(dim)}"
-            )
+            raise ValueError(f"Only int or str is accepted as dimension value, incorrect type: {type(dim)}")
 
     for output in model.graph.output:
         output_name = output.name

@@ -51,7 +51,7 @@ class OptimizationSettings:
         return any([getattr(cls, key) for key in cls.keys()])
 
 
-def optimize_model(model: onnx.ModelProto | gs.Graph, skip_fusion_patterns: str = None) -> onnx.ModelProto:
+def optimize_model(model: onnx.ModelProto | gs.Graph, skip_fusion_patterns: str | None = None) -> onnx.ModelProto:
     """Optimize and transform the given ONNX model using various fusion patterns and graph rewriting techniques."""
     graph = model if isinstance(model, gs.Graph) else gs.import_onnx(model)
     if OptimizationSettings.graph_fusion:
@@ -85,7 +85,7 @@ def replace_custom_layer(
     inputs,
     outputs: list[str],
     name: str,
-    attrs: dict = None,
+    attrs: dict | None = None,
     domain: str = "ai.onnx.contrib",
 ):
     """Replace a custom layer in the computational graph with specified parameters and domain."""

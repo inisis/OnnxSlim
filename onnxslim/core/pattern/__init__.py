@@ -122,7 +122,7 @@ class PatternMatcher:
 
         def match_(node, pattern_node):
             """Match a given node to a pattern by comparing input names with the match point node from the pattern
-            dictionary.terminak
+            dictionary.terminak.
             """
             if pattern_node.op == "input":
                 if hasattr(self, pattern_node.name):

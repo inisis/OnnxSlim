@@ -37,8 +37,7 @@ class PadConvMatcher(PatternMatcher):
 
         pad_inputs = len(pad_node.inputs)
         if pad_inputs < 3 or (
-            pad_inputs >= 3
-            and (isinstance(pad_node.inputs[2], gs.Constant) and pad_node.inputs[2].values == 0)
+            (pad_inputs >= 3 and (isinstance(pad_node.inputs[2], gs.Constant) and pad_node.inputs[2].values == 0))
             or (pad_inputs >= 3 and (isinstance(pad_node.inputs[2], gs.Variable) and pad_node.inputs[2].name == ""))
         ):
             if (

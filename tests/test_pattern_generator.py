@@ -9,8 +9,8 @@ from onnxslim import register_fusion_pattern, slim
 from onnxslim.core.pattern import Pattern, PatternGenerator, PatternMatcher
 from onnxslim.utils import summarize_model
 
-
 MODELZOO_PATH = "/data/modelzoo"
+
 
 class TestPatternGenerator:
     def test_gelu(self, request):
@@ -85,15 +85,17 @@ class TestPatternGenerator:
 
     def test_quick_gelu(self, request):
         """Test the Quick GELU activation function within the PatternModel class."""
+
         class SiluPatternMatcher(PatternMatcher):
             def __init__(self, priority):
                 r"""
                 Initializes a `SiluPatternMatcher` to identify and fuse Silu patterns in a computational graph.
+
                 input
                 /     \
                 |    Sigmoid
                 \     /
-                Mul
+                Mul.
                 """
                 pattern = Pattern(
                     """
@@ -130,6 +132,7 @@ class TestPatternGenerator:
                         "domain": None,
                     }
                 }
+
         register_fusion_pattern(SiluPatternMatcher(1))
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
@@ -138,6 +141,7 @@ class TestPatternGenerator:
         slim(filename, f"{directory}/{request.node.name}_slim.onnx")
         summary = summarize_model(f"{directory}/{request.node.name}_slim.onnx")
         assert summary.op_type_counts["Silu"] == 0
+
 
 if __name__ == "__main__":
     import sys

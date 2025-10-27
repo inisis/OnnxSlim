@@ -11,6 +11,7 @@ from utils import run_onnx
 
 import onnxslim
 from onnxslim.core.pattern.fusion.concat_reshape import ConcatReshapeMatcher
+from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
 from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher
 from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher
 from onnxslim.core.pattern.fusion.gelu import GeluPatternMatcher

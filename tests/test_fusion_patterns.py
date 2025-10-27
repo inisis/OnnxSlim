@@ -11,6 +11,7 @@ from utils import run_onnx
 
 import onnxslim
 from onnxslim.core.pattern.fusion.concat_reshape import ConcatReshapeMatcher
+from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
 from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher
 from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher
 from onnxslim.core.pattern.fusion.gelu import GeluPatternMatcher
@@ -20,6 +21,66 @@ from onnxslim.core.pattern.fusion.reduce import ReducePatternMatcher
 
 
 class TestFusionPatterns(unittest.TestCase):
+    def test_convmul_pattern(self):
+        # Test the ConvMul pattern matcher
+        matcher = ConvMulMatcher(1)
+        self.assertTrue(hasattr(matcher, "match"))
+        self.assertTrue(hasattr(matcher, "rewrite"))
+
+        # Create a model with Conv + Mul pattern
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 112, 112])
+
+        # Create weights for Conv and scale factors for Mul (both 4D)
+        weights = numpy_helper.from_array(np.random.randn(3, 3, 3, 3).astype(np.float32), name="weights")
+        bias = numpy_helper.from_array(np.random.randn(3).astype(np.float32), name="bias")
+        scale_factors = numpy_helper.from_array(np.random.randn(1, 3, 1, 1).astype(np.float32), name="scale_factors")
+
+        # Create Conv node
+        conv_node = helper.make_node(
+            "Conv",
+            ["input", "weights", "bias"],
+            ["conv_output"],
+            kernel_shape=[3, 3],
+            strides=[2, 2],
+            pads=[1, 1, 1, 1],
+            dilations=[1, 1],
+        )
+
+        # Create Mul node with 4D scale factors
+        mul_node = helper.make_node(
+            "Mul",
+            ["conv_output", "scale_factors"],
+            ["output"],
+        )
+
+        graph = helper.make_graph(
+            [conv_node, mul_node], "convmul-test", [input_tensor], [output_tensor], initializer=[weights, bias, scale_factors]
+        )
+
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+
+        # Test with onnxslim optimization
+        input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            # Optimize the model
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            # Check that the outputs are the same
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
+
+            # Check that the nodes were fused
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+
+        os.unlink(f.name)
+
     def test_convadd_pattern(self):
         # Test the ConvAdd pattern matcher
         matcher = ConvAddMatcher(1)

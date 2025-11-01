@@ -15,7 +15,7 @@ from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
 from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher
 from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher
 from onnxslim.core.pattern.fusion.gelu import GeluPatternMatcher
-from onnxslim.core.pattern.fusion.gemm import MatMulAddPatternMatcher
+from onnxslim.core.pattern.fusion.gemm import MatMulAddPatternMatcher, GemmAddPatternMatcher
 from onnxslim.core.pattern.fusion.padconv import PadConvMatcher
 from onnxslim.core.pattern.fusion.reduce import ReducePatternMatcher
 
@@ -419,6 +419,66 @@ class TestFusionPatterns(unittest.TestCase):
 
         # Create 3D dummy input (batch_size, sequence_length, hidden_size)
         dummy_input = torch.randn(2, 10, 512, dtype=torch.float32)
+        input_data = dummy_input.numpy()
+
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            # Export the model to ONNX
+            torch.onnx.export(
+                model,
+                dummy_input,
+                f.name,
+                export_params=True,
+                opset_version=11,
+                input_names=["input"],
+                output_names=["output"],
+            )
+            # Run the original model
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            # Load the ONNX model
+            onnx_model = onnx.load(f.name)
+
+            # Optimize the model with onnxslim
+            optimized_model = onnxslim.slim(onnx_model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+            # Check that the outputs are the same
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], atol=1e-5)
+
+            # Check that optimization occurred (nodes were fused)
+            self.assertLessEqual(len(onnx_model.graph.node), len(optimized_model.graph.node))
+
+        os.unlink(f.name)
+
+    def test_gemm_reshape_add_pattern(self):
+        # Test the MatMulAdd pattern matcher with 3D input
+        matcher = GemmAddPatternMatcher(1)
+        self.assertTrue(hasattr(matcher, "match"))
+        self.assertTrue(hasattr(matcher, "rewrite"))
+
+        import torch
+        import torch.nn as nn
+
+        class LinearReshapeAddModel(nn.Module):
+            def __init__(self, in_features=8, out_features=4, seq_len=3):
+                super().__init__()
+                self.linear = nn.Linear(in_features, out_features)
+                self.seq_len = seq_len
+                # Bias that doesn't match Gemm’s (N,) — e.g., shaped (1, seq_len, out_features)
+                self.extra_bias = nn.Parameter(torch.randn(1, seq_len, out_features))
+
+            def forward(self, x):
+                # x: [B, seq_len, in_features]
+                y = self.linear(x)              # → [B, seq_len, out_features]
+                y = y.reshape(x.shape[0], self.seq_len, -1)
+                y = y + self.extra_bias         # problematic Add (broadcasts across batch)
+                return y
+
+        # Create model instance
+        model = LinearReshapeAddModel()
+        model.eval()  # Set to evaluation mode
+
+        dummy_input = torch.randn(2, 3, 8, dtype=torch.float32)
         input_data = dummy_input.numpy()
 
         with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:

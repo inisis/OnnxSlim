@@ -11,11 +11,14 @@ from utils import run_onnx
 
 import onnxslim
 from onnxslim.core.pattern.fusion.concat_reshape import ConcatReshapeMatcher
-from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
 from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher
 from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher
+from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
 from onnxslim.core.pattern.fusion.gelu import GeluPatternMatcher
-from onnxslim.core.pattern.fusion.gemm import MatMulAddPatternMatcher, GemmAddPatternMatcher
+from onnxslim.core.pattern.fusion.gemm import (
+    GemmAddPatternMatcher,
+    MatMulAddPatternMatcher,
+)
 from onnxslim.core.pattern.fusion.padconv import PadConvMatcher
 from onnxslim.core.pattern.fusion.reduce import ReducePatternMatcher
 
@@ -55,7 +58,11 @@ class TestFusionPatterns(unittest.TestCase):
         )
 
         graph = helper.make_graph(
-            [conv_node, mul_node], "convmul-test", [input_tensor], [output_tensor], initializer=[weights, bias, scale_factors]
+            [conv_node, mul_node],
+            "convmul-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[weights, bias, scale_factors],
         )
 
         model = helper.make_model(graph, producer_name="onnxslim-test")
@@ -469,9 +476,9 @@ class TestFusionPatterns(unittest.TestCase):
 
             def forward(self, x):
                 # x: [B, seq_len, in_features]
-                y = self.linear(x)              # → [B, seq_len, out_features]
+                y = self.linear(x)  # → [B, seq_len, out_features]
                 y = y.reshape(x.shape[0], self.seq_len, -1)
-                y = y + self.extra_bias         # problematic Add (broadcasts across batch)
+                y = y + self.extra_bias  # problematic Add (broadcasts across batch)
                 return y
 
         # Create model instance

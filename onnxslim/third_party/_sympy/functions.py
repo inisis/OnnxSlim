@@ -52,7 +52,7 @@ def simple_floordiv_gcd(p: sympy.Basic, q: sympy.Basic) -> sympy.Basic:
 
     We try to rewrite p and q in the form n*e*p1 + n*e*p2 and n*e*q0, where n is the greatest common integer factor and
     e is the largest syntactic common factor (i.e., common sub-expression) in p and q. Then the gcd returned is n*e,
-    cancelling which we would be left with p1 + p2 and q0.
+    canceling which we would be left with p1 + p2 and q0.
 
     Note that further factoring of p1 + p2 and q0 might be possible with sympy.factor (which uses domain-specific
     theories). E.g., we are unable to find that x*y + x + y + 1 is divisible by x + 1. More generally, when q is of the

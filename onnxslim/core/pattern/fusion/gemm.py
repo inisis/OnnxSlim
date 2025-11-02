@@ -289,16 +289,38 @@ class GemmAddPatternMatcher(PatternMatcher):
             )
             and add_bias_variable
             and len(reshape_node.users) == 1
+            and gemm_node.outputs[0].shape
         ):
+
+            def can_broadcast_to(shape_from, shape_to):
+                """Return True if shape_from can broadcast to shape_to per NumPy rules."""
+                if shape_from is None or shape_to is None:
+                    return False
+                try:
+                    np.empty(shape_to, dtype=np.float32) + np.empty(shape_from, dtype=np.float32)
+                    return True
+                except ValueError:
+                    return False
+
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if gemm_bias_constant:
                 gemm_bias = gemm_bias_constant.values
                 add_bias = add_bias_variable.values
-                gemm_bias_fused = gemm_bias + add_bias
-                gemm_bias_fused_constant = gs.Constant(gemm_bias_constant.name + "_fused", values=gemm_bias_fused)
-                gemm_node.inputs[2] = gemm_bias_fused_constant
+                if (
+                    can_broadcast_to(gemm_bias.shape, gemm_node.outputs[0].shape)
+                    and can_broadcast_to(add_bias.shape, gemm_node.outputs[0].shape)
+                    and add_bias.ndim <= 2
+                ):
+                    gemm_bias_fused = gemm_bias + add_bias
+                    gemm_bias_fused_constant = gs.Constant(gemm_bias_constant.name + "_fused", values=gemm_bias_fused)
+                    gemm_node.inputs[2] = gemm_bias_fused_constant
+                else:
+                    return match_case
             else:
-                gemm_node.inputs[2] = add_bias_variable
+                if can_broadcast_to(add_bias_variable.values.shape, gemm_node.outputs[0].shape):
+                    gemm_node.inputs[2] = add_bias_variable
+                else:
+                    return match_case
 
             add_node.replace_all_uses_with(reshape_node)
 

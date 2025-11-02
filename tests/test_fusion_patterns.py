@@ -526,7 +526,6 @@ class TestFusionPatterns(unittest.TestCase):
         import torch
         import torch.nn as nn
 
-
         class LinearReshapeAddFusable(nn.Module):
             def __init__(self, in_features=8, out_features=4, seq_len=3):
                 super().__init__()
@@ -538,9 +537,9 @@ class TestFusionPatterns(unittest.TestCase):
 
             def forward(self, x):
                 # x: [B, seq_len, in_features]
-                y = self.linear(x)                       # → [B, seq_len, out_features]
+                y = self.linear(x)  # → [B, seq_len, out_features]
                 y = y.reshape(x.shape[0], self.seq_len, -1)
-                y = y + self.extra_bias                  # broadcastable along (B, seq_len)
+                y = y + self.extra_bias  # broadcastable along (B, seq_len)
                 return y
 
         # Create model instance
@@ -577,7 +576,7 @@ class TestFusionPatterns(unittest.TestCase):
             # Check that optimization occurred (nodes were fused)
             self.assertLessEqual(len(onnx_model.graph.node), len(optimized_model.graph.node))
 
-        os.unlink(f.name)       
+        os.unlink(f.name)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ class PadConvMatcher(PatternMatcher):
     def parameter_check(self) -> bool:
         """Validates if the padding parameter for a convolutional node is a constant."""
         pad_node = self.pad_0
+
         return isinstance(pad_node.inputs[1], gs.Constant)
 
     def rewrite(self, opset=11):
@@ -42,7 +43,7 @@ class PadConvMatcher(PatternMatcher):
         ):
             if (
                 isinstance(pad_node.inputs[1], gs.Constant)
-                and pad_node.attrs["mode"] == "constant"
+                and pad_node.attrs.get("mode", "constant") == "constant"
                 and conv_node.inputs[1].shape
             ):
                 conv_weight_dim = len(conv_node.inputs[1].shape)

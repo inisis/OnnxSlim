@@ -68,9 +68,10 @@ class PadConvMatcher(PatternMatcher):
                         pad_node.inputs.clear()
                         pad_node.outputs.clear()
 
-                    conv_pads = attrs["pads"]
                     pads = pad_value[2:conv_weight_dim] + pad_value[conv_weight_dim + 2 :]
-                    pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
+                    if hasattr(attrs, "pads"):
+                        conv_pads = attrs["pads"]
+                        pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
 
                     attrs["pads"] = pads
                     match_case[conv_node.name] = {

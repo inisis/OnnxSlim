@@ -532,6 +532,7 @@ class SymbolicShapeInference:
             initializers = []
             if (get_opset(self.out_mp_) >= 9) and (
                 node.op_type == "Unsqueeze" or node.op_type == "ReduceMax" or node.op_type == "ReduceMean"
+                or node.op_type == "DFT" or node.op_type == "ReduceL2"
             ):
                 initializers = [
                     self.initializers_[name]

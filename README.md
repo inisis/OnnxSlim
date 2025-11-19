@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://pypi.org/project/onnxslim">
-        <img src="https://badgen.net/pypi/v/onnxslim?color=blue" />
+        <img src="https://img.shields.io/pypi/v/onnxslim?color=blue" />
     </a>
     <a href="https://pypi.org/project/onnxslim">
         <img src="https://static.pepy.tech/badge/onnxslim/week" />

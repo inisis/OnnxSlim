@@ -359,6 +359,7 @@ class SymbolicShapeInference:
                 for i in self.out_mp_.graph.initializer
             }
         )
+        self.known_vi_.update({i.name: i for i in list(self.out_mp_.graph.output)})
 
     def _merge_symbols(self, dims):
         """Merge dimension symbols, handling automatic merging and validation of symbolic dimensions."""
@@ -582,9 +583,13 @@ class SymbolicShapeInference:
         for i_o in range(len(node.output)):
             o = node.output[i_o]
             if o:  # skip optional output
+                out = model.graph.output[i_o]
+                if not out.type.WhichOneof("value") and o in self.known_vi_: # if empty and already had
+                    continue
+
                 vi = self.out_mp_.graph.value_info.add()
                 if not skip_infer:
-                    vi.CopyFrom(model.graph.output[i_o])
+                    vi.CopyFrom(out)
                 else:
                     vi.name = o
                 self.known_vi_[o] = vi

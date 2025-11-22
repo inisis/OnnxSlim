@@ -174,7 +174,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
         return match_case
 
 
-# register_fusion_pattern(MatMulAddPatternMatcher(1))
+register_fusion_pattern(MatMulAddPatternMatcher(1))
 
 
 class GemmMulPatternMatcher(PatternMatcher):

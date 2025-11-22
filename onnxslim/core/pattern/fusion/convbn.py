@@ -36,21 +36,21 @@ class ConvBatchNormMatcher(PatternMatcher):
             bn_bias = bn_node.inputs[2].values
             bn_running_mean = bn_node.inputs[3].values
             bn_running_var = bn_node.inputs[4].values
-            bn_eps = bn_node.attrs["epsilon"]
+            bn_eps = bn_node.attrs.get("epsilon", 1.0e-5)
 
             if len(conv_transpose_node.inputs) == 2:
                 conv_transpose_bias = np.zeros_like(bn_running_mean)
             else:
                 conv_transpose_bias = conv_transpose_node.inputs[2].values
 
-            bn_var_rsqrt = 1.0 / np.sqrt(bn_running_var + bn_eps)
+            bn_var_rsqrt = bn_scale / np.sqrt(bn_running_var + bn_eps)
             shape = [1] * len(conv_transpose_weight.shape)
             if bn_node.i(0).op == "Conv":
                 shape[0] = -1
             else:
                 shape[1] = -1
-            conv_w = conv_transpose_weight * (bn_scale * bn_var_rsqrt).reshape(shape)
-            conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt * bn_scale + bn_bias
+            conv_w = conv_transpose_weight * bn_var_rsqrt.reshape(shape)
+            conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt + bn_bias
 
             inputs = []
             inputs.append(next(iter(conv_transpose_node.inputs)))

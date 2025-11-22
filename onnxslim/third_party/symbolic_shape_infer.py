@@ -359,6 +359,7 @@ class SymbolicShapeInference:
                 for i in self.out_mp_.graph.initializer
             }
         )
+        self.known_vi_.update({i.name: i for i in list(self.out_mp_.graph.output)})
 
     def _merge_symbols(self, dims):
         """Merge dimension symbols, handling automatic merging and validation of symbolic dimensions."""
@@ -582,9 +583,13 @@ class SymbolicShapeInference:
         for i_o in range(len(node.output)):
             o = node.output[i_o]
             if o:  # skip optional output
+                out = model.graph.output[i_o]
+                if not out.type.WhichOneof("value") and o in self.known_vi_: # if empty and already had
+                    continue
+
                 vi = self.out_mp_.graph.value_info.add()
                 if not skip_infer:
-                    vi.CopyFrom(model.graph.output[i_o])
+                    vi.CopyFrom(out)
                 else:
                     vi.name = o
                 self.known_vi_[o] = vi
@@ -1844,7 +1849,7 @@ class SymbolicShapeInference:
             scales = self._try_get_value(node, 2)
             sizes = self._try_get_value(node, 3)
             if sizes is not None:
-                new_sympy_shape = [sympy.simplify(sympy.floor(s)) for s in sizes]
+                new_sympy_shape = [sympy.simplify(round(s)) for s in sizes]
                 self._update_computed_dims(new_sympy_shape)
             elif scales is not None:
                 rank = len(scales)
@@ -1860,7 +1865,7 @@ class SymbolicShapeInference:
                 else:
                     scales = list(scales)
                 new_sympy_shape = [
-                    (sympy.floor(d * (end - start) * scale))
+                    (round(d * (end - start) * scale))
                     for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
                 ]
                 self._update_computed_dims(new_sympy_shape)

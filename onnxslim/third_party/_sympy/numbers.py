@@ -11,7 +11,7 @@ from sympy.core.parameters import global_parameters
 from sympy.core.singleton import S, Singleton
 
 
-class IntInfinity(Number, metaclass=Singleton):
+class IntInfinitySlim(Number, metaclass=Singleton):
     r"""
     Positive integer infinite quantity.
 
@@ -20,7 +20,7 @@ class IntInfinity(Number, metaclass=Singleton):
     sympy's existing notion of infinity in that it reports that
     it is_integer.
 
-    Infinity is a singleton, and can be accessed by ``S.IntInfinity``,
+    Infinity is a singleton, and can be accessed by ``S.IntInfinitySlim``,
     or can be imported as ``int_oo``.
     """
 
@@ -65,7 +65,7 @@ class IntInfinity(Number, metaclass=Singleton):
         if isinstance(other, Number) and global_parameters.evaluate:
             if other in (S.Infinity, S.NegativeInfinity):
                 return other
-            if other in (S.NegativeIntInfinity, S.NaN):
+            if other in (S.NegativeIntInfinitySlim, S.NaN):
                 return S.NaN
             return self
         return Number.__add__(self, other)
@@ -79,7 +79,7 @@ class IntInfinity(Number, metaclass=Singleton):
                 return S.NegativeInfinity
             if other is S.NegativeInfinity:
                 return S.Infinity
-            if other in (S.IntInfinity, S.NaN):
+            if other in (S.IntInfinitySlim, S.NaN):
                 return S.NaN
             return self
         return Number.__sub__(self, other)
@@ -95,7 +95,7 @@ class IntInfinity(Number, metaclass=Singleton):
                 return S.NaN
             if other.is_extended_positive:
                 return self
-            return S.NegativeIntInfinity
+            return S.NegativeIntInfinitySlim
         return Number.__mul__(self, other)
 
     __rmul__ = __mul__
@@ -105,9 +105,9 @@ class IntInfinity(Number, metaclass=Singleton):
         if isinstance(other, Number) and global_parameters.evaluate:
             if other in (
                 S.Infinity,
-                S.IntInfinity,
+                S.IntInfinitySlim,
                 S.NegativeInfinity,
-                S.NegativeIntInfinity,
+                S.NegativeIntInfinitySlim,
                 S.NaN,
             ):
                 return S.NaN
@@ -117,14 +117,14 @@ class IntInfinity(Number, metaclass=Singleton):
         return Number.__truediv__(self, other)
 
     def __abs__(self):
-        return S.IntInfinity
+        return S.IntInfinitySlim
 
     def __neg__(self):
-        return S.NegativeIntInfinity
+        return S.NegativeIntInfinitySlim
 
     def _eval_power(self, expt):
         if expt.is_extended_positive:
-            return S.IntInfinity
+            return S.IntInfinitySlim
         if expt.is_extended_negative:
             return S.Zero
         if expt is S.NaN:
@@ -151,15 +151,15 @@ class IntInfinity(Number, metaclass=Singleton):
         return super().__hash__()
 
     def __eq__(self, other):
-        return other is S.IntInfinity
+        return other is S.IntInfinitySlim
 
     def __ne__(self, other):
-        return other is not S.IntInfinity
+        return other is not S.IntInfinitySlim
 
     def __gt__(self, other):
         if other is S.Infinity:
             return sympy.false  # sympy.oo > int_oo
-        elif other is S.IntInfinity:
+        elif other is S.IntInfinitySlim:
             return sympy.false  # consistency with sympy.oo
         else:
             return sympy.true
@@ -167,7 +167,7 @@ class IntInfinity(Number, metaclass=Singleton):
     def __ge__(self, other):
         if other is S.Infinity:
             return sympy.false  # sympy.oo > int_oo
-        elif other is S.IntInfinity:
+        elif other is S.IntInfinitySlim:
             return sympy.true  # consistency with sympy.oo
         else:
             return sympy.true
@@ -175,7 +175,7 @@ class IntInfinity(Number, metaclass=Singleton):
     def __lt__(self, other):
         if other is S.Infinity:
             return sympy.true  # sympy.oo > int_oo
-        elif other is S.IntInfinity:
+        elif other is S.IntInfinitySlim:
             return sympy.false  # consistency with sympy.oo
         else:
             return sympy.false
@@ -183,7 +183,7 @@ class IntInfinity(Number, metaclass=Singleton):
     def __le__(self, other):
         if other is S.Infinity:
             return sympy.true  # sympy.oo > int_oo
-        elif other is S.IntInfinity:
+        elif other is S.IntInfinitySlim:
             return sympy.true  # consistency with sympy.oo
         else:
             return sympy.false
@@ -203,10 +203,10 @@ class IntInfinity(Number, metaclass=Singleton):
         return self
 
 
-int_oo = S.IntInfinity
+int_oo = S.IntInfinitySlim
 
 
-class NegativeIntInfinity(Number, metaclass=Singleton):
+class NegativeIntInfinitySlim(Number, metaclass=Singleton):
     """
     Negative integer infinite quantity.
 
@@ -216,7 +216,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
     See Also
     ========
 
-    IntInfinity
+    IntInfinitySlim
     """
 
     # Ensure we get dispatched to before plain numbers
@@ -255,7 +255,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         if isinstance(other, Number) and global_parameters.evaluate:
             if other is S.Infinity:
                 return S.Infinity
-            if other in (S.IntInfinity, S.NaN):
+            if other in (S.IntInfinitySlim, S.NaN):
                 return S.NaN
             return self
         return Number.__add__(self, other)
@@ -267,7 +267,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         if isinstance(other, Number) and global_parameters.evaluate:
             if other is S.NegativeInfinity:
                 return S.Infinity
-            if other in (S.NegativeIntInfinity, S.NaN):
+            if other in (S.NegativeIntInfinitySlim, S.NaN):
                 return S.NaN
             return self
         return Number.__sub__(self, other)
@@ -283,7 +283,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
                 return S.NaN
             if other.is_extended_positive:
                 return self
-            return S.IntInfinity
+            return S.IntInfinitySlim
         return Number.__mul__(self, other)
 
     __rmul__ = __mul__
@@ -293,9 +293,9 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         if isinstance(other, Number) and global_parameters.evaluate:
             if other in (
                 S.Infinity,
-                S.IntInfinity,
+                S.IntInfinitySlim,
                 S.NegativeInfinity,
-                S.NegativeIntInfinity,
+                S.NegativeIntInfinitySlim,
                 S.NaN,
             ):
                 return S.NaN
@@ -305,10 +305,10 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         return Number.__truediv__(self, other)
 
     def __abs__(self):
-        return S.IntInfinity
+        return S.IntInfinitySlim
 
     def __neg__(self):
-        return S.IntInfinity
+        return S.IntInfinitySlim
 
     def _eval_power(self, expt):
         if expt.is_number:
@@ -316,18 +316,18 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
                 S.NaN,
                 S.Infinity,
                 S.NegativeInfinity,
-                S.IntInfinity,
-                S.NegativeIntInfinity,
+                S.IntInfinitySlim,
+                S.NegativeIntInfinitySlim,
             ):
                 return S.NaN
 
             if isinstance(expt, sympy.Integer) and expt.is_extended_positive:
                 if expt.is_odd:
-                    return S.NegativeIntInfinity
+                    return S.NegativeIntInfinitySlim
                 else:
-                    return S.IntInfinity
+                    return S.IntInfinitySlim
 
-            inf_part = S.IntInfinity**expt
+            inf_part = S.IntInfinitySlim**expt
             s_part = S.NegativeOne**expt
             if inf_part == 0 and s_part.is_finite:
                 return inf_part
@@ -342,15 +342,15 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         return super().__hash__()
 
     def __eq__(self, other):
-        return other is S.NegativeIntInfinity
+        return other is S.NegativeIntInfinitySlim
 
     def __ne__(self, other):
-        return other is not S.NegativeIntInfinity
+        return other is not S.NegativeIntInfinitySlim
 
     def __gt__(self, other):
         if other is S.NegativeInfinity:
             return sympy.true  # -sympy.oo < -int_oo
-        elif other is S.NegativeIntInfinity:
+        elif other is S.NegativeIntInfinitySlim:
             return sympy.false  # consistency with sympy.oo
         else:
             return sympy.false
@@ -358,7 +358,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
     def __ge__(self, other):
         if other is S.NegativeInfinity:
             return sympy.true  # -sympy.oo < -int_oo
-        elif other is S.NegativeIntInfinity:
+        elif other is S.NegativeIntInfinitySlim:
             return sympy.true  # consistency with sympy.oo
         else:
             return sympy.false
@@ -366,7 +366,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
     def __lt__(self, other):
         if other is S.NegativeInfinity:
             return sympy.false  # -sympy.oo < -int_oo
-        elif other is S.NegativeIntInfinity:
+        elif other is S.NegativeIntInfinitySlim:
             return sympy.false  # consistency with sympy.oo
         else:
             return sympy.true
@@ -374,7 +374,7 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
     def __le__(self, other):
         if other is S.NegativeInfinity:
             return sympy.false  # -sympy.oo < -int_oo
-        elif other is S.NegativeIntInfinity:
+        elif other is S.NegativeIntInfinitySlim:
             return sympy.true  # consistency with sympy.oo
         else:
             return sympy.true
@@ -394,4 +394,4 @@ class NegativeIntInfinity(Number, metaclass=Singleton):
         return self
 
     def as_powers_dict(self):
-        return {S.NegativeOne: 1, S.IntInfinity: 1}
+        return {S.NegativeOne: 1, S.IntInfinitySlim: 1}

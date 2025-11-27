@@ -85,19 +85,78 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 
 # Projects using OnnxSlim
 
-- <img src="https://avatars.githubusercontent.com/u/131524?s=48&v=4" width="22" height="22"/>[Mozilla/smart_autofill](https://github.com/mozilla/smart_autofill)
-- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN](https://github.com/alibaba/MNN)
-- <img src="https://avatars.githubusercontent.com/u/23534030?s=48&v=4" width="22" height="22"/>[PaddlePaddle/PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
-- <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/transformers.js](https://github.com/huggingface/transformers.js)
-- <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22"/>[huggingface/optimum](https://github.com/huggingface/optimum)
-- <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" width="22" height="22"/>[THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
-- <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" width="22" height="22"/>[ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
-- <img src="https://avatars.githubusercontent.com/u/109945100?s=48&v=4" width="22" height="22"/>[ModelScope/FunASR](https://github.com/modelscope/FunASR)
-- <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22"/>[alibaba/MNN-LLM](https://github.com/wangzhaode/mnn-llm)
-- <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" width="22" height="22"/>[deepghs/imgutils](https://github.com/deepghs/imgutils)
-- <img src="https://avatars.githubusercontent.com/u/48153283?s=48&v=4" width="22" height="22"/>[sunsmarterjie/yolov12](https://github.com/sunsmarterjie/yolov12)
-- <img src="https://avatars.githubusercontent.com/u/147458884?s=48&v=4" width="22" height="22"/>[nndeploy/nndeploy](https://github.com/nndeploy/nndeploy)
-- <img src="https://avatars.githubusercontent.com/u/111754012?s=48&v=4" width="22" height="22"/>[CVCUDA/CV-CUDA](https://github.com/CVCUDA/CV-CUDA)
+<table style="width:100%; border-collapse:separate; border-spacing:10px;">
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/1728152?s=200&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/NVIDIA/TensorRT-Model-Optimizer" target="_blank">NVIDIA/TensorRT-Model-Optimizer</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/alibaba/MNN" target="_blank">alibaba/MNN</a>
+    </td>
+  </tr>
+  <tr>
+  <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/26833451?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/ultralytics/ultralytics" target="_blank">ultralytics/ultralytics</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/131524?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/mozilla/smart_autofill" target="_blank">Mozilla/smart_autofill</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/wangzhaode/mnn-llm" target="_blank">alibaba/MNN-LLM</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/huggingface/transformers.js" target="_blank">huggingface/transformers.js</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/25720743?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/huggingface/optimum" target="_blank">huggingface/optimum</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/23534030?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank">PaddlePaddle/PaddleOCR</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/109945100?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/modelscope/FunASR" target="_blank">ModelScope/FunASR</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/111754012?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/CVCUDA/CV-CUDA" target="_blank">CVCUDA/CV-CUDA</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/86091366?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/THU-MIG/yolov10" target="_blank">THU-MIG/yolov10</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/48153283?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/sunsmarterjie/yolov12" target="_blank">sunsmarterjie/yolov12</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/147458884?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/nndeploy/nndeploy" target="_blank">nndeploy/nndeploy</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/126587470?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/deepghs/imgutils" target="_blank">deepghs/imgutils</a>
+    </td>
+  </tr>
+</table>
 
 # References
 

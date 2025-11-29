@@ -27,6 +27,7 @@
 
 OnnxSlim can help you slim your onnx model, with less operators, but same accuracy, better inference speed.
 
+- 🚀 2025/11/29: Top 1% on PyPI
 - 🚀 2025/11/27: OnnxSlim is merged into [NVIDIA TensorRT-Model-Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer) 🤗🤗🤗
 - 🚀 2025/05/17: OnnxSlim is merged into [HuggingFace optimum](https://github.com/huggingface/optimum) 🤗🤗🤗
 - 🚀 2025/04/30: Rank 1st in the [AICAS 2025 LLM inference optimization challenge](https://tianchi.aliyun.com/competition/entrance/532289/customize588)

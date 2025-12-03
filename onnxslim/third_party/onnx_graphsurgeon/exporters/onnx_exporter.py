@@ -108,9 +108,7 @@ _NUMPY_ARRAY_CONVERTERS = {
     onnx.TensorProto.BFLOAT16: NumpyArrayConverter(np.uint16, float32_to_bfloat16_uint16),
     # FP8 in TensorRT supports negative zeros, no infinities
     # See https://onnx.ai/onnx/technical/float8.html#papers
-    onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(
-        np.uint8, lambda x: float32_to_float8e4m3(x)
-    ),
+    onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(np.uint8, float32_to_float8e4m3),
 }
 
 

@@ -21,7 +21,6 @@ from collections.abc import Sequence
 
 import numpy as np
 import onnx
-import onnx.numpy_helper
 from onnx import IR_VERSION, ModelProto, defs
 
 from onnxslim.third_party.onnx_graphsurgeon.exporters.base_exporter import BaseExporter
@@ -35,9 +34,11 @@ from onnxslim.third_party.onnx_graphsurgeon.ir.tensor import (
     Tensor,
     Variable,
 )
+
 from onnxslim.third_party.onnx_graphsurgeon.logger import G_LOGGER
 from onnxslim.third_party.onnx_graphsurgeon.util import misc
 
+from ml_dtypes import bfloat16, float8_e4m3fn
 
 def dtype_to_onnx(dtype: np.dtype | onnx.TensorProto.DataType) -> int:
     """Converts a numpy dtype or ONNX data type to its integer representation."""
@@ -86,6 +87,15 @@ def update_import_domains(graph):
     return graph.import_domains
 
 
+def float32_to_bfloat16_uint16(x):
+    """Convert a float32 value to bfloat16 represented as uint16."""
+    return bfloat16(x).view(np.uint16)
+
+def float32_to_float8e4m3(x):
+    """Convert a float32 value to float8e4m3 represented as uint8."""
+    return float8_e4m3fn(x).view(np.uint8)
+
+
 class NumpyArrayConverter:
     def __init__(self, container, scalar_converter):
         self.func = np.vectorize(scalar_converter, otypes=[container])
@@ -95,12 +105,10 @@ class NumpyArrayConverter:
 
 
 _NUMPY_ARRAY_CONVERTERS = {
-    onnx.TensorProto.BFLOAT16: NumpyArrayConverter(np.uint16, onnx.helper.float32_to_bfloat16),
+    onnx.TensorProto.BFLOAT16: NumpyArrayConverter(np.uint16, float32_to_bfloat16_uint16),
     # FP8 in TensorRT supports negative zeros, no infinities
     # See https://onnx.ai/onnx/technical/float8.html#papers
-    onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(
-        np.uint8, lambda x: onnx.helper.float32_to_float8e4m3(x, fn=True, uz=False)
-    ),
+    onnx.TensorProto.FLOAT8E4M3FN: NumpyArrayConverter(np.uint8, float32_to_float8e4m3),
 }
 
 

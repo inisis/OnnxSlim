@@ -21,7 +21,6 @@ from collections.abc import Sequence
 
 import numpy as np
 import onnx
-import onnx.numpy_helper
 from onnx import IR_VERSION, ModelProto, defs
 
 from onnxslim.third_party.onnx_graphsurgeon.exporters.base_exporter import BaseExporter

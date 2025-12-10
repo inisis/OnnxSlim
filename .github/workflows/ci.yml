@@ -53,6 +53,7 @@ jobs:
           coverage run --parallel-mode -m pytest tests/test_utils.py
           coverage run --parallel-mode -m pytest tests/test_symbolic_shape_inference.py
           coverage run --parallel-mode -m pytest tests/test_nvidia.py
+          coverage run --parallel-mode -m pytest tests/test_shape_folding.py
 
       - name: Combine and Generate Coverage Report
         run: |

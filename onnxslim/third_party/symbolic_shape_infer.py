@@ -1865,8 +1865,10 @@ class SymbolicShapeInference:
                 else:
                     scales = list(scales)
                 new_sympy_shape = [
-                    (round(d * (end - start) * scale))
-                    for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
+                    sympy.floor(d * (end - start) * scale + sympy.Rational(1, 2))
+                    for d, start, end, scale in zip(
+                        input_sympy_shape, roi_start, roi_end, scales
+                    )
                 ]
                 self._update_computed_dims(new_sympy_shape)
             else:

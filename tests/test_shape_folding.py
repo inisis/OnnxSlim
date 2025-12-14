@@ -358,9 +358,6 @@ class TestShapeFolding:
         graph.fold_constants()
         graph.cleanup().toposort()
 
-        model = gs.export_onnx(graph)
-        onnx.save(model, "tmp.onnx")
-
         # Both Shape and Slice should be folded
         shape_nodes = [n for n in graph.nodes if n.op == "Shape"]
         slice_nodes = [n for n in graph.nodes if n.op == "Slice"]

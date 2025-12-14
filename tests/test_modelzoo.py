@@ -127,6 +127,10 @@ class TestModelZoo:
             ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
             ort_sess.run(None, {"images": input})
 
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["Add"] == 26
+            assert summary.op_type_counts["Concat"] == 43
+
     def test_linguistic(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- O - outer ring -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#000000" stroke-width="10"/>
+
+  <!-- Smooth S curve (elegant bezier) -->
+  <path d="M 74 34
+           Q 50 34, 48 50
+           Q 46 64, 64 64
+           Q 82 64, 80 78
+           Q 78 94, 54 94"
+        fill="none"
+        stroke="#000000"
+        stroke-width="5"
+        stroke-linecap="round"/>
+
+  <!-- Nodes at key positions -->
+  <circle cx="74" cy="34" r="8" fill="#000000"/>
+  <circle cx="48" cy="50" r="6" fill="#000000"/>
+  <circle cx="64" cy="64" r="8" fill="#000000"/>
+  <circle cx="80" cy="78" r="6" fill="#000000"/>
+  <circle cx="54" cy="94" r="8" fill="#000000"/>
+</svg>

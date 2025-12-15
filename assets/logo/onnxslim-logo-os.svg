@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="oGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#005CED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B4D8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4AA;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00C9B7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B4D8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- O - outer ring -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="url(#oGrad2)" stroke-width="10"/>
+
+  <!-- Smooth S curve (elegant bezier) -->
+  <path d="M 74 34
+           Q 50 34, 48 50
+           Q 46 64, 64 64
+           Q 82 64, 80 78
+           Q 78 94, 54 94"
+        fill="none"
+        stroke="url(#sGrad2)"
+        stroke-width="5"
+        stroke-linecap="round"/>
+
+  <!-- Nodes at key positions -->
+  <circle cx="74" cy="34" r="8" fill="#00D4AA"/>
+  <circle cx="48" cy="50" r="6" fill="#00CCBB"/>
+  <circle cx="64" cy="64" r="8" fill="#00C4C0"/>
+  <circle cx="80" cy="78" r="6" fill="#00BCC5"/>
+  <circle cx="54" cy="94" r="8" fill="#00B4D8"/>
+</svg>

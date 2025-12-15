@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="oGradL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#005CED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B4D8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sGradL" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4AA;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00C9B7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B4D8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="#FFFFFF"/>
+
+  <!-- Decorative background elements -->
+  <circle cx="100" cy="100" r="200" fill="#005CED" opacity="0.03"/>
+  <circle cx="1180" cy="540" r="250" fill="#00D4AA" opacity="0.05"/>
+
+  <!-- Logo group - smaller, positioned on left -->
+  <g transform="translate(120, 170)">
+    <!-- O - outer ring -->
+    <circle cx="150" cy="150" r="125" fill="none" stroke="url(#oGradL)" stroke-width="20"/>
+
+    <!-- Smooth S curve -->
+    <path d="M 172 80
+             Q 117 80, 112 117
+             Q 108 150, 150 150
+             Q 192 150, 188 188
+             Q 183 220, 126 220"
+          fill="none"
+          stroke="url(#sGradL)"
+          stroke-width="12"
+          stroke-linecap="round"/>
+
+    <!-- Nodes at key positions -->
+    <circle cx="172" cy="80" r="18" fill="#00D4AA"/>
+    <circle cx="112" cy="117" r="14" fill="#00CCBB"/>
+    <circle cx="150" cy="150" r="18" fill="#00C4C0"/>
+    <circle cx="188" cy="188" r="14" fill="#00BCC5"/>
+    <circle cx="126" cy="220" r="18" fill="#00B4D8"/>
+  </g>
+
+  <!-- Text "OnnxSlim" - larger, centered vertically -->
+  <text x="420" y="360" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="bold" fill="#005CED">OnnxSlim</text>
+</svg>

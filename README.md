@@ -1,4 +1,7 @@
-# OnnxSlim
+<p align="center">
+  <img src="assets/logo/onnxslim-banner-light.svg#gh-light-mode-only" alt="OnnxSlim Logo" width="640"/>
+  <img src="assets/logo/onnxslim-banner.svg#gh-dark-mode-only" alt="OnnxSlim Logo" width="640"/>
+</p>
 
 <p align="center">
     <a href="https://pypi.org/project/onnxslim">

@@ -117,7 +117,7 @@ class TestEliminationPatterns(unittest.TestCase):
 
         # Create constant tensors for Slice parameters
         starts = numpy_helper.from_array(np.array([0, 0], dtype=np.int64), name="starts")
-        ends = numpy_helper.from_array(np.array([10, 10], dtype=np.int64), name="ends")
+        ends = numpy_helper.from_array(np.array([9, 9], dtype=np.int64), name="ends")
         axes = numpy_helper.from_array(np.array([0, 1], dtype=np.int64), name="axes")
 
         node = helper.make_node(

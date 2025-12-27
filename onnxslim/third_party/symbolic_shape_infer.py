@@ -2119,9 +2119,8 @@ class SymbolicShapeInference:
                             if len(e.free_symbols) == 1:
                                 if try_solve((e - new_sympy_shape[i]) >= 0, next(iter(e.free_symbols))) is None:
                                     logger.warning(
-                                        f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal"
+                                        f"Unable to solve if {e} <= {new_sympy_shape[i]}, treat as not equal"
                                     )
-                                    e = new_sympy_shape[i]
                             else:
                                 logger.warning(f"Unable to determine if {e} <= {new_sympy_shape[i]}, treat as equal")
                                 e = new_sympy_shape[i]

@@ -51,6 +51,8 @@ dev = [
     "pytest-xdist",
     "timm",
     "torchvision",
+    # required by torch but apparently not declared?
+    "onnxscript",
 ]
 
 [tool.pytest.ini_options]

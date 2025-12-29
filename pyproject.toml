@@ -1,3 +1,30 @@
+[project]
+name = "onnxslim"
+version = "0.1.80"
+description = "OnnxSlim: A Toolkit to Help Optimize Onnx Model"
+authors = [{ name = "inisis", email = "desmond.yao@buaa.edu.cn" }]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.6"
+dependencies = ["onnx", "sympy>=1.13.1", "packaging", "colorama", "ml_dtypes"]
+
+[project.urls]
+homepage = "https://github.com/inisis/OnnxSlim"
+issues = "https://github.com/inisis/OnnxSlim/issues"
+
+[project.scripts]
+onnxslim = "onnxslim.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.ruff]
 exclude = ["onnxslim/argparser.py"]
 

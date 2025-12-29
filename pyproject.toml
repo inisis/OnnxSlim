@@ -11,8 +11,15 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.6"
-dependencies = ["onnx", "sympy>=1.13.1", "packaging", "colorama", "ml_dtypes"]
+requires-python = ">=3.8"
+dependencies = [
+    "onnx",
+    "onnxconverter-common",
+    "sympy>=1.13.1",
+    "packaging",
+    "colorama",
+    "ml_dtypes",
+]
 
 [project.urls]
 homepage = "https://github.com/inisis/OnnxSlim"
@@ -34,3 +41,13 @@ exclude = '''
   onnxslim/argparser.py
 )
 '''
+
+[dependency-groups]
+dev = [
+    "coverage",
+    "onnxruntime",
+    "pytest",
+    "pytest-xdist",
+    "timm",
+    "torchvision",
+]

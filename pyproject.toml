@@ -51,3 +51,31 @@ dev = [
     "timm",
     "torchvision",
 ]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests/test_onnxslim.py",
+    "tests/test_modelzoo.py",
+    "tests/test_pattern_matcher.py",
+    "tests/test_pattern_generator.py",
+    "tests/test_dead_node_elimination.py",
+    "tests/test_subexpression_elimination.py",
+    "tests/test_elimination_patterns.py",
+    "tests/test_fusion_patterns.py",
+    "tests/test_cli_main.py",
+    "tests/test_utils.py",
+    "tests/test_symbolic_shape_inference.py",
+    "tests/test_nvidia.py",
+    "tests/test_shape_folding.py",
+]
+addopts = "-n auto" # enables pytest-xdist parallel workers
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["onnxslim"]
+omit = [
+    "onnxslim/third_party/*",
+    "onnxslim/misc/*",
+    "onnxslim/tests/conftest.py",
+]

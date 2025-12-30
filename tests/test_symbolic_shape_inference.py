@@ -39,6 +39,7 @@ class TestSymbolicShapeInference:
                     dynamic_axes=dynamic_axes,
                     input_names=input_names,
                     output_names=output_names,
+                    dynamo=False
                 )
                 model = onnx.load(filename)
                 for output in model.graph.output:

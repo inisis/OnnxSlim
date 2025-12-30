@@ -96,7 +96,7 @@ class TestPatternMatcher:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(m, input, filename, do_constant_folding=False)
+        torch.onnx.export(m, input, filename, do_constant_folding=False, dynamo=False)
 
         summary = summarize_model(slim(filename, model_check=True), request.node.name)
         print_model_info_as_table(summary)

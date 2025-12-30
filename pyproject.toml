@@ -57,6 +57,14 @@ dev = [
     "onnxscript ; python_version>='3.9'"
 ]
 
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[project.dependencies]
+torch = { version = ">=2.0", index = "pytorch" }
+
 [tool.pytest.ini_options]
 testpaths = [
     "tests/test_onnxslim.py",

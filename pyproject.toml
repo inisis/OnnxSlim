@@ -53,7 +53,7 @@ dev = [
     "pytest-xdist",
     "timm",
     "torch",
-    "torchvision",
+    "torchvision<=0.24",
     # required by torch but apparently not declared?
     "onnxscript ; python_version>='3.9'"
 ]

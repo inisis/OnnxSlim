@@ -52,13 +52,22 @@ dev = [
     "pytest",
     "pytest-xdist",
     "timm",
+    "torch",
     "torchvision",
     # required by torch but apparently not declared?
     "onnxscript ; python_version>='3.9'"
 ]
 
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
+    { index = "pytorch-cpu" },
+]
+
 [[tool.uv.index]]
-name = "pytorch"
+name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 

@@ -28,7 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --dev --extra-index-url https://download.pytorch.org/whl/cpu
 
       # - name: yolo test
       #   if: matrix.python-version <= '3.11'

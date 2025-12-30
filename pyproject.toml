@@ -46,7 +46,7 @@ exclude = '''
 dev = [
     "coverage",
     "onnx<=1.16.1 ; python_version<'3.10'",
-    "onnx ; python_version>='3.10'",    
+    "onnx>=1.12.0,<=1.18.0 ; python_version>='3.10'",    
     "onnxruntime<1.20.0 ; python_version<'3.10'",
     "onnxruntime>=1.20.0 ; python_version>='3.10'",
     "pytest",

@@ -664,32 +664,39 @@ def is_onnxruntime_available():
 def check_onnx_compatibility():
     """Ensure ONNX Runtime and ONNX versions are compatible for model inference."""
     compatibility_dict = {
-        "1.20": "1.16",
-        "1.19": "1.16",
-        "1.18": "1.16",
-        "1.17": "1.15",
-        "1.16": "1.14.1",
-        "1.15": "1.14",
-        "1.14": "1.13",
-        "1.13": "1.12",
-        "1.12": "1.12",
-        "1.11": "1.11",
-        "1.10": "1.10",
-        "1.9": "1.10",
-        "1.8": "1.9",
-        "1.7": "1.8",
-        "1.6": "1.8",
-        "1.5": "1.7",
-        "1.4": "1.7",
-        "1.3": "1.7",
-        "1.2": "1.6",
-        "1.1": "1.6",
-        "1.0": "1.6",
-        "0.5": "1.5",
-        "0.4": "1.5",
-        "0.3": "1.4",
-        "0.2": "1.3",
-        "0.1": "1.3",
+        # ONNX Runtime version -> ONNX version (max supported)
+        # 2024-2025 releases
+        "1.23": "1.18",   # opset 23, released 2025-09
+        "1.22": "1.17",   # opset 22, released 2025-05
+        "1.21": "1.17",   # opset 22, released 2025-03
+        "1.20": "1.16",   # opset 21, released 2024-11
+        "1.19": "1.16",   # opset 21, released 2024-08
+        "1.18": "1.16",   # opset 21, released 2024-05
+        "1.17": "1.15",   # opset 20, released 2024-01
+        # 2023 releases
+        "1.16": "1.14.1", # opset 19, released 2023-09
+        "1.15": "1.14",   # opset 19, released 2023-05
+        "1.14": "1.13",   # opset 18, released 2023-03
+        "1.13": "1.12",   # opset 17, released 2022-11
+        # 2022 and earlier
+        "1.12": "1.12",   # opset 17
+        "1.11": "1.11",   # opset 16
+        "1.10": "1.10",   # opset 15
+        "1.9": "1.10",    # opset 15
+        "1.8": "1.9",     # opset 14
+        "1.7": "1.8",     # opset 13
+        "1.6": "1.8",     # opset 13
+        "1.5": "1.7",     # opset 12
+        "1.4": "1.7",     # opset 12
+        "1.3": "1.7",     # opset 12
+        "1.2": "1.6",     # opset 11
+        "1.1": "1.6",     # opset 11
+        "1.0": "1.6",     # opset 11
+        "0.5": "1.5",     # opset 10
+        "0.4": "1.5",     # opset 10
+        "0.3": "1.4",     # opset 9
+        "0.2": "1.3",     # opset 8
+        "0.1": "1.3",     # opset 8
     }
     import onnx
     import onnxruntime

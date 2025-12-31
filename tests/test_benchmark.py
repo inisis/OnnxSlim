@@ -19,7 +19,7 @@ def bench_main(command):
 
 
 def bench_onnxslim(input, output):
-    command = f"onnxslim {input} {output}"
+    command = f"uv run onnxslim {input} {output}"
     result = bench_main(command)
     return result
 

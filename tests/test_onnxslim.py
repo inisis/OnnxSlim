@@ -26,7 +26,7 @@ class TestFunctional:
         if check_func:
             check_func(summary)
 
-        command = f'onnxslim "{in_model_path}" "{out_model_path}" {kwargs_bash}'
+        command = f'uv run onnxslim "{in_model_path}" "{out_model_path}" {kwargs_bash}'
 
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         output = result.stderr.strip()

@@ -36,13 +36,8 @@ jobs:
       #     pip install ultralytics
       #     coverage run --parallel-mode -m pytest tests/test_yolo.py -sv
 
-      - name: Run all tests
-        run: uv run coverage run -m pytest
-
-      - name: Combine and Generate Coverage Report
-        run: |
-          uv run coverage combine
-          uv run coverage xml -o coverage-ci.xml
+      - name: Run all tests with coverage
+        run: uv run pytest --cov=onnxslim --cov-report=xml:coverage-ci.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

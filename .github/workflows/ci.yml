@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: self-hosted
@@ -17,20 +21,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          pip install . 
-          pip install pytest pytest-xdist onnxruntime timm torchvision coverage onnxconverter_common --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
-
-      - name: Create coverage config
-        run: |
-          echo "[run]" > .coveragerc
-          echo "omit = onnxslim/third_party/*, onnxslim/misc/*, config.py, config-3.py, onnxslim/tests/test_benchmark.py, onnxslim/tests/conftest.py" >> .coveragerc
+        run: uv sync --dev
 
       # - name: yolo test
       #   if: matrix.python-version <= '3.11'
@@ -38,27 +36,13 @@ jobs:
       #     pip install ultralytics
       #     coverage run --parallel-mode -m pytest tests/test_yolo.py -sv
 
-      # Add --parallel-mode to each test
       - name: Run all tests
-        run: |
-          coverage run --parallel-mode -m pytest tests/test_onnxslim.py
-          coverage run --parallel-mode -m pytest tests/test_modelzoo.py
-          coverage run --parallel-mode -m pytest tests/test_pattern_matcher.py
-          coverage run --parallel-mode -m pytest tests/test_pattern_generator.py
-          coverage run --parallel-mode -m pytest tests/test_dead_node_elimination.py
-          coverage run --parallel-mode -m pytest tests/test_subexpression_elimination.py
-          coverage run --parallel-mode -m pytest tests/test_elimination_patterns.py
-          coverage run --parallel-mode -m pytest tests/test_fusion_patterns.py
-          coverage run --parallel-mode -m pytest tests/test_cli_main.py
-          coverage run --parallel-mode -m pytest tests/test_utils.py
-          coverage run --parallel-mode -m pytest tests/test_symbolic_shape_inference.py
-          coverage run --parallel-mode -m pytest tests/test_nvidia.py
-          coverage run --parallel-mode -m pytest tests/test_shape_folding.py
+        run: uv run coverage run -m pytest
 
       - name: Combine and Generate Coverage Report
         run: |
-          coverage combine
-          coverage xml -o coverage-ci.xml
+          uv run coverage combine
+          uv run coverage xml -o coverage-ci.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

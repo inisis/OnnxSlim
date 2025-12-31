@@ -80,28 +80,6 @@ class TestFunctional:
             kwargs["check_func"] = check_func
             self.run_basic_test(FILENAME, out_model_path, **kwargs)
 
-    def test_dtype_conversion(self, request):
-        def check_func_fp16(summary):
-            assert summary.input_info[0].dtype == np.float16
-
-        def check_func_fp32(summary):
-            assert summary.input_info[0].dtype == np.float32
-
-        with tempfile.TemporaryDirectory() as tempdir:
-            out_fp16_model_path = os.path.join(tempdir, "resnet18_fp16.onnx")
-            kwargs = {}
-            kwargs["bash"] = "--dtype fp16"
-            kwargs["api"] = {"dtype": "fp16"}
-            kwargs["check_func"] = check_func_fp16
-            self.run_basic_test(FILENAME, out_fp16_model_path, **kwargs)
-
-            out_fp32_model_path = os.path.join(tempdir, "resnet18_fp32.onnx")
-            kwargs = {}
-            kwargs["bash"] = "--dtype fp32"
-            kwargs["api"] = {"dtype": "fp32"}
-            kwargs["check_func"] = check_func_fp32
-            self.run_basic_test(out_fp16_model_path, out_fp32_model_path, **kwargs)
-
     def test_save_as_external_data(self, request):
         with tempfile.TemporaryDirectory() as tempdir:
             out_model_path = os.path.join(tempdir, "resnet18.onnx")

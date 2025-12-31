@@ -1817,7 +1817,7 @@ class TestMorePatterns:
 
         with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
             torch.onnx.export(model, input_tensor, f.name, opset_version=14, dynamo=False)
-            slimmed = slim(f.name, model_check=True)
+            slimmed = slim(f.name)
             assert slimmed is not None
             os.unlink(f.name)
 

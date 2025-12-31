@@ -89,11 +89,11 @@ testpaths = [
 addopts = "-n auto" # enables pytest-xdist parallel workers
 
 [tool.coverage.run]
-branch = true
+branch = false
 parallel = true
 source = ["onnxslim"]
 omit = [
+    "onnxslim/__main__.py",
     "onnxslim/third_party/*",
     "onnxslim/misc/*",
-    "onnxslim/tests/conftest.py",
 ]

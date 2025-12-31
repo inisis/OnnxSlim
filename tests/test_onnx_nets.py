@@ -36,7 +36,7 @@ class TestTorchVisionClass:
         filename = f"{directory}/{request.node.name}.onnx"
         slim_filename = f"{directory}/{request.node.name}_slim.onnx"
 
-        torch.onnx.export(model, x, filename)
+        torch.onnx.export(model, x, filename, opset_version=14, dynamo=False)
 
         command = f"onnxslim {filename} {slim_filename}"
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -83,7 +83,7 @@ class TestTimmClass:
 
             filename = f"{directory}/{request.node.name}.onnx"
             slim_filename = f"{directory}/{request.node.name}_slim.onnx"
-            torch.onnx.export(model, x, filename)
+            torch.onnx.export(model, x, filename, opset_version=14, dynamo=False)
         except Exception as e:
             print(f"An unexpected error occurred: {e!s}")
             return

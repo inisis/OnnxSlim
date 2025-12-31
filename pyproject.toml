@@ -45,8 +45,9 @@ exclude = '''
 [dependency-groups]
 dev = [
     "coverage",
+    "pytest-cov",
     "onnx<=1.16.1 ; python_version<'3.10'",
-    "onnx>=1.12.0,<=1.18.0 ; python_version>='3.10'",    
+    "onnx>=1.12.0,<=1.18.0 ; python_version>='3.10'",
     "onnxruntime<1.20.0 ; python_version<'3.10'",
     "onnxruntime>=1.20.0 ; python_version>='3.10'",
     "pytest",
@@ -83,15 +84,16 @@ testpaths = [
     "tests/test_symbolic_shape_inference.py",
     "tests/test_nvidia.py",
     "tests/test_shape_folding.py",
+    "tests/test_coverage.py",
 ]
 addopts = "-n auto" # enables pytest-xdist parallel workers
 
 [tool.coverage.run]
-branch = true
+branch = false
 parallel = true
 source = ["onnxslim"]
 omit = [
+    "onnxslim/__main__.py",
     "onnxslim/third_party/*",
     "onnxslim/misc/*",
-    "onnxslim/tests/conftest.py",
 ]

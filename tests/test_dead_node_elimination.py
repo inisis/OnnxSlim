@@ -33,7 +33,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, dynamo=False)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -66,7 +66,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -98,7 +98,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -131,7 +131,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -162,7 +162,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -193,7 +193,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -226,7 +226,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -258,7 +258,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -291,7 +291,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -322,7 +322,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))
@@ -354,7 +354,7 @@ class TestDeadNodeElimination:
         os.makedirs(directory, exist_ok=True)
 
         filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename)
+        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
 
         # Import graph and apply dead_node_elimination
         graph = gs.import_onnx(onnx.load(filename))

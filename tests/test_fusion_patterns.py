@@ -371,10 +371,11 @@ class TestFusionPatterns(unittest.TestCase):
                 dummy_input,
                 f.name,
                 export_params=True,
-                opset_version=11,
+                opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
                 dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+                dynamo=False,
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})
@@ -435,9 +436,10 @@ class TestFusionPatterns(unittest.TestCase):
                 dummy_input,
                 f.name,
                 export_params=True,
-                opset_version=11,
+                opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
+                dynamo=False,
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})
@@ -495,9 +497,10 @@ class TestFusionPatterns(unittest.TestCase):
                 dummy_input,
                 f.name,
                 export_params=True,
-                opset_version=11,
+                opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
+                dynamo=False,
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})
@@ -553,9 +556,10 @@ class TestFusionPatterns(unittest.TestCase):
                 dummy_input,
                 f.name,
                 export_params=True,
-                opset_version=11,
+                opset_version=14,
                 input_names=["input"],
                 output_names=["output"],
+                dynamo=False,
             )
             # Run the original model
             original_output = run_onnx(f.name, {"input": input_data})

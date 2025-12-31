@@ -36,6 +36,7 @@ class TestSymbolicShapeInference:
                     m,
                     tuple(inputs),
                     filename,
+                    opset_version=14,
                     dynamic_axes=dynamic_axes,
                     input_names=input_names,
                     output_names=output_names,

@@ -30,12 +30,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
-      # - name: yolo test
-      #   if: matrix.python-version <= '3.11'
-      #   run: |
-      #     pip install ultralytics
-      #     coverage run --parallel-mode -m pytest tests/test_yolo.py -sv
-
       - name: Run all tests with coverage
         run: uv run pytest --cov=onnxslim --cov-report=xml:coverage-ci.xml
 

@@ -193,6 +193,21 @@ class TestModelZoo:
             assert len(summary.op_info["/avgpool/GlobalAveragePool"].outputs) == 1
             assert summary.op_info["/avgpool/GlobalAveragePool"].outputs[0].shape == (1, 2048, 1, 1)
 
+    def test_yolo11n(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
+            input = np.zeros((1, 3, 256, 256), dtype=np.float32)
+
+            ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
+            ort_sess.run(None, {"images": input})
+
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["Add"] == 25
+            assert summary.op_type_counts["Concat"] == 44
+
 
 if __name__ == "__main__":
     import sys

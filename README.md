@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/inisis/OnnxSlim/main/assets/logo/onnxslim-banner-light.svg#gh-light-mode-only" alt="OnnxSlim Logo" width="640"/>
-  <img src="https://raw.githubusercontent.com/inisis/OnnxSlim/main/assets/logo/onnxslim-banner.svg" alt="OnnxSlim Logo" width="640"/>
+  <img src="https://raw.githubusercontent.com/inisis/OnnxSlim/main/assets/logo/onnxslim-banner.svg#gh-dark-mode-only" alt="OnnxSlim Logo" width="640"/>
 </p>
 
 <p align="center">

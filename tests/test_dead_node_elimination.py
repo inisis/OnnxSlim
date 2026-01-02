@@ -366,34 +366,34 @@ class TestDeadNodeElimination:
         # Split node with single output should be eliminated
         assert final_node_count <= initial_node_count
 
-    # def test_noop_slice_elimination(self, request):
-    #     """Test that Slice nodes that don't change the tensor are eliminated.
+    def test_noop_slice_elimination(self, request):
+        """Test that Slice nodes that don't change the tensor are eliminated.
 
-    #     Construct the ONNX graph manually to ensure a `Slice` node exists
-    #     with starts/ends/axes/constants that represent a no-op slice.
-    #     """
+        Construct the ONNX graph manually to ensure a `Slice` node exists
+        with starts/ends/axes/constants that represent a no-op slice.
+        """
 
-    #     # Create a simple graph with an explicit Slice node
-    #     input_tensor = gs.Variable(name="input", dtype=np.float32, shape=(1, 512, 8, 8))
-    #     output_tensor = gs.Variable(name="output", dtype=np.float32, shape=(1, 512, 8, 8))
+        # Create a simple graph with an explicit Slice node
+        input_tensor = gs.Variable(name="input", dtype=np.float32, shape=(1, 512, 8, 8))
+        output_tensor = gs.Variable(name="output", dtype=np.float32, shape=(1, 512, 8, 8))
 
-    #     starts = gs.Constant(name="starts", values=np.array([0, 0], dtype=np.int64))
-    #     ends = gs.Constant(name="ends", values=np.array([8, 8], dtype=np.int64))
-    #     axes = gs.Constant(name="axes", values=np.array([2, 3], dtype=np.int64))
+        starts = gs.Constant(name="starts", values=np.array([0, 0], dtype=np.int64))
+        ends = gs.Constant(name="ends", values=np.array([8, 8], dtype=np.int64))
+        axes = gs.Constant(name="axes", values=np.array([2, 3], dtype=np.int64))
 
-    #     slice_node = gs.Node(op="Slice", inputs=[input_tensor, starts, ends, axes], outputs=[output_tensor])
+        slice_node = gs.Node(op="Slice", inputs=[input_tensor, starts, ends, axes], outputs=[output_tensor])
 
-    #     graph = gs.Graph(
-    #         inputs=[input_tensor],
-    #         outputs=[output_tensor],
-    #         nodes=[slice_node],
-    #     )
+        graph = gs.Graph(
+            inputs=[input_tensor],
+            outputs=[output_tensor],
+            nodes=[slice_node],
+        )
 
-    #     dead_node_elimination(graph)
-    #     graph.cleanup().toposort()
+        dead_node_elimination(graph)
+        graph.cleanup().toposort()
 
-    #     # Slice that does not change shape should be eliminated
-    #     assert not any(node.op == "Slice" for node in graph.nodes)
+        # Slice that does not change shape should be eliminated
+        assert not any(node.op == "Slice" for node in graph.nodes)
 
     def test_check_shape_function(self):
         """Test the check_shape helper function."""

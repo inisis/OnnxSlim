@@ -117,8 +117,11 @@ def gen_onnxruntime_input_data(
 ) -> dict[str, np.ndarray]:
     """Generate random input data for an ONNX model considering potential specific input shapes and types."""
     input_info = {}
+    initializer_names = {init.name for init in model.graph.initializer}
     for input_tensor in model.graph.input:
         name = input_tensor.name
+        if name in initializer_names:
+            continue
         shape = []
         for dim in input_tensor.type.tensor_type.shape.dim:
             if dim.HasField("dim_param"):
@@ -158,8 +161,7 @@ def gen_onnxruntime_input_data(
             shapes = [shape if (shape != -1 and not isinstance(shape, str)) else 1 for shape in info["shape"]]
             shapes = shapes or [1]
             dtype = info["dtype"]
-
-            if dtype in {np.int32, np.int64}:
+            if dtype in [np.int32, np.int64]:
                 random_data = np.random.randint(10, size=shapes).astype(dtype)
             else:
                 random_data = np.random.rand(*shapes).astype(dtype)

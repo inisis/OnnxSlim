@@ -58,21 +58,11 @@ def dead_node_elimination(graph, is_subgraph=False):
                 and node.inputs[0].shape == node.outputs[0].shape
                 and all(isinstance(item, int) for item in node.inputs[0].shape)):
 
-                graph = gs.Graph(nodes=[node], inputs=node.inputs, outputs=node.outputs)
-                onnx_model = gs.export_onnx(graph)
-                from onnxslim.utils import check_onnx
-                try:
-                    input_data_dict, output_data_dict, _ = check_onnx(onnx_model)
-
-                    in_val = list(input_data_dict.values())[0]
-                    out_val = list(output_data_dict.values())[0]
-
-                    if np.array_equal(in_val, out_val):
-                        node.erase()
-                        logger.debug(f"removing {node.op} op: {node.name}")
-
-                except Exception as e:
-                    logger.debug(f"skip {node.name} {node.op} op: {e}")
+                # Check if slice is a no-op by analyzing parameters directly
+                # Slice inputs: data, starts, ends, [axes], [steps]
+                if is_noop_slice(node):
+                    node.erase()
+                    logger.debug(f"removing {node.op} op: {node.name}")
 
         elif node.op == "Mul":
             if (isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable)) or (
@@ -170,3 +160,77 @@ def get_constant_variable(node, return_idx=False):
     for idx, input in enumerate(list(node.inputs)):
         if isinstance(input, Constant):
             return (idx, input) if return_idx else input
+
+
+def is_noop_slice(node):
+    """Check if a Slice node is a no-op by analyzing its parameters directly.
+
+    A Slice is a no-op when it extracts the entire tensor, i.e., for each sliced axis:
+    - start == 0 (or equivalent negative index)
+    - end >= dim_size (or is INT_MAX-like value)
+    - step == 1
+    """
+    # Slice inputs: data, starts, ends, [axes], [steps]
+    if len(node.inputs) < 3:
+        return False
+
+    data_shape = node.inputs[0].shape
+    if not data_shape or not all(isinstance(d, int) for d in data_shape):
+        return False
+
+    # Get starts and ends (required)
+    starts_input = node.inputs[1]
+    ends_input = node.inputs[2]
+
+    if not isinstance(starts_input, Constant) or not isinstance(ends_input, Constant):
+        return False
+
+    starts = starts_input.values.flatten().tolist()
+    ends = ends_input.values.flatten().tolist()
+
+    # Get axes (optional, defaults to [0, 1, 2, ...])
+    if len(node.inputs) > 3 and isinstance(node.inputs[3], Constant):
+        axes = node.inputs[3].values.flatten().tolist()
+    else:
+        axes = list(range(len(starts)))
+
+    # Get steps (optional, defaults to [1, 1, 1, ...])
+    if len(node.inputs) > 4 and isinstance(node.inputs[4], Constant):
+        steps = node.inputs[4].values.flatten().tolist()
+    else:
+        steps = [1] * len(starts)
+
+    # Check each axis
+    ndim = len(data_shape)
+    for start, end, axis, step in zip(starts, ends, axes, steps):
+        # Normalize negative axis
+        if axis < 0:
+            axis = ndim + axis
+
+        if axis < 0 or axis >= ndim:
+            return False
+
+        dim_size = data_shape[axis]
+
+        # Step must be 1 for no-op
+        if step != 1:
+            return False
+
+        # Normalize negative start index
+        if start < 0:
+            start = max(0, dim_size + start)
+
+        # Start must be 0
+        if start != 0:
+            return False
+
+        # Normalize negative end index
+        if end < 0:
+            end = dim_size + end
+
+        # End must cover the entire dimension
+        # Common patterns: end == dim_size, or end is a large value like INT_MAX
+        if end < dim_size:
+            return False
+
+    return True

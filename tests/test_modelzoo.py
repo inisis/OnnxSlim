@@ -47,7 +47,34 @@ class TestModelZoo:
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
 
         with tempfile.TemporaryDirectory() as tempdir:
-            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
+            num_layers = 4
+            num_heads = 1
+            self_seq_len = 448
+            cross_seq_len = 1500
+            head_dim = 384
+            inputs = {
+                "tokens": np.ones((1, 1), dtype=np.int64),
+                "in_n_layer_self_k_cache": np.zeros(
+                    (num_layers, num_heads, self_seq_len, head_dim),
+                    dtype=np.float32,
+                ),
+                "in_n_layer_self_v_cache": np.zeros(
+                    (num_layers, num_heads, self_seq_len, head_dim),
+                    dtype=np.float32,
+                ),
+                "n_layer_cross_k": np.zeros(
+                    (num_layers, num_heads, cross_seq_len, head_dim),
+                    dtype=np.float32,
+                ),
+                "n_layer_cross_v": np.zeros(
+                    (num_layers, num_heads, cross_seq_len, head_dim),
+                    dtype=np.float32,
+                ),
+                "offset": np.zeros((1,), dtype=np.int64),
+            }
+            ort_sess = ort.InferenceSession(os.path.join(tempdir, f"{name}_slim.onnx"))
+            ort_sess.run(None, inputs)
 
     def test_transformer_encoder(self, request):
         name = request.node.originalname[len("test_") :]

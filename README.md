@@ -86,7 +86,7 @@ model = onnx.load("model.onnx")
 slimmed_model = onnxslim.slim(model)
 
 if slimmed_model:
-  onnx.save(slimmed_model, "slimmed_model.onnx")
+    onnx.save(slimmed_model, "slimmed_model.onnx")
 ```
 
 For more usage, see onnxslim -h or refer to our [examples](./examples)

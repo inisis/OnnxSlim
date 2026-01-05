@@ -30,6 +30,7 @@
 
 OnnxSlim can help you slim your onnx model, with less operators, but same accuracy, better inference speed.
 
+- 🚀 2026/01/04: Achieved 5M downloads
 - 🚀 2025/11/29: Top 1% on PyPI
 - 🚀 2025/11/27: OnnxSlim is merged into [NVIDIA TensorRT-Model-Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer) 🤗🤗🤗
 - 🚀 2025/05/17: OnnxSlim is merged into [HuggingFace optimum](https://github.com/huggingface/optimum) 🤗🤗🤗
@@ -83,7 +84,9 @@ import onnxslim
 
 model = onnx.load("model.onnx")
 slimmed_model = onnxslim.slim(model)
-onnx.save(slimmed_model, "slimmed_model.onnx")
+
+if slimmed_model:
+    onnx.save(slimmed_model, "slimmed_model.onnx")
 ```
 
 For more usage, see onnxslim -h or refer to our [examples](./examples)

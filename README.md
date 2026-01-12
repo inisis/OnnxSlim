@@ -174,6 +174,12 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 > - [tabulate](https://github.com/astanin/python-tabulate)
 > - [onnxruntime](https://github.com/microsoft/onnxruntime)
 
+## Contributors
+
+<a href="https://github.com/inisis/onnxslim/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=inisis/onnxslim" />
+</a>
+
 # Contact
 
 Discord: https://discord.gg/nRw2Fd3VUS QQ Group: `873569894`

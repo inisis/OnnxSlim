@@ -27,12 +27,13 @@ class ConvAddMatcher(PatternMatcher):
         conv_weight = list(conv_node.inputs)[1]
         conv_node_users = conv_node.users
         node = self.add_0
+        oc_axis = 0 if conv_node.op == "Conv" else 1 # output_channel_axis
         if (
             len(conv_node_users) == 1
             and isinstance(node.inputs[1], gs.Constant)
             and isinstance(conv_weight, gs.Constant)
             and node.inputs[1].values.squeeze().ndim == 1
-            and node.inputs[1].values.squeeze().shape[0] == conv_weight.shape[0]
+            and node.inputs[1].values.squeeze().shape[0] == conv_weight.shape[oc_axis]
         ):
             add_node = node
             if len(conv_node.inputs) == 2:
@@ -66,5 +67,24 @@ class ConvAddMatcher(PatternMatcher):
 
         return match_case
 
+class ConvTransposeAddMatcher(ConvAddMatcher):
+    def __init__(self, priority):
+        """Initializes the ConvTransposeAddMatcher for fusing ConvTranspose and Add layers in an ONNX graph."""
+        pattern = Pattern(
+            """
+            input             input  0  1 conv_0
+            ConvTranspose     conv_0 1+ 1 input bn_0
+            Add               add_0  2  1 conv_0 ? output
+            output            output 1  0 add_0
+            """
+        )
+        super(ConvAddMatcher, self).__init__(pattern, priority)
+
+    @property
+    def name(self):
+        """Returns the name of the FusionConvTransposeAdd pattern."""
+        return "FusionConvTransposeAdd"
+
 
 register_fusion_pattern(ConvAddMatcher(1))
+register_fusion_pattern(ConvTransposeAddMatcher(1))

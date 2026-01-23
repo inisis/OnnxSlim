@@ -28,11 +28,10 @@ class ConvMulMatcher(PatternMatcher):
         conv_weight = list(conv_node.inputs)[1]
         if len(conv_node.users) == 1 and conv_node.users[0] == mul_node and isinstance(mul_node.inputs[1], gs.Constant):
             mul_constant = mul_node.inputs[1].values
-
-            if mul_constant.squeeze().ndim == 1 and mul_constant.squeeze().shape[0] == conv_weight.shape[0]:
-                weight_shape = conv_weight.values.shape
-                reshape_shape = [-1] + [1] * (len(weight_shape) - 1)
-
+            oc_axis = 0 if conv_node.op == "Conv" else 1 # output_channel_axis
+            if mul_constant.squeeze().ndim == 1 and mul_constant.squeeze().shape[0] == conv_weight.shape[oc_axis]:
+                reshape_shape = [1] * len(conv_weight.values.shape)
+                reshape_shape[oc_axis] = -1
                 mul_scale_reshaped = mul_constant.squeeze().reshape(reshape_shape)
                 new_weight = conv_weight.values * mul_scale_reshaped
 
@@ -65,5 +64,24 @@ class ConvMulMatcher(PatternMatcher):
 
         return match_case
 
+class ConvTransposeMulMatcher(ConvMulMatcher):
+    def __init__(self, priority):
+        """Initializes the ConvTransposeMulMatcher for fusing ConvTranspose and Mul layers in an ONNX graph."""
+        pattern = Pattern(
+            """
+            input            input  0  1 conv_0
+            ConvTranspose    conv_0 1+ 1 input mul_0
+            Mul              mul_0  2  1 conv_0 ? output
+            output           output 1  0 mul_0
+            """
+        )
+        super(ConvMulMatcher, self).__init__(pattern, priority)
+
+    @property
+    def name(self):
+        """Returns the name of the FusionConvTransposeMul pattern."""
+        return "FusionConvTransposeMul"
+
 
 register_fusion_pattern(ConvMulMatcher(1))
+register_fusion_pattern(ConvTransposeMulMatcher(1))

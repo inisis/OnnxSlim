@@ -44,11 +44,9 @@ class ConvBatchNormMatcher(PatternMatcher):
                 conv_transpose_bias = conv_transpose_node.inputs[2].values
 
             bn_var_rsqrt = bn_scale / np.sqrt(bn_running_var + bn_eps)
+            oc_axis = 0 if conv_transpose_node.op == "Conv" else 1 # output_channel_axis
             shape = [1] * len(conv_transpose_weight.shape)
-            if bn_node.i(0).op == "Conv":
-                shape[0] = -1
-            else:
-                shape[1] = -1
+            shape[oc_axis] = -1
             conv_w = conv_transpose_weight * bn_var_rsqrt.reshape(shape)
             conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt + bn_bias
 
@@ -82,5 +80,24 @@ class ConvBatchNormMatcher(PatternMatcher):
 
         return match_case
 
+class ConvTransposeBatchNormMatcher(ConvBatchNormMatcher):
+    def __init__(self, priority):
+        """Initializes the ConvTransposeBatchNormMatcher for fusing ConvTranspose and BatchNormalization layers in an ONNX graph."""
+        pattern = Pattern(
+            """
+            input              input  0  1 conv_0
+            ConvTranspose      conv_0 1+ 1 input bn_0
+            BatchNormalization bn_0   5  1 conv_0 ? ? ? ? output
+            output             output 1  0 bn_0
+            """
+        )
+        super(ConvBatchNormMatcher, self).__init__(pattern, priority)
+
+    @property
+    def name(self):
+        """Returns the name of the FusionConvTransposeBN pattern."""
+        return "FusionConvTransposeBN"
+
 
 register_fusion_pattern(ConvBatchNormMatcher(1))
+register_fusion_pattern(ConvTransposeBatchNormMatcher(1))

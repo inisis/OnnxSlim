@@ -11,9 +11,9 @@ from utils import run_onnx
 
 import onnxslim
 from onnxslim.core.pattern.fusion.concat_reshape import ConcatReshapeMatcher
-from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher
-from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher
-from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher
+from onnxslim.core.pattern.fusion.convadd import ConvAddMatcher, ConvTransposeAddMatcher
+from onnxslim.core.pattern.fusion.convbn import ConvBatchNormMatcher, ConvTransposeBatchNormMatcher
+from onnxslim.core.pattern.fusion.convmul import ConvMulMatcher, ConvTransposeMulMatcher
 from onnxslim.core.pattern.fusion.gelu import GeluPatternMatcher
 from onnxslim.core.pattern.fusion.gemm import (
     GemmAddPatternMatcher,
@@ -209,6 +209,200 @@ class TestFusionPatterns(unittest.TestCase):
 
             # Check that the outputs are the same
             np.testing.assert_allclose(original_output["output"], optimized_output["output"], atol=1e-3)
+
+            # Check that the nodes were fused
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+
+        os.unlink(f.name)
+
+    def test_convtransposemul_pattern(self):
+        # Test the ConvTransposeMul pattern matcher
+        matcher = ConvTransposeMulMatcher(1)
+        self.assertTrue(hasattr(matcher, "match"))
+        self.assertTrue(hasattr(matcher, "rewrite"))
+
+        # Create a model with ConvTranspose + Mul pattern
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 448, 448])
+
+        # Create weights for ConvTranspose and scale factors for Mul (both 4D)
+        weights = numpy_helper.from_array(np.random.randn(3, 3, 3, 3).astype(np.float32), name="weights")
+        bias = numpy_helper.from_array(np.random.randn(3).astype(np.float32), name="bias")
+        scale_factors = numpy_helper.from_array(np.random.randn(1, 3, 1, 1).astype(np.float32), name="scale_factors")
+
+        # Create ConvTranspose node
+        convt_node = helper.make_node(
+            "ConvTranspose",
+            ["input", "weights", "bias"],
+            ["convt_output"],
+            kernel_shape=[3, 3],
+            strides=[2, 2],
+            pads=[1, 1, 1, 1],
+            output_padding=[1, 1],
+            dilations=[1, 1],
+        )
+
+        # Create Mul node with 4D scale factors
+        mul_node = helper.make_node(
+            "Mul",
+            ["convt_output", "scale_factors"],
+            ["output"],
+        )
+
+        graph = helper.make_graph(
+            [convt_node, mul_node],
+            "convtransposemul-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[weights, bias, scale_factors],
+        )
+
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+
+        # Test with onnxslim optimization
+        input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            # Optimize the model
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            # Check that the outputs are the same
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5, atol=1e-5)
+
+            # Check that the nodes were fused
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+
+        os.unlink(f.name)
+
+    def test_convtransposeadd_pattern(self):
+        # Test the ConvTransposeAdd pattern matcher
+        matcher = ConvTransposeAddMatcher(1)
+        self.assertTrue(hasattr(matcher, "match"))
+        self.assertTrue(hasattr(matcher, "rewrite"))
+
+        # Create a model with ConvTranspose + Add pattern
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 448, 448])
+
+        # Create weights and bias
+        weights = numpy_helper.from_array(np.random.randn(3, 3, 3, 3).astype(np.float32), name="weights")
+        bias = numpy_helper.from_array(np.random.randn(1, 3, 1, 1).astype(np.float32), name="bias")
+
+        # Create ConvTranspose node
+        convt_node = helper.make_node(
+            "ConvTranspose",
+            ["input", "weights"],
+            ["convt_output"],
+            kernel_shape=[3, 3],
+            strides=[2, 2],
+            pads=[1, 1, 1, 1],
+            output_padding=[1, 1],
+            dilations=[1, 1],
+        )
+
+        # Create Add node
+        add_node = helper.make_node(
+            "Add",
+            ["convt_output", "bias"],
+            ["output"],
+        )
+
+        graph = helper.make_graph(
+            [convt_node, add_node], "convtransposeadd-test", [input_tensor], [output_tensor], initializer=[weights, bias]
+        )
+
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+
+        # Test with onnxslim optimization
+        input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            # Optimize the model
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            # Check that the outputs are the same
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5, atol=1e-5)
+
+            # Check that the nodes were fused
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+
+        os.unlink(f.name)
+
+    def test_convtransposebn_pattern(self):
+        # Test the ConvTransposeBN pattern matcher
+        matcher = ConvTransposeBatchNormMatcher(1)
+        self.assertTrue(hasattr(matcher, "match"))
+        self.assertTrue(hasattr(matcher, "rewrite"))
+
+        # Create a model with ConvTranspose + BatchNormalization pattern
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 16, 448, 448])
+
+        # Create weights for ConvTranspose
+        weights = numpy_helper.from_array(np.random.randn(3, 16, 3, 3).astype(np.float32), name="weights")
+
+        # Create parameters for BatchNormalization
+        scale = numpy_helper.from_array(np.random.randn(16).astype(np.float32), name="scale")
+        bias = numpy_helper.from_array(np.random.randn(16).astype(np.float32), name="bias")
+        mean = numpy_helper.from_array(np.random.randn(16).astype(np.float32), name="mean")
+        var = numpy_helper.from_array(np.abs(np.random.randn(16)).astype(np.float32), name="var")
+
+        # Create ConvTranspose node
+        convt_node = helper.make_node(
+            "ConvTranspose",
+            ["input", "weights"],
+            ["convt_output"],
+            kernel_shape=[3, 3],
+            strides=[2, 2],
+            output_padding=[1, 1],
+            pads=[1, 1, 1, 1],
+        )
+
+        # Create BatchNormalization node
+        bn_node = helper.make_node(
+            "BatchNormalization",
+            ["convt_output", "scale", "bias", "mean", "var"],
+            ["output"],
+            epsilon=1e-5,
+        )
+
+        graph = helper.make_graph(
+            [convt_node, bn_node],
+            "convtransposebn-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[weights, scale, bias, mean, var],
+        )
+
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+
+        # Test with onnxslim optimization
+        input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
+
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            # Optimize the model
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            # Check that the outputs are the same
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5, atol=1e-5)
 
             # Check that the nodes were fused
             self.assertLess(len(optimized_model.graph.node), len(model.graph.node))

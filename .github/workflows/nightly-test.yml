@@ -25,8 +25,13 @@ jobs:
         run: |
           python tests/test_benchmark.py
 
-      - name: model test
+      - name: timm test
         run: |
           pip install .
           pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
           python tests/test_onnx_nets.py
+      
+      - name: optimum test
+        run: |
+          pip install "optimum-onnx[onnxruntime]"
+          pytest tests/exporters/onnx/test_export_cli.py

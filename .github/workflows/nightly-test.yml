@@ -35,3 +35,8 @@ jobs:
         run: |
           pip install "optimum-onnx[onnxruntime]"
           pytest tests/exporters/onnx/test_export_cli.py
+
+      - name: ultralytics test
+        run: |
+          pip install -U ultralytics
+          pytest tests/test_ultralytics.py -v -n 1

@@ -101,11 +101,12 @@ class TestFunctional:
             self.run_basic_test(FILENAME, out_model_path, **kwargs)
 
     def test_inspect(self, request):
-        with tempfile.TemporaryDirectory():
+        with tempfile.TemporaryDirectory() as tempdir:
+            out_model_path = os.path.join(tempdir, "resnet18.onnx")
             kwargs = {}
             kwargs["bash"] = "--inspect"
             kwargs["api"] = {"inspect": True}
-            self.run_basic_test(FILENAME, FILENAME, **kwargs)
+            self.run_basic_test(FILENAME, out_model_path, **kwargs)
 
     def test_unsupported_dtypes(self, request):
         import numpy as np

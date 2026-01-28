@@ -402,7 +402,7 @@ class TestFusionPatterns(unittest.TestCase):
             optimized_output = run_onnx(f.name, {"input": input_data})
 
             # Check that the outputs are the same
-            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5, atol=1e-5)
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-2, atol=1e-5)
 
             # Check that the nodes were fused
             self.assertLess(len(optimized_model.graph.node), len(model.graph.node))

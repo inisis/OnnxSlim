@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: install dependency
         run: |
@@ -25,18 +25,65 @@ jobs:
         run: |
           python tests/test_benchmark.py
 
-      - name: timm test
+  timm-test:
+    runs-on: self-hosted
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: install dependency
         run: |
+          python -m pip install --upgrade pip wheel setuptools
           pip install .
           pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
-          python tests/test_onnx_nets.py
-      
-      - name: optimum test
+
+      - name: timm test
         run: |
-          pip install "optimum-onnx[onnxruntime]"
-          pytest tests/exporters/onnx/test_export_cli.py
+          python tests/test_onnx_nets.py
+
+  ultralytics-test:
+    runs-on: self-hosted
+    needs: timm-test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: install dependency
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install .
+          pip install pytest pytest-xdist onnxruntime -U ultralytics
 
       - name: ultralytics test
         run: |
-          pip install -U ultralytics
           pytest tests/test_ultralytics.py -v -n 1
+
+  optimum-test:
+    runs-on: self-hosted
+    needs: ultralytics-test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: install dependency
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install .
+          pip install pytest onnx onnxruntime parameterized transformers "optimum[onnxruntime]"
+
+      - name: optimum test
+        run: |
+          pytest tests/exporters/onnx/test_export_cli.py

@@ -37,6 +37,8 @@ class PadConvMatcher(PatternMatcher):
         pad_node_users = pad_node.users
 
         pad_inputs = len(pad_node.inputs)
+        auto_pad = pad_node.attrs.get("auto_pad", "NOTSET")
+
         if pad_inputs < 3 or (
             (pad_inputs >= 3 and (isinstance(pad_node.inputs[2], gs.Constant) and pad_node.inputs[2].values == 0))
             or (pad_inputs >= 3 and (isinstance(pad_node.inputs[2], gs.Variable) and pad_node.inputs[2].name == ""))
@@ -45,6 +47,7 @@ class PadConvMatcher(PatternMatcher):
                 isinstance(pad_node.inputs[1], gs.Constant)
                 and pad_node.attrs.get("mode", "constant") == "constant"
                 and conv_node.inputs[1].shape
+                and (auto_pad == "NOTSET" or auto_pad == "VALID")
             ):
                 conv_weight_dim = len(conv_node.inputs[1].shape)
                 pad_value = pad_node.inputs[1].values.tolist()
@@ -74,6 +77,8 @@ class PadConvMatcher(PatternMatcher):
                         pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
 
                     attrs["pads"] = pads
+                    conv_node.attrs.pop("auto_pad", None)
+
                     match_case[conv_node.name] = {
                         "op": "Conv",
                         "inputs": inputs,

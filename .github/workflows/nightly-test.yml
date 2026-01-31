@@ -81,7 +81,7 @@ jobs:
       - name: install dependency
         run: |
           python -m pip install --upgrade pip wheel setuptools
-          pip install .
+          uv sync --dev
           pip install pytest onnx onnxruntime parameterized transformers "optimum[onnxruntime]"
 
       - name: optimum test

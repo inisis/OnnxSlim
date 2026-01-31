@@ -86,4 +86,4 @@ jobs:
 
       - name: optimum test
         run: |
-          uv run pytest tests/exporters/onnx/test_export_cli.py -v -n 4
+          pytest tests/exporters/onnx/test_export_cli.py -v -n 4

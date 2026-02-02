@@ -3,6 +3,7 @@ name: nightly-test
 on:
   schedule:
     - cron: "0 18 * * *" # Runs at 6:00 PM UTC every day, which is 2:00 AM Beijing Time the next day
+  workflow_dispatch:
 
 jobs:
   benchmark:

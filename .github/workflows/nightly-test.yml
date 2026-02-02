@@ -27,7 +27,7 @@ jobs:
 
   timm-test:
     runs-on: self-hosted
-    needs: build
+    needs: benchmark
 
     steps:
       - uses: actions/checkout@v3

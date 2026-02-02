@@ -8,9 +8,6 @@
         <img src="https://img.shields.io/pypi/v/onnxslim?color=blue" />
     </a>
     <a href="https://pypi.org/project/onnxslim">
-        <img src="https://static.pepy.tech/badge/onnxslim/week" />
-    </a>
-    <a href="https://pypi.org/project/onnxslim">
         <img src="https://static.pepy.tech/badge/onnxslim/month" />
     </a>
     <a href="https://pypi.org/project/onnxslim">
@@ -182,7 +179,7 @@ if slimmed_model:
 > - [tabulate](https://github.com/astanin/python-tabulate)
 > - [onnxruntime](https://github.com/microsoft/onnxruntime)
 
-## 贡献者
+# 贡献者
 
 <a href="https://github.com/inisis/onnxslim/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=inisis/onnxslim" />

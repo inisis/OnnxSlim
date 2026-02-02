@@ -8,9 +8,6 @@
         <img src="https://img.shields.io/pypi/v/onnxslim?color=blue" />
     </a>
     <a href="https://pypi.org/project/onnxslim">
-        <img src="https://static.pepy.tech/badge/onnxslim/week" />
-    </a>
-    <a href="https://pypi.org/project/onnxslim">
         <img src="https://static.pepy.tech/badge/onnxslim/month" />
     </a>    
     <a href="https://pypi.org/project/onnxslim">
@@ -178,7 +175,7 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
 > - [tabulate](https://github.com/astanin/python-tabulate)
 > - [onnxruntime](https://github.com/microsoft/onnxruntime)
 
-## Contributors
+# Contributors
 
 <a href="https://github.com/inisis/onnxslim/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=inisis/onnxslim" />

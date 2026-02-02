@@ -5,7 +5,7 @@ on:
     - cron: "0 18 * * *" # Runs at 6:00 PM UTC every day, which is 2:00 AM Beijing Time the next day
 
 jobs:
-  build:
+  benchmark:
     runs-on: self-hosted
 
     steps:
@@ -82,7 +82,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           uv sync --dev
-          pip install parameterized transformers "optimum[onnxruntime]"
+          pip install einops parameterized transformers "optimum[onnxruntime]"
 
       - name: optimum test
         run: |

@@ -39,6 +39,16 @@ class SlicePatternMatcher(PatternMatcher):
                 first_slice_node_axes = first_slice_node_inputs[3].values.tolist()
                 first_slice_node_steps = first_slice_node_inputs[4].values.tolist()
 
+                # Check all users upfront before modifying the graph.
+                # If any user has overlapping axes, skip the optimization entirely
+                # to avoid corrupting the graph (fixes GitHub issue #277).
+                for user_node in first_slice_node_users:
+                    second_slice_node_inputs = list(user_node.inputs)
+                    second_slice_node_axes = second_slice_node_inputs[3].values.tolist()
+                    new_axes = first_slice_node_axes + second_slice_node_axes
+                    if len(new_axes) != len(set(new_axes)):
+                        return match_case
+
                 for user_node in first_slice_node_users:
                     second_slice_node = user_node
                     second_slice_node_inputs = list(second_slice_node.inputs)
@@ -52,33 +62,30 @@ class SlicePatternMatcher(PatternMatcher):
                     new_axes = first_slice_node_axes + second_slice_node_axes
                     new_steps = first_slice_node_steps + second_slice_node_steps
 
-                    if len(new_axes) != len(set(new_axes)):
-                        continue
-
                     inputs = []
+                    output_name = second_slice_node.outputs[0].name
                     inputs.extend(
                         (
                             next(iter(first_slice_node.inputs)),
                             gs.Constant(
-                                second_slice_node_inputs[1].name + "_starts",
+                                output_name + "_starts",
                                 values=np.array(new_starts, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[2].name + "_ends",
+                                output_name + "_ends",
                                 values=np.array(new_ends, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[3].name + "_axes",
+                                output_name + "_axes",
                                 values=np.array(new_axes, dtype=np.int64),
                             ),
                             gs.Constant(
-                                second_slice_node_inputs[4].name + "_steps",
+                                output_name + "_steps",
                                 values=np.array(new_steps, dtype=np.int64),
                             ),
                         )
                     )
                     outputs = list(second_slice_node.outputs)
-
                     first_slice_node.outputs.clear()
                     second_slice_node.inputs.clear()
                     second_slice_node.outputs.clear()

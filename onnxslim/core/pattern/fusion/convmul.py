@@ -38,14 +38,13 @@ class ConvMulMatcher(PatternMatcher):
                 inputs = []
                 inputs.append(next(iter(conv_node.inputs)))
 
-                weight_name = list(conv_node.inputs)[1].name
-                inputs.append(gs.Constant(weight_name, values=new_weight))
+                output_name = mul_node.outputs[0].name
+                inputs.append(gs.Constant(output_name + "_weight", values=new_weight))
 
                 if len(conv_node.inputs) == 3:
                     conv_bias = conv_node.inputs[2].values
                     new_bias = conv_bias * mul_constant.squeeze()
-                    bias_name = list(conv_node.inputs)[2].name
-                    inputs.append(gs.Constant(bias_name, values=new_bias))
+                    inputs.append(gs.Constant(output_name + "_bias", values=new_bias))
 
                 outputs = list(mul_node.outputs)
 

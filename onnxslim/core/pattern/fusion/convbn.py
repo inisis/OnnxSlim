@@ -52,15 +52,11 @@ class ConvBatchNormMatcher(PatternMatcher):
 
             inputs = []
             inputs.append(next(iter(conv_transpose_node.inputs)))
-            weight_name = list(conv_transpose_node.inputs)[1].name
-            if weight_name.endswith("weight"):
-                bias_name = f"{weight_name[:-6]}bias"
-            else:
-                bias_name = f"{weight_name}_bias"
+            output_name = bn_node.outputs[0].name
             inputs.extend(
                 (
-                    gs.Constant(weight_name + "_weight", values=conv_w),
-                    gs.Constant(bias_name, values=conv_b),
+                    gs.Constant(output_name + "_weight", values=conv_w),
+                    gs.Constant(output_name + "_bias", values=conv_b),
                 )
             )
             outputs = list(bn_node.outputs)

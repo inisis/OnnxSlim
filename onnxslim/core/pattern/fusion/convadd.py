@@ -44,12 +44,8 @@ class ConvAddMatcher(PatternMatcher):
             inputs = []
             inputs.append(next(iter(conv_node.inputs)))
             inputs.append(conv_weight)
-            weight_name = list(conv_node.inputs)[1].name
-            if weight_name.endswith("weight"):
-                bias_name = f"{weight_name[:-6]}bias"
-            else:
-                bias_name = f"{weight_name}_bias"
-            inputs.append(gs.Constant(bias_name, values=conv_bias))
+            output_name = add_node.outputs[0].name
+            inputs.append(gs.Constant(output_name + "_bias", values=conv_bias))
             outputs = list(add_node.outputs)
 
             conv_node.outputs.clear()

@@ -76,7 +76,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 output_variable.outputs.remove(add_node)
 
                 matmul_bias_transpose_constant = gs.Constant(
-                    matmul_bias_variable.name, values=matmul_bias_variable.values.T
+                    f"{matmul_node.name}_weight", values=matmul_bias_variable.values.T
                 )
 
                 inputs = []
@@ -143,7 +143,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 output_variable.outputs.remove(add_node)
 
                 matmul_bias_transpose_constant = gs.Constant(
-                    matmul_bias_variable.name, values=matmul_bias_variable.values.T
+                    f"{matmul_node.name}_weight", values=matmul_bias_variable.values.T
                 )
 
                 inputs = []
@@ -235,14 +235,15 @@ class GemmMulPatternMatcher(PatternMatcher):
                     gemm_weight_fused = gemm_weight * mul_weight[:, None]
                 else:
                     gemm_weight_fused = gemm_weight * mul_weight
-                gemm_weight_fused_constant = gs.Constant(gemm_weight_constant.name + "_fused", values=gemm_weight_fused)
+                output_name = reshape_node.outputs[0].name
+                gemm_weight_fused_constant = gs.Constant(output_name + "_weight_fused", values=gemm_weight_fused)
                 gemm_node.inputs[1] = gemm_weight_fused_constant
 
                 if gemm_bias_constant:
                     gemm_bias = gemm_bias_constant.values
                     mul_bias = mul_bias_variable.values
                     gemm_bias_fused = gemm_bias * mul_bias
-                    gemm_bias_fused_constant = gs.Constant(gemm_bias_constant.name + "_fused", values=gemm_bias_fused)
+                    gemm_bias_fused_constant = gs.Constant(output_name + "_bias_fused", values=gemm_bias_fused)
                     gemm_node.inputs[2] = gemm_bias_fused_constant
 
                 mul_node.replace_all_uses_with(reshape_node)
@@ -312,7 +313,8 @@ class GemmAddPatternMatcher(PatternMatcher):
                     and add_bias.ndim <= 2
                 ):
                     gemm_bias_fused = gemm_bias + add_bias
-                    gemm_bias_fused_constant = gs.Constant(gemm_bias_constant.name + "_fused", values=gemm_bias_fused)
+                    output_name = reshape_node.outputs[0].name
+                    gemm_bias_fused_constant = gs.Constant(output_name + "_bias_fused", values=gemm_bias_fused)
                     gemm_node.inputs[2] = gemm_bias_fused_constant
                 else:
                     return match_case

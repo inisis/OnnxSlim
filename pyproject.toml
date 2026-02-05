@@ -1,6 +1,6 @@
 [project]
 name = "onnxslim"
-version = "0.1.83"
+version = "0.1.84"
 description = "OnnxSlim: A Toolkit to Help Optimize Onnx Model"
 authors = [{ name = "inisis", email = "desmond.yao@buaa.edu.cn" }]
 license = "MIT"
@@ -48,7 +48,8 @@ dev = [
     "onnx<=1.16.1 ; python_version<'3.10'",
     "onnx>=1.12.0,<=1.18.0 ; python_version>='3.10'",
     "onnxruntime<1.20.0 ; python_version<'3.10'",
-    "onnxruntime>=1.20.0 ; python_version>='3.10'",
+    "onnxruntime>=1.20.0,<1.22 ; python_version=='3.10'",
+    "onnxruntime>=1.20.0 ; python_version>='3.11'",
     "onnxconverter-common",    
     "pytest",
     "pytest-xdist",

@@ -74,6 +74,19 @@ class TestModelZoo:
             ok = run_slim_and_compare(filename, slim_path)
             assert ok, f"onnxslim output mismatch for model {name}!"
 
+    def test_sub_model(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim_path = os.path.join(tempdir, f"{name}_slim.onnx")
+            slim(filename, slim_path)
+
+            # Check that the slimmed model has exactly 2 Cast nodes
+            model_info = summarize_model(slim_path)
+            cast_count = model_info.op_type_counts.get("Cast", 0)
+            assert cast_count == 2, f"Expected 2 Cast nodes, but found {cast_count}"
+
 
 if __name__ == "__main__":
     import sys

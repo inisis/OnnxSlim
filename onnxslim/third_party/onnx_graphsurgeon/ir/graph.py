@@ -843,7 +843,9 @@ class Graph:
         for name, tensor in clone_tensors.items():
             if isinstance(tensor, Constant):
                 if any((t.op == "Gather" and t.inputs.index(tensor) == 0) for t in tensor.outputs):
-                    if len(tensor.outputs) <= 1:
+                    if len(tensor.outputs) == 2 and any(t.op == "Transpose" for t in tensor.outputs):
+                        continue
+                    else:
                         graph_constants[name] = tensor
                 else:
                     graph_constants[name] = tensor

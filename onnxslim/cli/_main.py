@@ -101,9 +101,6 @@ def slim(model: str | onnx.ModelProto | list[str | onnx.ModelProto], *args, **kw
 
     output_info = {TensorInfo(o).name: TensorInfo(o).shape for o in model.graph.output}
 
-    if not no_shape_infer:
-        model = shape_infer(model)
-
     OptimizationSettings.reset(skip_optimizations)
     if OptimizationSettings.enabled():
         graph_check_point = check_point(model)
@@ -120,6 +117,9 @@ def slim(model: str | onnx.ModelProto | list[str | onnx.ModelProto], *args, **kw
                 graph_check_point = graph
 
             MAX_ITER -= 1
+
+    if not no_shape_infer and not OptimizationSettings.enabled():
+        model = shape_infer(model)
 
     if dtype:
         model = convert_data_format(model, dtype)

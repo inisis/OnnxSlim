@@ -62,9 +62,9 @@ class TestEliminationPatterns(unittest.TestCase):
     def test_reshape_pattern(self):
         # Create a model with a reshape pattern that can be eliminated
         # Input -> Reshape -> Reshape -> Output
-        # where the second Reshape reverses the first
+        # Two consecutive reshapes are merged into a single reshape
         input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])
-        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 224, 224])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 12, 112, 112])
 
         # Create shape tensors
         shape1 = numpy_helper.from_array(np.array([1, 3 * 224, 224], dtype=np.int64), name="shape1")

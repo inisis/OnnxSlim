@@ -71,8 +71,11 @@ def dead_node_elimination(graph, is_subgraph=False):
                 idx, constant_variable = get_constant_variable(node, return_idx=True)
                 if np.all(constant_variable.values == 1):
                     var_idx = 0 if idx == 1 else 1
-                    node.erase(var_idx, 0)
-                    logger.debug(f"removing {node.op} op: {node.name}")
+                    if constant_variable.values.ndim == 0 or (
+                        node.inputs[var_idx].shape is not None and node.inputs[var_idx].shape == node.outputs[0].shape
+                    ):
+                        node.erase(var_idx, 0)
+                        logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Add":
             if (isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable)) or (
                 isinstance(node.inputs[0], Constant) and isinstance(node.inputs[1], Variable)
@@ -83,7 +86,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 if value.ndim == 0 and value == 0:
                     node.erase(var_idx, 0)
                     logger.debug(f"removing {node.op} op: {node.name}")
-                elif np.all(value == 0) and (node.inputs[var_idx].shape == node.outputs[0].shape):
+                elif np.all(value == 0) and node.inputs[var_idx].shape is not None and (node.inputs[var_idx].shape == node.outputs[0].shape):
                     node.erase(var_idx, 0)
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Expand":
@@ -112,7 +115,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 if value.ndim == 0 and value == 0:
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
-                elif np.all(value == 0) and (node.inputs[0].shape == node.outputs[0].shape):
+                elif np.all(value == 0) and node.inputs[0].shape is not None and (node.inputs[0].shape == node.outputs[0].shape):
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Div":
@@ -122,7 +125,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 if value.ndim == 0 and value == 1:
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
-                elif np.all(value == 1) and (node.inputs[0].shape == node.outputs[0].shape):
+                elif np.all(value == 1) and node.inputs[0].shape is not None and (node.inputs[0].shape == node.outputs[0].shape):
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Split":

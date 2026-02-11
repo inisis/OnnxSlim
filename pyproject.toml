@@ -1,6 +1,6 @@
 [project]
 name = "onnxslim"
-version = "0.1.84"
+version = "0.1.85"
 description = "OnnxSlim: A Toolkit to Help Optimize Onnx Model"
 authors = [{ name = "inisis", email = "desmond.yao@buaa.edu.cn" }]
 license = "MIT"

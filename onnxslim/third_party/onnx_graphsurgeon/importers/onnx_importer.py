@@ -448,7 +448,14 @@ class OnnxImporter(BaseImporter):
                     tensor = OnnxImporter.import_tensor(onnx_tensor)
                     if isinstance(subgraph_tensor_map[name], Variable):
                         subgraph_tensor_map[name].dtype = subgraph_tensor_map[name].dtype or tensor.dtype
-                        subgraph_tensor_map[name].shape = subgraph_tensor_map[name].shape or tensor.shape
+                        if tensor.shape is not None:
+                            if subgraph_tensor_map[name].shape is None:
+                                subgraph_tensor_map[name].shape = tensor.shape
+                            else:
+                                existing_concrete = sum(isinstance(d, int) for d in subgraph_tensor_map[name].shape)
+                                new_concrete = sum(isinstance(d, int) for d in tensor.shape)
+                                if new_concrete > existing_concrete:
+                                    subgraph_tensor_map[name].shape = tensor.shape
                 return subgraph_tensor_map[name]
 
             if check_outer_graph and name in tensor_map:

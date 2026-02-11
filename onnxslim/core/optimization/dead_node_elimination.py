@@ -29,8 +29,8 @@ def dead_node_elimination(graph, is_subgraph=False):
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Cast":
-            inp_dtype = next(dtype_to_onnx(input.dtype) for input in node.inputs)
-            if inp_dtype == node.attrs["to"]:
+            inp_dtype = next((input.dtype for input in node.inputs), None)
+            if inp_dtype is not None and dtype_to_onnx(inp_dtype) == node.attrs["to"]:
                 node.erase()
                 logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Reshape":

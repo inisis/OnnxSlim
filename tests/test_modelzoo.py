@@ -255,6 +255,18 @@ class TestModelZoo:
             assert summary.op_type_counts["Gather"] == 1
             assert summary.op_type_counts["Shape"] == 0
 
+    def test_birdnet(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
+            summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
+            assert summary.op_type_counts["Reshape"] == 19
+            assert summary.op_type_counts["Cast"] == 1
+            assert summary.op_type_counts["Concat"] == 3
+            assert summary.op_type_counts["Add"] == 16
+
 
 if __name__ == "__main__":
     import sys

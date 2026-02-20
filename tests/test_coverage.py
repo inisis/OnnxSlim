@@ -2022,6 +2022,63 @@ class TestMorePatterns:
 
 
 
+class TestSplitConstantPropagation:
+    """Tests for Split constant value propagation through shape inference."""
+
+    def test_split_value_propagation(self):
+        """Test that Split outputs become constants when input is a known shape computation.
+
+        Creates a model: Input -> Shape -> Split -> use split output in Expand
+        The Split outputs should be recognized as constants after shape inference,
+        enabling constant folding to eliminate the Shape+Split chain.
+        """
+        # Input with known static shape [2, 144000]
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [2, 144000])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.INT64, None)
+
+        # Shape -> extracts [2, 144000]
+        shape_node = helper.make_node("Shape", ["input"], ["shape_out"])
+
+        # Split shape into individual dimensions: [2] and [144000]
+        split_sizes = numpy_helper.from_array(np.array([1, 1], dtype=np.int64), name="split_sizes")
+        split_node = helper.make_node("Split", ["shape_out", "split_sizes"], ["dim0", "dim1"], axis=0)
+
+        # Output dim1 directly (should be constant [144000])
+        identity_node = helper.make_node("Identity", ["dim1"], ["output"])
+
+        graph = helper.make_graph(
+            [shape_node, split_node, identity_node],
+            "split-const-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[split_sizes],
+        )
+
+        model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 14)])
+        model.ir_version = 7
+
+        # Count Split nodes before optimization
+        split_count_before = sum(1 for n in model.graph.node if n.op_type == "Split")
+        assert split_count_before == 1
+
+        # Run optimization
+        optimized = slim(model)
+
+        # After optimization, the Split should be eliminated because its outputs
+        # became constants and were folded
+        split_count_after = sum(1 for n in optimized.graph.node if n.op_type == "Split")
+        assert split_count_after == 0, f"Expected Split to be eliminated, but found {split_count_after} Split nodes"
+
+        # Also verify Shape node was eliminated
+        shape_count = sum(1 for n in optimized.graph.node if n.op_type == "Shape")
+        assert shape_count == 0, f"Expected Shape to be eliminated, but found {shape_count} Shape nodes"
+
+        # Check the constant value is materialized as an initializer
+        initializer_dict = {i.name: numpy_helper.to_array(i) for i in optimized.graph.initializer}
+        assert "dim1" in initializer_dict, "Expected dim1 to be an initializer"
+        np.testing.assert_array_equal(initializer_dict["dim1"], np.array([144000], dtype=np.int64))
+
+
 if __name__ == "__main__":
     import sys
     sys.exit(pytest.main(["-p", "no:warnings", "-v", __file__]))

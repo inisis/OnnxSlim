@@ -16,9 +16,10 @@ Usage:
 
 import logging
 
+import numpy as np
 import onnx
 import sympy
-from onnx import helper
+from onnx import helper, numpy_helper
 
 from .context import InferenceContext
 from .registry import get_all_aten_handlers, get_all_shape_handlers, get_aten_handler, get_shape_handler
@@ -329,6 +330,113 @@ class ShapeInferencer:
                 output.CopyFrom(ctx.known_vi_[output.name])
 
     @staticmethod
+    def _is_concrete(value):
+        """Check if a sympy_data value is fully concrete (no symbolic variables)."""
+        if isinstance(value, np.ndarray):
+            return True
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, sympy.Integer):
+            return True
+        if isinstance(value, sympy.Expr):
+            return value.is_number
+        if isinstance(value, list):
+            return all(ShapeInferencer._is_concrete(v) for v in value)
+        return False
+
+    @staticmethod
+    def _to_numpy(value, np_dtype):
+        """Convert a sympy_data value to a numpy array with the given dtype."""
+        if isinstance(value, np.ndarray):
+            return value.astype(np_dtype)
+        if isinstance(value, list):
+            converted = [int(v) if isinstance(v, sympy.Integer) else (float(v) if isinstance(v, sympy.Expr) else v) for v in value]
+            return np.array(converted, dtype=np_dtype)
+        if isinstance(value, sympy.Integer):
+            return np.array(int(value), dtype=np_dtype)
+        if isinstance(value, sympy.Expr):
+            return np.array(float(value), dtype=np_dtype)
+        return np.array(value, dtype=np_dtype)
+
+    def _materialize_sympy_data(self, ctx):
+        """Write concrete computed values from sympy_data_ back to the model as initializers.
+
+        Only materializes values whose producing node can't be folded by ORT's
+        constant folding on its own. This avoids bloating the model with large
+        pre-computed tensors that ORT can compute at fold time once the key
+        missing constants (e.g., Split outputs) are provided.
+        """
+        initializer_names = {i.name for i in ctx.out_mp_.graph.initializer}
+        input_names = {i.name for i in ctx.out_mp_.graph.input}
+        output_names = {o.name for o in ctx.out_mp_.graph.output}
+
+        # Build map of node output names to (node, output_index) for renaming
+        node_output_map = {}
+        for node in ctx.out_mp_.graph.node:
+            for i_o, out_name in enumerate(node.output):
+                if out_name:
+                    node_output_map[out_name] = (node, i_o)
+
+        def _all_inputs_const(node):
+            """Check if all inputs of a node are constants (initializers or graph inputs)."""
+            for inp in node.input:
+                if inp and inp not in initializer_names:
+                    return False
+            return True
+
+        for name, value in ctx.sympy_data_.items():
+            if name in initializer_names or name in input_names or name in output_names:
+                continue
+
+            if name not in ctx.known_vi_:
+                continue
+
+            if not self._is_concrete(value):
+                continue
+
+            # Only materialize if the producing node can't be folded by ORT.
+            # If all the node's inputs are already constants, ORT can fold it
+            # without our help — skip to avoid creating unnecessary large tensors.
+            if name in node_output_map:
+                prod_node, _ = node_output_map[name]
+                if _all_inputs_const(prod_node):
+                    continue
+
+            vi = ctx.known_vi_[name]
+            if not vi.type.HasField("tensor_type") or vi.type.tensor_type.elem_type == onnx.TensorProto.UNDEFINED:
+                continue
+
+            try:
+                np_dtype = onnx.helper.tensor_dtype_to_np_dtype(vi.type.tensor_type.elem_type)
+            except (KeyError, ValueError):
+                continue
+
+            np_value = self._to_numpy(value, np_dtype)
+
+            if np_value.size > 1024:
+                continue
+
+            # Reshape to match the expected shape from value_info
+            expected_shape = get_shape_from_value_info(vi)
+            if expected_shape is not None and all(isinstance(d, int) for d in expected_shape):
+                try:
+                    np_value = np_value.reshape(expected_shape)
+                except ValueError:
+                    continue
+
+            tensor_proto = numpy_helper.from_array(np_value, name=name)
+            ctx.out_mp_.graph.initializer.append(tensor_proto)
+
+            # If a node produces this output, rename the node output to avoid
+            # duplicate definition (initializer + node output with same name).
+            # Consumers keep referencing the original name, which now resolves
+            # to the initializer.
+            if name in node_output_map:
+                prod_node, out_idx = node_output_map[name]
+                dead_name = f"__materialized_{name}"
+                prod_node.output[out_idx] = dead_name
+
+    @staticmethod
     def infer_shapes(in_mp, int_max=2**31 - 1, auto_merge=False, guess_output_rank=False, verbose=0):
         """Perform symbolic shape inference on an ONNX model.
 
@@ -367,6 +475,7 @@ class ShapeInferencer:
             all_shapes_inferred = inferencer._infer_impl(ctx)
 
         inferencer._update_output_from_vi(ctx)
+        inferencer._materialize_sympy_data(ctx)
 
         if not all_shapes_inferred:
             raise Exception("Incomplete symbolic shape inference")

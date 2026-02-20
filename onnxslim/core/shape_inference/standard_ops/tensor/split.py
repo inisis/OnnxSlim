@@ -3,12 +3,13 @@
 
 """Shape handler for Split operator."""
 
+import numpy as np
 import sympy
 from onnx import helper
 
 from ...base import ShapeHandler
 from ...registry import register_shape_handler
-from ...utils import get_attribute, get_opset, get_shape_from_sympy_shape, handle_negative_axis
+from ...utils import get_attribute, get_opset, get_shape_from_sympy_shape, handle_negative_axis, is_literal
 
 
 class SplitHandler(ShapeHandler):
@@ -52,6 +53,24 @@ def infer_split_common(node, ctx, make_value_info_func):
             )
         )
         ctx.known_vi_[vi.name] = vi
+
+    # Propagate sympy_data through Split for value tracking
+    if node.input[0] in ctx.sympy_data_ and all(is_literal(s) for s in split):
+        input_data = ctx.sympy_data_[node.input[0]]
+        if isinstance(input_data, list) and axis == 0:
+            offset = 0
+            for i_o in range(len(split)):
+                size = int(split[i_o])
+                ctx.sympy_data_[node.output[i_o]] = input_data[offset : offset + size]
+                offset += size
+        elif isinstance(input_data, np.ndarray) and axis < input_data.ndim:
+            offset = 0
+            for i_o in range(len(split)):
+                size = int(split[i_o])
+                slices = [slice(None)] * input_data.ndim
+                slices[axis] = slice(offset, offset + size)
+                ctx.sympy_data_[node.output[i_o]] = input_data[tuple(slices)]
+                offset += size
 
 
 register_shape_handler(SplitHandler())

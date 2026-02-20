@@ -479,7 +479,14 @@ class InferenceContext:
             "Unsqueeze",
             "Squeeze",
         }
-        self.compute_on_sympy_data(node, lambda x: x[0])
+        if node.op_type in {"Reshape", "Unsqueeze", "Squeeze"}:
+            # For multi-input ops, directly pass input[0]'s data to the output
+            # without involving other inputs (e.g., the shape input for Reshape).
+            name = node.input[0]
+            if name in self.sympy_data_:
+                self.sympy_data_[node.output[0]] = self.sympy_data_[name]
+        else:
+            self.compute_on_sympy_data(node, lambda x: x[0])
 
     # Shape propagation
     def pass_on_shape_and_type(self, node):

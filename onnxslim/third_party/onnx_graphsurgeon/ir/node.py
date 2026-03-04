@@ -249,6 +249,13 @@ class Node:
                 self.inputs[input_var_idx].replace_all_uses_with(self.outputs[output_var_idx])
                 self.inputs.clear()
                 self.outputs.clear()
+        elif isinstance(self.inputs[input_var_idx], Constant):
+            if self.outputs[output_var_idx].is_output:
+                pass
+            else:
+                self.outputs[output_var_idx].replace_all_uses_with(self.inputs[input_var_idx])
+                self.inputs.clear()
+                self.outputs.clear()
 
     def replace_all_uses_with(self, node: Node):
         """Replace all uses of this node with the given node."""

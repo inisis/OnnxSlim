@@ -100,6 +100,11 @@ def dead_node_elimination(graph, is_subgraph=False):
                 elif value.ndim == 0 and value == 1:
                     node.erase()
                     logger.debug(f"removing {node.op} op: {node.name}")
+        elif node.op == "Transpose":
+            perm = node.attrs.get("perm")
+            if perm is not None and list(perm) == list(range(len(perm))):
+                node.erase()
+                logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Concat":
             if len(node.inputs) == 1:
                 node.erase()

@@ -23,28 +23,59 @@ class ConcatReshapeMatcher(PatternMatcher):
 
     def parameter_check(self):
         concat_node = self.concat_0
+        inputs = concat_node.inputs
+        variables = [i for i in inputs if isinstance(i, gs.Variable)]
+        consts = [i for i in inputs if isinstance(i, gs.Constant)]
 
-        def check_inputs(inputs):
-            vars = [i for i in inputs if isinstance(i, gs.Variable)]
-            consts = [i for i in inputs if isinstance(i, gs.Constant)]
-            return (
-                len(vars) == 1 and all(c.values.size == 1 and c.values != -1 for c in consts) and vars[0].shape == [1]
-            )
+        if len(variables) != 1:
+            return False
 
-        return check_inputs(concat_node.inputs)
+        if not all(c.values.size == 1 and int(c.values.flatten()[0]) != -1 for c in consts):
+            return False
+
+        var = variables[0]
+        if var.shape is None or len(var.shape) != 1 or var.shape[0] != 1:
+            return False
+
+        return True
 
     def rewrite(self, opset=11):
         match_case = {}
         concat_node = self.concat_0
         reshape_node = self.reshape_0
-        index = next(idx for idx, i in enumerate(concat_node.inputs) if isinstance(i, gs.Variable))
-        output_name = reshape_node.outputs[0].name
-        constant = gs.Constant(
-            output_name + "_fixed",
-            values=np.array([-1], dtype=np.int64),
+
+        # Build the fused constant shape: collect values from concat inputs,
+        # replacing the single dynamic (Variable) input with -1.
+        shape_values = []
+        for inp in concat_node.inputs:
+            if isinstance(inp, gs.Constant):
+                shape_values.append(int(inp.values.flatten()[0]))
+            else:
+                shape_values.append(-1)
+
+        shape_constant = gs.Constant(
+            reshape_node.name + "_shape",
+            values=np.array(shape_values, dtype=np.int64),
         )
-        concat_node.inputs.pop(index)
-        concat_node.inputs.insert(index, constant)
+
+        # Rewire: replace Reshape's shape input (from Concat output) with the
+        # new constant, effectively eliminating the Concat node.
+        data_input = reshape_node.inputs[0]
+        outputs = list(reshape_node.outputs)
+
+        reshape_node.inputs.clear()
+        reshape_node.outputs.clear()
+        concat_node.inputs.clear()
+        concat_node.outputs.clear()
+
+        match_case[reshape_node.name] = {
+            "op": "Reshape",
+            "inputs": [data_input, shape_constant],
+            "outputs": outputs,
+            "name": reshape_node.name,
+            "attrs": reshape_node.attrs,
+            "domain": None,
+        }
 
         return match_case
 

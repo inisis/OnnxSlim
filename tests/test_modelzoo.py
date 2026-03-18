@@ -265,6 +265,13 @@ class TestModelZoo:
             assert summary.op_type_counts["Transpose"] == 111
             assert summary.op_type_counts["Reshape"] == 170
 
+    def test_no_nms_model(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"), model_check=True)
+
     def test_birdnet(self, request):
         name = request.node.originalname[len("test_") :]
         filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"

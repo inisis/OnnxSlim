@@ -47,7 +47,7 @@ def dead_node_elimination(graph, is_subgraph=False):
                 if node_output_shape and check_shape(node_output_shape) and not isinstance(node.inputs[1], gs.Constant):
                     shapes = [shape if isinstance(shape, int) else -1 for shape in node_output_shape]
                     reshape_const = gs.Constant(
-                        f"{node.inputs[1].name}_",
+                        f"{node.outputs[0].name}_shape",
                         values=np.array(shapes, dtype=np.int64),
                     )
                     node.inputs.pop(1)

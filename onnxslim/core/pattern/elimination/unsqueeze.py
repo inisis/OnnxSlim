@@ -63,8 +63,8 @@ class UnsqueezePatternMatcher(PatternMatcher):
                 node_unsqueeze_1.outputs.clear()
 
                 if len(users_node_unsqueeze_0) == 0:
-                    outputs.inputs.clear()
-                    outputs.outputs.clear()
+                    node_unsqueeze_0.inputs.clear()
+                    node_unsqueeze_0.outputs.clear()
 
                 if opset < 13:
                     attrs = {"axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1}

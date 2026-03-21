@@ -65,8 +65,10 @@ class ConcatReshapeMatcher(PatternMatcher):
 
         reshape_node.inputs.clear()
         reshape_node.outputs.clear()
-        concat_node.inputs.clear()
-        concat_node.outputs.clear()
+        # Only clear the concat node if no other nodes consume its output
+        if len(concat_node.users) == 0:
+            concat_node.inputs.clear()
+            concat_node.outputs.clear()
 
         match_case[reshape_node.name] = {
             "op": "Reshape",

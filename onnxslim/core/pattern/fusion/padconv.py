@@ -37,7 +37,7 @@ class PadConvMatcher(PatternMatcher):
         pad_node_users = pad_node.users
 
         pad_inputs = len(pad_node.inputs)
-        auto_pad = pad_node.attrs.get("auto_pad", "NOTSET")
+        auto_pad = conv_node.attrs.get("auto_pad", "NOTSET")
 
         if pad_inputs < 3 or (
             (pad_inputs >= 3 and (isinstance(pad_node.inputs[2], gs.Constant) and pad_node.inputs[2].values == 0))
@@ -52,7 +52,6 @@ class PadConvMatcher(PatternMatcher):
                 conv_weight_dim = len(conv_node.inputs[1].shape)
                 pad_value = pad_node.inputs[1].values.tolist()
                 if all(pad == 0 for pad in (pad_value[:2] + pad_value[conv_weight_dim : conv_weight_dim + 2])):
-                    conv_weight_dim - 2
                     input_variable = self.pad_0.inputs[0]
                     pad_variable = pad_node.outputs[0]  # pad output variable
                     index = conv_node.inputs.index(pad_variable)
@@ -65,14 +64,14 @@ class PadConvMatcher(PatternMatcher):
 
                     conv_node.inputs.clear()
                     conv_node.outputs.clear()
-                    # remove pad node if it has only one user
-                    if len(pad_node_users) == 0:
+                    # remove pad node if it has only one user (the conv we just disconnected)
+                    if len(pad_node_users) == 1:
                         input_variable.outputs.remove(pad_node)
                         pad_node.inputs.clear()
                         pad_node.outputs.clear()
 
                     pads = pad_value[2:conv_weight_dim] + pad_value[conv_weight_dim + 2 :]
-                    if hasattr(attrs, "pads"):
+                    if "pads" in attrs:
                         conv_pads = attrs["pads"]
                         pads = [pad + conv_pad for pad, conv_pad in zip(pads, conv_pads)]
 

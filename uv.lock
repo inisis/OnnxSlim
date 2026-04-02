@@ -3444,6 +3444,8 @@ dev = [
     { name = "onnx", version = "1.16.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "onnx", version = "1.21.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "onnxconverter-common" },
+    { name = "onnxscript", version = "0.5.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and python_full_version < '3.11'" },
+    { name = "onnxscript", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "onnxruntime", version = "1.19.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "onnxruntime", version = "1.21.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "onnxruntime", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -3454,17 +3456,15 @@ dev = [
     { name = "pytest-cov", version = "7.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "pytest-xdist", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "pytest-xdist", version = "3.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
-]
-model-tests = [
-    { name = "onnxscript", version = "0.5.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and python_full_version < '3.11'" },
-    { name = "onnxscript", version = "0.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "timm" },
     { name = "torch", version = "2.4.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.9' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux') or (python_full_version < '3.9' and sys_platform == 'darwin')" },
     { name = "torch", version = "2.4.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.9' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux')" },
     { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version == '3.9.*' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version == '3.9.*' and sys_platform != 'darwin'" },
     { name = "torch", version = "2.9.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.10' and platform_machine != 's390x' and sys_platform == 'darwin') or (python_full_version == '3.10.*' and platform_machine == 's390x' and sys_platform == 'darwin')" },
     { name = "torch", version = "2.9.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version >= '3.11' and platform_machine == 's390x' and sys_platform == 'darwin') or (python_full_version >= '3.10' and sys_platform != 'darwin')" },
+]
+model-tests = [
+    { name = "timm" },
     { name = "torchvision", version = "0.19.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.9' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux') or (python_full_version < '3.9' and sys_platform == 'darwin')" },
     { name = "torchvision", version = "0.19.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version < '3.9' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version < '3.9' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (python_full_version < '3.9' and sys_platform != 'darwin' and sys_platform != 'linux')" },
     { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(python_full_version == '3.9.*' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux') or (python_full_version == '3.9.*' and sys_platform == 'darwin')" },
@@ -3500,17 +3500,17 @@ dev = [
     { name = "onnx", marker = "python_full_version < '3.11'", specifier = "<=1.16.1" },
     { name = "onnx", marker = "python_full_version >= '3.11'", specifier = ">=1.12.0" },
     { name = "onnxconverter-common" },
+    { name = "onnxscript", marker = "python_full_version >= '3.9'" },
     { name = "onnxruntime", marker = "python_full_version < '3.10'", specifier = "<1.20.0" },
     { name = "onnxruntime", marker = "python_full_version == '3.10.*'", specifier = ">=1.20.0,<1.22" },
     { name = "onnxruntime", marker = "python_full_version >= '3.11'", specifier = ">=1.20.0" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
+    { name = "torch", index = "https://download.pytorch.org/whl/cpu" },
 ]
 model-tests = [
-    { name = "onnxscript", marker = "python_full_version >= '3.9'" },
     { name = "timm" },
-    { name = "torch", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", specifier = "<=0.24", index = "https://download.pytorch.org/whl/cpu" },
 ]
 optimum = [

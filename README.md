@@ -40,7 +40,19 @@ OnnxSlim can help you slim your onnx model, with less operators, but same accura
 
 # Installation
 
-## Using Prebuilt
+## Using uv
+
+```bash
+uv tool install onnxslim
+```
+
+If you want to add OnnxSlim to an existing project environment:
+
+```bash
+uv add onnxslim
+```
+
+## Using pip
 
 ```bash
 pip install onnxslim
@@ -49,14 +61,16 @@ pip install onnxslim
 ## Install From Source
 
 ```bash
+uv add git+https://github.com/inisis/OnnxSlim@main
+# or
 pip install git+https://github.com/inisis/OnnxSlim@main
 ```
 
-## Install From Local
+## Develop Locally
 
 ```bash
 git clone https://github.com/inisis/OnnxSlim && cd OnnxSlim/
-pip install .
+uv sync --dev
 ```
 
 # How to use
@@ -64,6 +78,8 @@ pip install .
 ## Bash
 
 ```bash
+uv run onnxslim your_onnx_model slimmed_onnx_model
+# or after `uv tool install onnxslim`
 onnxslim your_onnx_model slimmed_onnx_model
 ```
 

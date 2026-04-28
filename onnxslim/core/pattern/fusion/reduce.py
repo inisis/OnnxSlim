@@ -34,6 +34,8 @@ class ReducePatternMatcher(PatternMatcher):
                 reduce_node_axes = reduce_node.attrs.get("axes", None)
                 reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
                 unsqueeze_node_axes = unsqueeze_node.attrs.get("axes", None)
+            elif len(reduce_node.inputs) < 2:
+                return match_case
             else:
                 reduce_node_axes_ = reduce_node.inputs[1]
                 reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)

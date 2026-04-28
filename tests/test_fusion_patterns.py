@@ -532,6 +532,27 @@ class TestFusionPatterns(unittest.TestCase):
         self.assertTrue(hasattr(matcher, "match"))
         self.assertTrue(hasattr(matcher, "rewrite"))
 
+    def test_reduce_pattern_no_axes_input(self):
+        # Test the Reduce pattern matcher without axes input
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [2, 3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1])
+        unsqueeze_axes = numpy_helper.from_array(np.array([0], dtype=np.int64), name="unsqueeze_axes")
+
+        reduce_node = helper.make_node("ReduceSum", ["input"], ["reduce_output"], keepdims=0)
+        unsqueeze_node = helper.make_node("Unsqueeze", ["reduce_output", "unsqueeze_axes"], ["output"])
+
+        graph = helper.make_graph(
+            [reduce_node, unsqueeze_node],
+            "reduce-no-axes-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[unsqueeze_axes],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+
+        onnxslim.slim(model)
+
     def test_gelu_pattern(self):
         # Test the Gelu pattern matcher
         matcher = GeluPatternMatcher(1)

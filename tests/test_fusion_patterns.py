@@ -68,6 +68,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -127,6 +128,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -195,6 +197,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -260,6 +263,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -320,6 +324,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -389,6 +394,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -444,6 +450,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 512).astype(np.float32)
 
@@ -509,6 +516,7 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test with onnxslim optimization
         input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)
 
@@ -551,7 +559,92 @@ class TestFusionPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 13
 
+        model.ir_version = 7
         onnxslim.slim(model)
+
+    def test_reduce_pattern_opset11(self):
+        # ReduceSum/Unsqueeze fusion at opset 11: axes carried as node attributes.
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [2, 3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [2, 3, 1])
+
+        reduce_node = helper.make_node(
+            "ReduceSum", ["input"], ["reduce_output"], axes=[-1], keepdims=0
+        )
+        unsqueeze_node = helper.make_node(
+            "Unsqueeze", ["reduce_output"], ["output"], axes=[-1]
+        )
+
+        graph = helper.make_graph(
+            [reduce_node, unsqueeze_node],
+            "reduce-opset11-test",
+            [input_tensor],
+            [output_tensor],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+        model.ir_version = 7
+
+        input_data = np.random.randn(2, 3, 4).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(
+                original_output["output"], optimized_output["output"], rtol=1e-5
+            )
+            # Reduce + Unsqueeze should fuse into a single ReduceSum with keepdims=1.
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+            op_types = [n.op_type for n in optimized_model.graph.node]
+            self.assertIn("ReduceSum", op_types)
+            self.assertNotIn("Unsqueeze", op_types)
+        os.unlink(f.name)
+
+    def test_reduce_pattern_opset13_with_axes(self):
+        # ReduceSum/Unsqueeze fusion at opset 13: axes carried as Constant inputs.
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [2, 3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [2, 3, 1])
+        reduce_axes = numpy_helper.from_array(np.array([-1], dtype=np.int64), name="reduce_axes")
+        unsqueeze_axes = numpy_helper.from_array(np.array([-1], dtype=np.int64), name="unsqueeze_axes")
+
+        reduce_node = helper.make_node(
+            "ReduceSum", ["input", "reduce_axes"], ["reduce_output"], keepdims=0
+        )
+        unsqueeze_node = helper.make_node(
+            "Unsqueeze", ["reduce_output", "unsqueeze_axes"], ["output"]
+        )
+
+        graph = helper.make_graph(
+            [reduce_node, unsqueeze_node],
+            "reduce-opset13-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[reduce_axes, unsqueeze_axes],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+
+        input_data = np.random.randn(2, 3, 4).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(
+                original_output["output"], optimized_output["output"], rtol=1e-5
+            )
+            self.assertLess(len(optimized_model.graph.node), len(model.graph.node))
+            op_types = [n.op_type for n in optimized_model.graph.node]
+            self.assertIn("ReduceSum", op_types)
+            self.assertNotIn("Unsqueeze", op_types)
+        os.unlink(f.name)
 
     def test_gelu_pattern(self):
         # Test the Gelu pattern matcher

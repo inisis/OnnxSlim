@@ -3,6 +3,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class ConvAddMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes the ConvAddMatcher for fusing Conv and Add layers in an ONNX graph."""
@@ -63,6 +64,7 @@ class ConvAddMatcher(PatternMatcher):
 
         return match_case
 
+@register_fusion_pattern(priority=1)
 class ConvTransposeAddMatcher(ConvAddMatcher):
     def __init__(self, priority):
         """Initializes the ConvTransposeAddMatcher for fusing ConvTranspose and Add layers in an ONNX graph."""
@@ -80,7 +82,3 @@ class ConvTransposeAddMatcher(ConvAddMatcher):
     def name(self):
         """Returns the name of the FusionConvTransposeAdd pattern."""
         return "FusionConvTransposeAdd"
-
-
-register_fusion_pattern(ConvAddMatcher(1))
-register_fusion_pattern(ConvTransposeAddMatcher(1))

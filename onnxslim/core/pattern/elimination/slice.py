@@ -5,6 +5,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class SlicePatternMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes the SlicePatternMatcher with a specified priority using a predefined graph pattern."""
@@ -110,6 +111,3 @@ class SlicePatternMatcher(PatternMatcher):
                         }
 
         return match_case
-
-
-register_fusion_pattern(SlicePatternMatcher(1))

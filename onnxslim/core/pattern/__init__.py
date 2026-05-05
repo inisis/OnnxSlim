@@ -101,6 +101,13 @@ class Pattern:
 
 
 class PatternMatcher:
+    # Inclusive opset range this matcher applies to. Subclasses override these
+    # when an op's semantics change between opsets (e.g. ReduceSum/Unsqueeze
+    # moved `axes` from attribute to input in opset 13). Defaults cover all
+    # opsets so opset-agnostic matchers don't need to set them.
+    min_opset: int = 1
+    max_opset: int | None = None
+
     def __init__(self, pattern, priority):
         """Initialize the PatternMatcher with a given pattern and priority, and prepare node references and output
         names.
@@ -109,6 +116,10 @@ class PatternMatcher:
         self.priority = priority
         self.pattern_dict = {node.name: node for node in pattern.nodes}
         self.output_names = [node.name for node in pattern.nodes if node.op == "output"]
+
+    def applies_to(self, opset: int) -> bool:
+        """Return True if this matcher should run on a graph with the given opset."""
+        return opset >= self.min_opset and (self.max_opset is None or opset <= self.max_opset)
 
     def get_match_point(self):
         """Retrieve the match point node from the pattern dictionary based on output node input names."""

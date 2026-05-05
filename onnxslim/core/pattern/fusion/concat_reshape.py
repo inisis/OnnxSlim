@@ -5,6 +5,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class ConcatReshapeMatcher(PatternMatcher):
     def __init__(self, priority):
         pattern = Pattern(
@@ -80,6 +81,3 @@ class ConcatReshapeMatcher(PatternMatcher):
         }
 
         return match_case
-
-
-register_fusion_pattern(ConcatReshapeMatcher(1))

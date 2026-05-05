@@ -4,89 +4,104 @@ import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
+_UNSQUEEZE_PATTERN = """
+    input      input       0  1 unsqueeze_0
+    Unsqueeze  unsqueeze_0 1+ 1 input unsqueeze_1
+    Unsqueeze  unsqueeze_1 1+ 1 unsqueeze_0 output
+    output     output      1  0 unsqueeze_1
+    """
 
-class UnsqueezePatternMatcher(PatternMatcher):
+
+class _UnsqueezePatternMatcherBase(PatternMatcher):
     def __init__(self, priority):
-        """Initializes the UnsqueezePatternMatcher with a specified priority using a predefined graph pattern."""
-        pattern = Pattern(
-            """
-            input      input       0  1 unsqueeze_0
-            Unsqueeze  unsqueeze_0 1+ 1 input unsqueeze_1
-            Unsqueeze  unsqueeze_1 1+ 1 unsqueeze_0 output
-            output     output      1  0 unsqueeze_1
-            """
-        )
-        super().__init__(pattern, priority)
+        super().__init__(Pattern(_UNSQUEEZE_PATTERN), priority)
 
     @property
     def name(self):
-        """Returns the name of the elimination pattern, 'EliminationUnsqueeze'."""
         return "EliminationUnsqueeze"
 
+    def _get_axes(self, unsqueeze_node):
+        """Return list[int] axes (normalized to non-negative) for this opset, or None if unavailable."""
+        raise NotImplementedError
+
+    def _build_axes_payload(self, merged_axes, source_name):
+        """Return (attrs, extra_inputs) describing how to attach the merged axes for this opset."""
+        raise NotImplementedError
+
     def rewrite(self, opset=11):
-        """Rewrites an elimination pattern for unsqueeze nodes by optimizing nested slice operations."""
         match_case = {}
-        node_unsqueeze_0 = self.unsqueeze_0
-        users_node_unsqueeze_0 = node_unsqueeze_0.users
-        node_unsqueeze_1 = self.unsqueeze_1
-        if len(users_node_unsqueeze_0) == 1 and node_unsqueeze_0.inputs[0].shape and node_unsqueeze_1.inputs[0].shape:
-            if opset < 13 or (
-                isinstance(node_unsqueeze_0.inputs[1], gs.Constant)
-                and isinstance(node_unsqueeze_1.inputs[1], gs.Constant)
-            ):
+        n0 = self.unsqueeze_0
+        n1 = self.unsqueeze_1
+        users_n0 = n0.users
+        if not (len(users_n0) == 1 and n0.inputs[0].shape and n1.inputs[0].shape):
+            return match_case
 
-                def get_unsqueeze_axes(unsqueeze_node, opset):
-                    dim = len(unsqueeze_node.inputs[0].shape)
-                    if opset < 13:
-                        axes = unsqueeze_node.attrs["axes"]
-                    else:
-                        axes = unsqueeze_node.inputs[1].values
-                    return [axis + dim + len(axes) if axis < 0 else axis for axis in axes]
+        axes_n0 = self._get_axes(n0)
+        axes_n1 = self._get_axes(n1)
+        if axes_n0 is None or axes_n1 is None:
+            return match_case
 
-                axes_node_unsqueeze_0 = get_unsqueeze_axes(node_unsqueeze_0, opset)
-                axes_node_unsqueeze_1 = get_unsqueeze_axes(node_unsqueeze_1, opset)
+        axes_n0 = [a + sum(1 for b in axes_n1 if b <= a) for a in axes_n0]
+        merged_axes = axes_n0 + axes_n1
 
-                axes_node_unsqueeze_0 = [
-                    axis + sum(1 for axis_ in axes_node_unsqueeze_1 if axis_ <= axis) for axis in axes_node_unsqueeze_0
-                ]
+        index = n1.inputs.index(n0.outputs[0])
+        n1.inputs.pop(index)
+        for i, item in enumerate(n0.inputs):
+            n1.inputs.insert(index + i, item)
+        inputs = [next(iter(n1.inputs))]
+        outputs = list(n1.outputs)
+        n1.inputs.clear()
+        n1.outputs.clear()
+        if len(users_n0) == 0:
+            n0.inputs.clear()
+            n0.outputs.clear()
 
-                inputs = [next(iter(node_unsqueeze_0.inputs))]
-                outputs = list(node_unsqueeze_1.outputs)
+        attrs, extra_inputs = self._build_axes_payload(merged_axes, n0.name)
+        inputs.extend(extra_inputs)
 
-                index = node_unsqueeze_1.inputs.index(node_unsqueeze_0.outputs[0])
-                node_unsqueeze_1.inputs.pop(index)
-                for i, item in enumerate(node_unsqueeze_0.inputs):
-                    node_unsqueeze_1.inputs.insert(index + i, item)
-                inputs = [next(iter(node_unsqueeze_1.inputs))]
-                outputs = list(node_unsqueeze_1.outputs)
-                node_unsqueeze_1.inputs.clear()
-                node_unsqueeze_1.outputs.clear()
-
-                if len(users_node_unsqueeze_0) == 0:
-                    node_unsqueeze_0.inputs.clear()
-                    node_unsqueeze_0.outputs.clear()
-
-                if opset < 13:
-                    attrs = {"axes": axes_node_unsqueeze_0 + axes_node_unsqueeze_1}
-                else:
-                    attrs = None
-                    inputs.append(
-                        gs.Constant(
-                            name=f"{node_unsqueeze_0.name}_axes",
-                            values=np.array(axes_node_unsqueeze_0 + axes_node_unsqueeze_1, dtype=np.int64),
-                        )
-                    )
-
-                match_case[node_unsqueeze_0.name] = {
-                    "op": "Unsqueeze",
-                    "inputs": inputs,
-                    "outputs": outputs,
-                    "name": node_unsqueeze_0.name,
-                    "attrs": attrs,
-                    "domain": None,
-                }
-
+        match_case[n0.name] = {
+            "op": "Unsqueeze",
+            "inputs": inputs,
+            "outputs": outputs,
+            "name": n0.name,
+            "attrs": attrs,
+            "domain": None,
+        }
         return match_case
 
 
-register_fusion_pattern(UnsqueezePatternMatcher(1))
+@register_fusion_pattern(priority=1, max_opset=12)
+class UnsqueezePatternMatcher(_UnsqueezePatternMatcherBase):
+    """Consecutive-Unsqueeze elimination for opsets <= 12 (axes as attribute)."""
+
+    def _get_axes(self, unsqueeze_node):
+        dim = len(unsqueeze_node.inputs[0].shape)
+        axes = unsqueeze_node.attrs["axes"]
+        return [a + dim + len(axes) if a < 0 else a for a in axes]
+
+    def _build_axes_payload(self, merged_axes, source_name):
+        return {"axes": merged_axes}, []
+
+
+@register_fusion_pattern(priority=1, min_opset=13)
+class UnsqueezePatternMatcherV13(_UnsqueezePatternMatcherBase):
+    """Consecutive-Unsqueeze elimination for opsets >= 13 (axes as optional Constant input)."""
+
+    def _get_axes(self, unsqueeze_node):
+        if len(unsqueeze_node.inputs) < 2:
+            return None
+        axes_input = unsqueeze_node.inputs[1]
+        if not isinstance(axes_input, gs.Constant):
+            return None
+        dim = len(unsqueeze_node.inputs[0].shape)
+        axes = axes_input.values
+        return [a + dim + len(axes) if a < 0 else a for a in axes]
+
+    def _build_axes_payload(self, merged_axes, source_name):
+        extra = [
+            gs.Constant(
+                name=f"{source_name}_axes",
+                values=np.array(merged_axes, dtype=np.int64),
+            )
+        ]
+        return None, extra

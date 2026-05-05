@@ -5,6 +5,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class ConvBatchNormMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes the ConvBatchNormMatcher for fusing Conv and BatchNormalization layers in an ONNX graph."""
@@ -76,6 +77,7 @@ class ConvBatchNormMatcher(PatternMatcher):
 
         return match_case
 
+@register_fusion_pattern(priority=1)
 class ConvTransposeBatchNormMatcher(ConvBatchNormMatcher):
     def __init__(self, priority):
         """Initializes the ConvTransposeBatchNormMatcher for fusing ConvTranspose and BatchNormalization layers in an ONNX graph."""
@@ -93,7 +95,3 @@ class ConvTransposeBatchNormMatcher(ConvBatchNormMatcher):
     def name(self):
         """Returns the name of the FusionConvTransposeBN pattern."""
         return "FusionConvTransposeBN"
-
-
-register_fusion_pattern(ConvBatchNormMatcher(1))
-register_fusion_pattern(ConvTransposeBatchNormMatcher(1))

@@ -33,6 +33,7 @@ class TestEliminationPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test the pattern matcher directly
         matcher = ConcatPatternMatcher(1)
         self.assertTrue(hasattr(matcher, "match"))
@@ -89,6 +90,7 @@ class TestEliminationPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test the pattern matcher directly
         matcher = ReshapePatternMatcher(1)
         self.assertTrue(hasattr(matcher, "match"))
@@ -133,6 +135,7 @@ class TestEliminationPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 11
 
+        model.ir_version = 7
         # Test the pattern matcher directly
         matcher = SlicePatternMatcher(1)
         self.assertTrue(hasattr(matcher, "match"))
@@ -185,6 +188,7 @@ class TestEliminationPatterns(unittest.TestCase):
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 14
 
+        model.ir_version = 7
         # Test the pattern matcher directly
         matcher = UnsqueezePatternMatcher(1)
         self.assertTrue(hasattr(matcher, "match"))
@@ -212,6 +216,70 @@ class TestEliminationPatterns(unittest.TestCase):
         matcher = ReshapeAsPatternMatcher(1)
         self.assertTrue(hasattr(matcher, "match"))
         self.assertTrue(hasattr(matcher, "rewrite"))
+
+    def test_consecutive_unsqueeze_opset11(self):
+        # Consecutive Unsqueeze elimination at opset 11: axes carried as attributes.
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [3, 4, 1, 1])
+
+        node1 = helper.make_node("Unsqueeze", ["input"], ["intermediate"], axes=[-1])
+        node2 = helper.make_node("Unsqueeze", ["intermediate"], ["output"], axes=[-1])
+
+        graph = helper.make_graph(
+            [node1, node2], "consecutive-unsqueeze-opset11", [input_tensor], [output_tensor]
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+        model.ir_version = 7
+
+        input_data = np.random.randn(3, 4).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
+            unsqueeze_count = sum(1 for n in optimized_model.graph.node if n.op_type == "Unsqueeze")
+            self.assertEqual(unsqueeze_count, 1)
+        os.unlink(f.name)
+
+    def test_consecutive_unsqueeze_opset13(self):
+        # Consecutive Unsqueeze elimination at opset 13: axes carried as Constant inputs.
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [3, 4, 1, 1])
+        axes1 = numpy_helper.from_array(np.array([-1], dtype=np.int64), name="axes1")
+        axes2 = numpy_helper.from_array(np.array([-1], dtype=np.int64), name="axes2")
+
+        node1 = helper.make_node("Unsqueeze", ["input", "axes1"], ["intermediate"])
+        node2 = helper.make_node("Unsqueeze", ["intermediate", "axes2"], ["output"])
+
+        graph = helper.make_graph(
+            [node1, node2],
+            "consecutive-unsqueeze-opset13",
+            [input_tensor],
+            [output_tensor],
+            initializer=[axes1, axes2],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+
+        input_data = np.random.randn(3, 4).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
+            unsqueeze_count = sum(1 for n in optimized_model.graph.node if n.op_type == "Unsqueeze")
+            self.assertEqual(unsqueeze_count, 1)
+        os.unlink(f.name)
 
 
 if __name__ == "__main__":

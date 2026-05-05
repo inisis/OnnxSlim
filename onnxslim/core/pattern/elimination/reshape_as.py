@@ -3,6 +3,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class ReshapeAsPatternMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes the ReshapeAsPatternMatcher with a priority and a specific pattern for reshape as operations."""
@@ -72,6 +73,3 @@ class ReshapeAsPatternMatcher(PatternMatcher):
         concat_node.replace_all_uses_with(shape_node)
 
         return match_case
-
-
-register_fusion_pattern(ReshapeAsPatternMatcher(1))

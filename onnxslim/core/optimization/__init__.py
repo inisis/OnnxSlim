@@ -117,18 +117,22 @@ def find_matches(graph: Graph, fusion_patterns: dict):
     counter = Counter()
     for node in reversed(graph.nodes):
         if node.name not in match_map:
-            for layer_type, pattern_matcher in fusion_patterns.items():
-                match = pattern_matcher.match(node)
-                if match:
-                    match_case = pattern_matcher.rewrite(opset=graph.opset)
-                    logger.debug(f"matched pattern {layer_type}")
-                    for _, match in match_case.items():
-                        if "op" not in match:
-                            match.update({"op": layer_type})
-                        if "name" not in match:
-                            match.update({"name": f"{layer_type.lower()}_{counter[layer_type]}"})
-                        counter.update([layer_type])
-                    match_map.update(match_case)
+            for layer_type, matchers in fusion_patterns.items():
+                for pattern_matcher in matchers:
+                    if not pattern_matcher.applies_to(graph.opset):
+                        continue
+                    match = pattern_matcher.match(node)
+                    if match:
+                        match_case = pattern_matcher.rewrite(opset=graph.opset)
+                        logger.debug(f"matched pattern {layer_type}")
+                        for _, match in match_case.items():
+                            if "op" not in match:
+                                match.update({"op": layer_type})
+                            if "name" not in match:
+                                match.update({"name": f"{layer_type.lower()}_{counter[layer_type]}"})
+                            counter.update([layer_type])
+                        match_map.update(match_case)
+                        break
 
     return match_map
 

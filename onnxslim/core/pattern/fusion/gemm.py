@@ -6,6 +6,7 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+@register_fusion_pattern(priority=1)
 class MatMulAddPatternMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes a matcher for fusing MatMul and Add operations in ONNX graph optimization."""
@@ -174,9 +175,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
         return match_case
 
 
-register_fusion_pattern(MatMulAddPatternMatcher(1))
-
-
+@register_fusion_pattern(priority=1)
 class GemmMulPatternMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes a matcher for fusing MatMul and Add operations in ONNX graph optimization."""
@@ -251,9 +250,7 @@ class GemmMulPatternMatcher(PatternMatcher):
         return match_case
 
 
-register_fusion_pattern(GemmMulPatternMatcher(1))
-
-
+@register_fusion_pattern(priority=1)
 class GemmAddPatternMatcher(PatternMatcher):
     def __init__(self, priority):
         """Initializes a matcher for fusing MatMul and Add operations in ONNX graph optimization."""
@@ -327,6 +324,3 @@ class GemmAddPatternMatcher(PatternMatcher):
             add_node.replace_all_uses_with(reshape_node)
 
         return match_case
-
-
-register_fusion_pattern(GemmAddPatternMatcher(1))

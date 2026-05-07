@@ -251,9 +251,10 @@ class Node:
             self.inputs.clear()
             self.outputs.clear()
         elif isinstance(self.inputs[input_var_idx], Constant):
+            if any(out.is_output for out in self.outputs):
+                return
             for output in self.outputs:
-                if not output.is_output:
-                    output.replace_all_uses_with(self.inputs[input_var_idx])
+                output.replace_all_uses_with(self.inputs[input_var_idx])
             self.inputs.clear()
             self.outputs.clear()
 

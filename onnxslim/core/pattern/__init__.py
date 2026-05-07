@@ -1,6 +1,7 @@
 import logging
 import re
 from abc import abstractmethod
+from typing import Optional
 
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.third_party.onnx_graphsurgeon import Constant
@@ -106,7 +107,7 @@ class PatternMatcher:
     # moved `axes` from attribute to input in opset 13). Defaults cover all
     # opsets so opset-agnostic matchers don't need to set them.
     min_opset: int = 1
-    max_opset: int | None = None
+    max_opset: Optional[int] = None
 
     def __init__(self, pattern, priority):
         """Initialize the PatternMatcher with a given pattern and priority, and prepare node references and output

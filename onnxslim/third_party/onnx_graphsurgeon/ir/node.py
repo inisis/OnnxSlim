@@ -241,6 +241,8 @@ class Node:
 
     def erase(self, input_var_idx=0, output_var_idx=0):
         if isinstance(self.inputs[input_var_idx], Variable):
+            if self.inputs[input_var_idx].is_input and self.outputs[output_var_idx].is_output:
+                return
             if self.inputs[input_var_idx].is_input:
                 self.outputs[output_var_idx].replace_all_uses_with(self.inputs[input_var_idx])
                 self.inputs.clear()

@@ -15,103 +15,115 @@ from onnxslim.core.optimization.dead_node_elimination import (
 
 
 class TestDeadNodeElimination:
-    def test_identity_elimination(self, request):
+    @staticmethod
+    def _make_graph(op_type, *, inputs, attrs=None, initializers=None):
+        """Build an ONNX protobuf and import it via graphsurgeon.
+
+        The graph is structured as: graph_input -> Relu -> intermediate -> target_op -> graph_output.
+        This ensures the target op's input is not a graph input, so dead_node_elimination
+        can erase it even when its output is a graph output.
+        """
+        from onnx import helper, TensorProto
+
+        graph_input = helper.make_tensor_value_info("input", TensorProto.FLOAT, (2, 3, 4, 5))
+        graph_output = helper.make_tensor_value_info("output", TensorProto.FLOAT, (2, 3, 4, 5))
+        intermediate_vi = helper.make_tensor_value_info("intermediate", TensorProto.FLOAT, (2, 3, 4, 5))
+        relu_node = helper.make_node("Relu", inputs=["input"], outputs=["intermediate"])
+        target_node = helper.make_node(op_type, inputs=inputs, outputs=["output"], **(attrs or {}))
+
+        graph_def = helper.make_graph(
+            [relu_node, target_node], "test",
+            [graph_input], [graph_output],
+            initializer=initializers or [],
+            value_info=[intermediate_vi],
+        )
+        model = helper.make_model(graph_def, opset_imports=[helper.make_opsetid("", 14)])
+        return gs.import_onnx(model)
+
+    @staticmethod
+    def _assert_graph_valid(graph, target_op, expect_relu_input=True):
+        """Verify the graph is well-formed after dead_node_elimination.
+
+        After eliminating *target_op*, only the Relu node should remain,
+        with the graph input flowing through Relu to the graph output.
+        """
+        assert not any(node.op == target_op for node in graph.nodes), f"{target_op} should be eliminated"
+        assert len(graph.nodes) == 1, f"expected 1 node (Relu), got {len(graph.nodes)}"
+        relu = graph.nodes[0]
+        assert relu.op == "Relu", f"expected Relu, got {relu.op}"
+        assert graph.inputs[0].name == "input"
+        assert graph.outputs[0].name == "output"
+        if expect_relu_input:
+            assert relu.inputs[0] is graph.inputs[0], "Relu should consume the graph input directly"
+        assert relu.outputs[0] is graph.outputs[0], "Relu should produce the graph output directly"
+
+    @staticmethod
+    def _make_bridging_graph(op_type, *, inputs, attrs=None, initializers=None):
+        """Build an ONNX protobuf where the target op bridges graph input directly to graph output.
+
+        Structure: graph_input -> target_op -> graph_output.
+        This exercises the ``erase()`` guard that preserves nodes connecting graph I/O.
+        """
+        from onnx import helper, TensorProto
+
+        graph_input = helper.make_tensor_value_info("input", TensorProto.FLOAT, (2, 3, 4, 5))
+        graph_output = helper.make_tensor_value_info("output", TensorProto.FLOAT, (2, 3, 4, 5))
+        target_node = helper.make_node(op_type, inputs=inputs, outputs=["output"], **(attrs or {}))
+
+        graph_def = helper.make_graph(
+            [target_node], "test",
+            [graph_input], [graph_output],
+            initializer=initializers or [],
+        )
+        model = helper.make_model(graph_def, opset_imports=[helper.make_opsetid("", 14)])
+        return gs.import_onnx(model)
+
+    def test_identity_bridging_io_preserved(self):
+        """Identity bridging graph input→output must be preserved — erase() guards graph I/O."""
+
+        graph = self._make_bridging_graph("Identity", inputs=["input"])
+        initial_node_count = len(graph.nodes)
+        dead_node_elimination(graph)
+        graph.cleanup().toposort()
+
+        # Model must stay intact — Identity bridges graph I/O and cannot be erased
+        assert len(graph.nodes) == initial_node_count
+        identity = graph.nodes[0]
+        assert identity.op == "Identity"
+        assert graph.inputs[0].name == "input"
+        assert graph.outputs[0].name == "output"
+        assert identity.inputs[0] is graph.inputs[0]
+        assert identity.outputs[0] is graph.outputs[0]
+
+    def test_identity_elimination(self):
         """Test that Identity nodes are properly eliminated."""
 
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
-                self.identity = nn.Identity()
-
-            def forward(self, x):
-                return self.identity(x)
-
-        input_tensor = torch.randn(2, 3, 4, 5)
-        model = Model()
-
-        directory = f"tmp/{request.node.name}"
-        os.makedirs(directory, exist_ok=True)
-
-        filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
-
-        # Import graph and apply dead_node_elimination
-        graph = gs.import_onnx(onnx.load(filename))
-        initial_node_count = len(graph.nodes)
+        graph = self._make_graph("Identity", inputs=["intermediate"])
         dead_node_elimination(graph)
         graph.cleanup().toposort()
-        final_node_count = len(graph.nodes)
 
-        # Identity node should be eliminated
-        assert final_node_count < initial_node_count
-        # Check no Identity nodes remain
-        assert not any(node.op == "Identity" for node in graph.nodes)
+        self._assert_graph_valid(graph, "Identity")
 
-    def test_dropout_elimination(self, request):
+    def test_dropout_elimination(self):
         """Test that Dropout nodes are properly eliminated."""
 
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
-                self.dropout = nn.Dropout(0.5)
-
-            def forward(self, x):
-                return self.dropout(x)
-
-        input_tensor = torch.randn(2, 3, 4, 5)
-        model = Model()
-        model.eval()  # Set to eval mode to ensure deterministic behavior
-
-        directory = f"tmp/{request.node.name}"
-        os.makedirs(directory, exist_ok=True)
-
-        filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
-
-        # Import graph and apply dead_node_elimination
-        graph = gs.import_onnx(onnx.load(filename))
-        initial_node_count = len(graph.nodes)
+        graph = self._make_graph("Dropout", inputs=["intermediate"])
         dead_node_elimination(graph)
         graph.cleanup().toposort()
-        final_node_count = len(graph.nodes)
 
-        # Dropout node should be eliminated
-        assert final_node_count < initial_node_count
-        # Check no Dropout nodes remain
-        assert not any(node.op == "Dropout" for node in graph.nodes)
+        self._assert_graph_valid(graph, "Dropout")
 
-    def test_zero_pad_elimination(self, request):
+    def test_zero_pad_elimination(self):
         """Test that Pad nodes with all zeros are properly eliminated."""
 
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
+        from onnx import helper, TensorProto
 
-            def forward(self, x):
-                # Zero padding
-                return torch.nn.functional.pad(x, (0, 0, 0, 0), "constant", 0)
-
-        input_tensor = torch.randn(2, 3, 4, 5)
-        model = Model()
-
-        directory = f"tmp/{request.node.name}"
-        os.makedirs(directory, exist_ok=True)
-
-        filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
-
-        # Import graph and apply dead_node_elimination
-        graph = gs.import_onnx(onnx.load(filename))
-        initial_node_count = len(graph.nodes)
-        graph.fold_constants().cleanup().toposort()
+        pads_init = helper.make_tensor("pads", TensorProto.INT64, [8], [0, 0, 0, 0, 0, 0, 0, 0])
+        graph = self._make_graph("Pad", inputs=["intermediate", "pads"], initializers=[pads_init])
         dead_node_elimination(graph)
         graph.cleanup().toposort()
-        final_node_count = len(graph.nodes)
 
-        # Pad node with all zeros should be eliminated
-        assert final_node_count < initial_node_count
-        # Check no Pad nodes remain
-        assert not any(node.op == "Pad" for node in graph.nodes)
+        self._assert_graph_valid(graph, "Pad")
 
     def test_redundant_cast_elimination(self, request):
         """Test that Cast nodes with same input and output types are eliminated."""
@@ -174,36 +186,17 @@ class TestDeadNodeElimination:
         # Reshape node to same shape should be eliminated
         assert final_node_count <= initial_node_count
 
-    def test_mul_by_one_elimination(self, request):
+    def test_mul_by_one_elimination(self):
         """Test that Mul nodes with constant 1 are eliminated."""
 
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
-                self.register_buffer("ones", torch.ones(1))
+        from onnx import helper, TensorProto
 
-            def forward(self, x):
-                # Multiply by 1
-                return x * self.ones
-
-        input_tensor = torch.randn(2, 3, 4, 5)
-        model = Model()
-
-        directory = f"tmp/{request.node.name}"
-        os.makedirs(directory, exist_ok=True)
-
-        filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
-
-        # Import graph and apply dead_node_elimination
-        graph = gs.import_onnx(onnx.load(filename))
-        initial_node_count = len(graph.nodes)
+        ones_init = helper.make_tensor("ones", TensorProto.FLOAT, [1], [1.0])
+        graph = self._make_graph("Mul", inputs=["intermediate", "ones"], initializers=[ones_init])
         dead_node_elimination(graph)
         graph.cleanup().toposort()
-        final_node_count = len(graph.nodes)
 
-        # Mul node with constant 1 should be eliminated
-        assert final_node_count < initial_node_count
+        self._assert_graph_valid(graph, "Mul")
 
     def test_add_zero_elimination(self, request):
         """Test that Add nodes with constant 0 are eliminated."""
@@ -304,37 +297,14 @@ class TestDeadNodeElimination:
         # Sub node with constant 0 should be eliminated
         assert final_node_count < initial_node_count
 
-    def test_single_concat_elimination(self, request):
+    def test_single_concat_elimination(self):
         """Test that Concat nodes with a single input are eliminated."""
 
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
-
-            def forward(self, x):
-                # Single concat
-                return torch.cat([x], dim=0)
-
-        input_tensor = torch.randn(2, 3, 4, 5)
-        model = Model()
-
-        directory = f"tmp/{request.node.name}"
-        os.makedirs(directory, exist_ok=True)
-
-        filename = f"{directory}/{request.node.name}.onnx"
-        torch.onnx.export(model, input_tensor, filename, opset_version=14, dynamo=False)
-
-        # Import graph and apply dead_node_elimination
-        graph = gs.import_onnx(onnx.load(filename))
-        initial_node_count = len(graph.nodes)
+        graph = self._make_graph("Concat", inputs=["intermediate"], attrs={"axis": 0})
         dead_node_elimination(graph)
         graph.cleanup().toposort()
-        final_node_count = len(graph.nodes)
 
-        # Concat node with single input should be eliminated
-        assert final_node_count < initial_node_count
-        # Check no Concat nodes remain
-        assert not any(node.op == "Concat" for node in graph.nodes)
+        self._assert_graph_valid(graph, "Concat")
 
     def test_single_output_split_elimination(self, request):
         """Test that Split nodes with a single output are eliminated."""
@@ -366,7 +336,7 @@ class TestDeadNodeElimination:
         # Split node with single output should be eliminated
         assert final_node_count <= initial_node_count
 
-    def test_noop_slice_elimination(self, request):
+    def test_noop_slice_elimination(self):
         """Test that Slice nodes that don't change the tensor are eliminated.
 
         Construct the ONNX graph manually to ensure a `Slice` node exists

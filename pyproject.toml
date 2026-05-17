@@ -31,6 +31,36 @@ onnxslim = "onnxslim.cli:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "coverage",
+    "pytest-cov",
+    "onnx<=1.16.1 ; python_version<'3.11'",
+    "onnx>=1.12.0 ; python_version>='3.11'",
+    "onnxruntime<1.20.0 ; python_version<'3.10'",
+    "onnxruntime>=1.20.0,<1.22 ; python_version=='3.10'",
+    "onnxruntime>=1.20.0 ; python_version>='3.11'",
+    "onnxconverter-common",
+    "torch",
+    "pytest",
+    "pytest-xdist",
+    # required by torch but apparently not declared?
+    "onnxscript ; python_version>='3.9'",
+]
+model-tests = [
+    "timm",
+    "torchvision<=0.24",
+]
+ultralytics = [
+    "ultralytics",
+]
+optimum = [
+    "einops",
+    "parameterized",
+    "transformers",
+    "optimum[onnxruntime]",
+]
+
 [tool.ruff]
 exclude = ["onnxslim/argparser.py"]
 
@@ -41,27 +71,14 @@ exclude = '''
 )
 '''
 
-[dependency-groups]
-dev = [
-    "coverage",
-    "pytest-cov",
-    "onnx<=1.16.1 ; python_version<'3.11'",
-    "onnx>=1.12.0 ; python_version>='3.11'",
-    "onnxruntime<1.20.0 ; python_version<'3.10'",
-    "onnxruntime>=1.20.0,<1.22 ; python_version=='3.10'",
-    "onnxruntime>=1.20.0 ; python_version>='3.11'",
-    "onnxconverter-common",    
-    "pytest",
-    "pytest-xdist",
-    "timm",
-    "torch",
-    "torchvision<=0.24",
-    # required by torch but apparently not declared?
-    "onnxscript ; python_version>='3.9'"
-]
+[tool.uv]
+default-groups = ["dev"]
 
 [tool.uv.sources]
 torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
     { index = "pytorch-cpu" },
 ]
 

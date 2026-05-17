@@ -47,23 +47,26 @@ We welcome feature suggestions! Please create an issue with:
 ## Development Setup
 
 1. Clone the repository
-2. Create a virtual environment
-3. Install dependencies
+2. Install and sync the development environment with `uv`
 
 ```bash
-# Setup commands
 git clone https://github.com/username/OnnxSlim.git
 cd OnnxSlim
-pip install -e . # Install package in development mode
+uv sync --dev
 ```
+
+Optional dependency groups are available for the heavier nightly suites:
+
+- `uv sync --dev --group model-tests`
+- `uv sync --dev --group ultralytics`
+- `uv sync --dev --group optimum`
 
 ## Testing
 
 Please ensure your code passes all tests:
 
 ```bash
-# Test commands
-pytest tests/test_onnxslim.py
+uv run pytest tests/test_onnxslim.py
 ```
 
 ## Documentation

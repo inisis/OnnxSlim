@@ -878,6 +878,40 @@ class TestFusionPatterns(unittest.TestCase):
 
         os.unlink(f.name)
 
+    def test_gemm_mul_uses_schema_default_attributes(self):
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3])
+
+        weight = numpy_helper.from_array(np.eye(3, dtype=np.float32), name="weight")
+        bias = numpy_helper.from_array(np.zeros(3, dtype=np.float32), name="bias")
+        shape = numpy_helper.from_array(np.array([1, 3], dtype=np.int64), name="shape")
+        scale = numpy_helper.from_array(np.ones(3, dtype=np.float32), name="scale")
+
+        gemm_node = helper.make_node(
+            "Gemm",
+            ["input", "weight", "bias"],
+            ["gemm_output"],
+            name="gemm_without_explicit_default_attrs",
+        )
+        reshape_node = helper.make_node("Reshape", ["gemm_output", "shape"], ["reshape_output"])
+        mul_node = helper.make_node("Mul", ["reshape_output", "scale"], ["output"])
+
+        graph = helper.make_graph(
+            [gemm_node, reshape_node, mul_node],
+            "gemm-default-attrs-test",
+            [input_tensor],
+            [output_tensor],
+            initializer=[weight, bias, shape, scale],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+        onnx.checker.check_model(model)
+
+        optimized_model = onnxslim.slim(model, model_check=False)
+
+        self.assertIsInstance(optimized_model, onnx.ModelProto)
+
 
 if __name__ == "__main__":
     unittest.main()

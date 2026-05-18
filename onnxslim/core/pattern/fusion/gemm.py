@@ -221,8 +221,8 @@ class GemmMulPatternMatcher(PatternMatcher):
             gemm_weight_constant = gemm_node.inputs[1]
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if (
-                gemm_attr["transA"] == 0
-                and gemm_attr["transB"] == 1
+                gemm_attr.get("transA", 0) == 0
+                and gemm_attr.get("transB", 0) == 1
                 and (
                     (mul_bias_variable.values.ndim == 1 and gemm_weight_constant.shape[0] == mul_bias_variable.shape[0])
                     or mul_bias_variable.values.ndim == 0

@@ -110,6 +110,26 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
   </tr>
   <tr>
     <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/6154722?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/microsoft/olive-recipes" target="_blank">microsoft/olive-recipes</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/55295854?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/quic/cloud-ai-sdk" target="_blank">quic/cloud-ai-sdk</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/198827667?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/open-edge-platform/geti" target="_blank">open-edge-platform/geti</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/274822186?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/NVIDIA-TAO/tao-pytorch" target="_blank">NVIDIA-TAO/tao-pytorch</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
       <img src="https://avatars.githubusercontent.com/u/1961952?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
       <a href="https://github.com/wangzhaode/mnn-llm" target="_blank">alibaba/MNN-LLM</a>
     </td>

@@ -61,6 +61,7 @@ class PadConvMatcher(PatternMatcher):
 
                     inputs = list(conv_node.inputs)
                     outputs = list(conv_node.outputs)
+                    conv_name = conv_node.outputs[0].name
                     attrs = conv_node.attrs
 
                     conv_node.inputs.clear()
@@ -79,11 +80,11 @@ class PadConvMatcher(PatternMatcher):
                     attrs["pads"] = pads
                     conv_node.attrs.pop("auto_pad", None)
 
-                    match_case[conv_node.name] = {
+                    match_case[conv_name] = {
                         "op": "Conv",
                         "inputs": inputs,
                         "outputs": outputs,
-                        "name": conv_node.name,
+                        "name": conv_name,
                         "attrs": conv_node.attrs,
                         "domain": None,
                     }

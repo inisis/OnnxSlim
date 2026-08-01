@@ -11,6 +11,7 @@ _REDUCE_PATTERN = """
 
 
 def _build_match_case(reduce_node, unsqueeze_node):
+    reduce_name = reduce_node.outputs[0].name
     inputs = list(reduce_node.inputs)
     outputs = list(unsqueeze_node.outputs)
     attrs = reduce_node.attrs
@@ -19,11 +20,11 @@ def _build_match_case(reduce_node, unsqueeze_node):
     unsqueeze_node.outputs.clear()
     attrs["keepdims"] = 1
     return {
-        reduce_node.name: {
+        reduce_name: {
             "op": reduce_node.op,
             "inputs": inputs,
             "outputs": outputs,
-            "name": reduce_node.name,
+            "name": reduce_name,
             "attrs": attrs,
             "domain": None,
         }

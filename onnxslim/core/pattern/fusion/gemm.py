@@ -32,6 +32,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
         match_case = {}
         node = self.add_0
         matmul_node = self.matmul_0
+        matmul_name = matmul_node.outputs[0].name
         matmul_bias_variable = get_constant_variable(matmul_node)
         add_bias_variable = get_constant_variable(node)
         input_variable = (
@@ -45,7 +46,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 and all([isinstance(value, int) for value in input_variable.shape])
             ):
                 pre_reshape_const = gs.Constant(
-                    f"{matmul_node.name}_pre_reshape_in",
+                    f"{matmul_name}_pre_reshape_in",
                     values=np.array([-1, matmul_bias_variable.values.shape[0]], dtype=np.int64),
                 )
                 inputs = []
@@ -53,18 +54,18 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 inputs.append(pre_reshape_const)
 
                 reshape_out_variable = gs.Variable(
-                    f"{matmul_node.name}_pre_reshape_out",
+                    f"{matmul_name}_pre_reshape_out",
                     dtype=input_variable.dtype,
                 )
                 outputs = [reshape_out_variable]
 
                 match_case.update(
                     {
-                        f"{matmul_node.name}_pre_reshape": {
+                        f"{matmul_name}_pre_reshape": {
                             "op": "Reshape",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": f"{matmul_node.name}_pre_reshape",
+                            "name": f"{matmul_name}_pre_reshape",
                             "domain": None,
                         }
                     }
@@ -77,7 +78,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 output_variable.outputs.remove(add_node)
 
                 matmul_bias_transpose_constant = gs.Constant(
-                    f"{matmul_node.name}_weight", values=matmul_bias_variable.values.T
+                    f"{matmul_name}_weight", values=matmul_bias_variable.values.T
                 )
 
                 inputs = []
@@ -85,16 +86,16 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 inputs.append(matmul_bias_transpose_constant)
                 inputs.append(add_bias_variable)
 
-                gemm_out_variable = gs.Variable(f"{matmul_node.name}_gemm_out", dtype=output_variable.dtype)
+                gemm_out_variable = gs.Variable(f"{matmul_name}_gemm_out", dtype=output_variable.dtype)
                 outputs = [gemm_out_variable]
 
                 match_case.update(
                     {
-                        matmul_node.name: {
+                        matmul_name: {
                             "op": "Gemm",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": matmul_node.name,
+                            "name": matmul_name,
                             "attrs": {
                                 "alpha": 1.0,
                                 "beta": 1.0,
@@ -108,7 +109,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
 
                 values = [*list(input_variable.shape[:-1]), matmul_bias_variable.values.shape[-1]]
                 post_reshape_const = gs.Constant(
-                    f"{matmul_node.name}_post_reshape_in",
+                    f"{matmul_name}_post_reshape_in",
                     values=np.array(values, dtype=np.int64),
                 )
 
@@ -123,11 +124,11 @@ class MatMulAddPatternMatcher(PatternMatcher):
 
                 match_case.update(
                     {
-                        f"{matmul_node.name}_post_reshape": {
+                        f"{matmul_name}_post_reshape": {
                             "op": "Reshape",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": f"{matmul_node.name}_post_reshape",
+                            "name": f"{matmul_name}_post_reshape",
                             "domain": None,
                         }
                     }
@@ -144,7 +145,7 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 output_variable.outputs.remove(add_node)
 
                 matmul_bias_transpose_constant = gs.Constant(
-                    f"{matmul_node.name}_weight", values=matmul_bias_variable.values.T
+                    f"{matmul_name}_weight", values=matmul_bias_variable.values.T
                 )
 
                 inputs = []
@@ -157,11 +158,11 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 add_node.outputs.clear()
                 match_case.update(
                     {
-                        matmul_node.name: {
+                        matmul_name: {
                             "op": "Gemm",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": matmul_node.name,
+                            "name": matmul_name,
                             "attrs": {
                                 "alpha": 1.0,
                                 "beta": 1.0,

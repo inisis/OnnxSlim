@@ -116,7 +116,7 @@ def find_matches(graph: Graph, fusion_patterns: dict):
 
     counter = Counter()
     for node in reversed(graph.nodes):
-        if node.name not in match_map:
+        if node.outputs and node.outputs[0].name not in match_map:
             for layer_type, matchers in fusion_patterns.items():
                 for pattern_matcher in matchers:
                     if not pattern_matcher.applies_to(graph.opset):

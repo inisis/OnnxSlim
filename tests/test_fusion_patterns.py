@@ -218,6 +218,58 @@ class TestFusionPatterns(unittest.TestCase):
 
         os.unlink(f.name)
 
+    def test_convbn_pattern_with_multiple_unnamed_convs(self):
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 2, 4, 4])
+        output_a = helper.make_tensor_value_info("output_a", TensorProto.FLOAT, [1, 2, 4, 4])
+        output_b = helper.make_tensor_value_info("output_b", TensorProto.FLOAT, [1, 2, 4, 4])
+
+        initializers = []
+        nodes = []
+        for suffix in ("a", "b"):
+            initializers.extend(
+                [
+                    numpy_helper.from_array(np.ones((2, 2, 1, 1), dtype=np.float32), name=f"weights_{suffix}"),
+                    numpy_helper.from_array(np.ones(2, dtype=np.float32), name=f"scale_{suffix}"),
+                    numpy_helper.from_array(np.zeros(2, dtype=np.float32), name=f"bias_{suffix}"),
+                    numpy_helper.from_array(np.zeros(2, dtype=np.float32), name=f"mean_{suffix}"),
+                    numpy_helper.from_array(np.ones(2, dtype=np.float32), name=f"var_{suffix}"),
+                ]
+            )
+            nodes.extend(
+                [
+                    helper.make_node("Conv", ["input", f"weights_{suffix}"], [f"conv_output_{suffix}"]),
+                    helper.make_node(
+                        "BatchNormalization",
+                        [
+                            f"conv_output_{suffix}",
+                            f"scale_{suffix}",
+                            f"bias_{suffix}",
+                            f"mean_{suffix}",
+                            f"var_{suffix}",
+                        ],
+                        [f"output_{suffix}"],
+                    ),
+                ]
+            )
+
+        graph = helper.make_graph(
+            nodes,
+            "unnamed-convbn-test",
+            [input_tensor],
+            [output_a, output_b],
+            initializer=initializers,
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test", opset_imports=[helper.make_opsetid("", 11)])
+        model.ir_version = 7
+
+        optimized_model = onnxslim.slim(model)
+        onnx.checker.check_model(optimized_model)
+
+        conv_nodes = [node for node in optimized_model.graph.node if node.op_type == "Conv"]
+        self.assertEqual(len(conv_nodes), 2)
+        self.assertEqual({node.name for node in conv_nodes}, {"conv_output_a", "conv_output_b"})
+        self.assertFalse(any(node.op_type == "BatchNormalization" for node in optimized_model.graph.node))
+
     def test_convtransposemul_pattern(self):
         # Test the ConvTransposeMul pattern matcher
         matcher = ConvTransposeMulMatcher(1)

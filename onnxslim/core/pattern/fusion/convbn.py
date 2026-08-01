@@ -62,15 +62,18 @@ class ConvBatchNormMatcher(PatternMatcher):
             )
             outputs = list(bn_node.outputs)
 
+            # ONNX node names are optional; output tensor names identify graph edges.
+            conv_name = conv_transpose_node.outputs[0].name
+
             conv_transpose_node.outputs.clear()
             bn_node.inputs.clear()
             bn_node.outputs.clear()
 
-            match_case[conv_transpose_node.name] = {
+            match_case[conv_name] = {
                 "op": conv_transpose_node.op,
                 "inputs": inputs,
                 "outputs": outputs,
-                "name": conv_transpose_node.name,
+                "name": conv_name,
                 "attrs": conv_transpose_node.attrs,
                 "domain": None,
             }

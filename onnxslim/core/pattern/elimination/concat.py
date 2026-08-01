@@ -38,6 +38,7 @@ class ConcatPatternMatcher(PatternMatcher):
                 node_concat_1.inputs.insert(index + i, item)
             inputs = list(node_concat_1.inputs)
             outputs = list(node_concat_1.outputs)
+            concat_name = node_concat_1.outputs[0].name
             node_concat_1.inputs.clear()
             node_concat_1.outputs.clear()
 
@@ -47,11 +48,11 @@ class ConcatPatternMatcher(PatternMatcher):
 
             attrs = {"axis": node_concat_0_axis}
 
-            match_case[node_concat_1.name] = {
+            match_case[concat_name] = {
                 "op": "Concat",
                 "inputs": inputs,
                 "outputs": outputs,
-                "name": node_concat_1.name,
+                "name": concat_name,
                 "attrs": attrs,
                 "domain": None,
             }

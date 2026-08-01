@@ -48,16 +48,17 @@ class ConvAddMatcher(PatternMatcher):
             output_name = add_node.outputs[0].name
             inputs.append(gs.Constant(output_name + "_bias", values=conv_bias))
             outputs = list(add_node.outputs)
+            conv_name = conv_node.outputs[0].name
 
             conv_node.outputs.clear()
             add_node.inputs.clear()
             add_node.outputs.clear()
 
-            match_case[conv_node.name] = {
+            match_case[conv_name] = {
                 "op": conv_node.op,
                 "inputs": inputs,
                 "outputs": outputs,
-                "name": conv_node.name,
+                "name": conv_name,
                 "attrs": conv_node.attrs,
                 "domain": None,
             }

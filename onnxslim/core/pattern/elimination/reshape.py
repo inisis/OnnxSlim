@@ -59,15 +59,16 @@ class ReshapePatternMatcher(PatternMatcher):
                 inputs.append(first_reshape_node_inputs[0])
                 inputs.append(second_reshape_node.inputs[1])
                 outputs = list(second_reshape_node.outputs)
+                reshape_name = first_reshape_node.outputs[0].name
                 first_reshape_node.outputs.clear()
                 second_reshape_node.inputs.clear()
                 second_reshape_node.outputs.clear()
 
-                match_case[first_reshape_node.name] = {
+                match_case[reshape_name] = {
                     "op": "Reshape",
                     "inputs": inputs,
                     "outputs": outputs,
-                    "name": first_reshape_node.name,
+                    "name": reshape_name,
                     "attrs": first_reshape_node.attrs,
                     "domain": None,
                 }

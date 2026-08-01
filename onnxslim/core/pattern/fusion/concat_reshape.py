@@ -44,6 +44,7 @@ class ConcatReshapeMatcher(PatternMatcher):
         match_case = {}
         concat_node = self.concat_0
         reshape_node = self.reshape_0
+        reshape_name = reshape_node.outputs[0].name
 
         # Build the fused constant shape: collect values from concat inputs,
         # replacing the single dynamic (Variable) input with -1.
@@ -55,7 +56,7 @@ class ConcatReshapeMatcher(PatternMatcher):
                 shape_values.append(-1)
 
         shape_constant = gs.Constant(
-            reshape_node.name + "_shape",
+            reshape_name + "_shape",
             values=np.array(shape_values, dtype=np.int64),
         )
 
@@ -71,11 +72,11 @@ class ConcatReshapeMatcher(PatternMatcher):
             concat_node.inputs.clear()
             concat_node.outputs.clear()
 
-        match_case[reshape_node.name] = {
+        match_case[reshape_name] = {
             "op": "Reshape",
             "inputs": [data_input, shape_constant],
             "outputs": outputs,
-            "name": reshape_node.name,
+            "name": reshape_name,
             "attrs": reshape_node.attrs,
             "domain": None,
         }

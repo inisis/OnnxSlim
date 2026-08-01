@@ -32,13 +32,15 @@ class GeluPatternMatcher(PatternMatcher):
         input_variable.outputs.remove(div_node)
 
         output_variable = self.mul_1.outputs[0]
+        gelu_name = output_variable.name
         output_variable.inputs.clear()
 
         return {
-            self.mul_1.name: {
+            gelu_name: {
                 "op": "Gelu",
                 "inputs": [input_variable],
                 "outputs": [output_variable],
+                "name": gelu_name,
                 "domain": None,
             }
         }

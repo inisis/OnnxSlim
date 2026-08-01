@@ -50,20 +50,21 @@ class _UnsqueezePatternMatcherBase(PatternMatcher):
             n1.inputs.insert(index + i, item)
         inputs = [next(iter(n1.inputs))]
         outputs = list(n1.outputs)
+        unsqueeze_name = n0.outputs[0].name
         n1.inputs.clear()
         n1.outputs.clear()
         if len(users_n0) == 0:
             n0.inputs.clear()
             n0.outputs.clear()
 
-        attrs, extra_inputs = self._build_axes_payload(merged_axes, n0.name)
+        attrs, extra_inputs = self._build_axes_payload(merged_axes, unsqueeze_name)
         inputs.extend(extra_inputs)
 
-        match_case[n0.name] = {
+        match_case[unsqueeze_name] = {
             "op": "Unsqueeze",
             "inputs": inputs,
             "outputs": outputs,
-            "name": n0.name,
+            "name": unsqueeze_name,
             "attrs": attrs,
             "domain": None,
         }

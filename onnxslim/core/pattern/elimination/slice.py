@@ -29,6 +29,7 @@ class SlicePatternMatcher(PatternMatcher):
         match_case = {}
         first_slice_node = self.slice_0
         first_slice_node_inputs = list(first_slice_node.inputs)
+        first_slice_name = first_slice_node.outputs[0].name
         if all(isinstance(input, gs.Constant) for input in first_slice_node_inputs[1:]):
             first_slice_node_users = first_slice_node.users
             if all(
@@ -65,6 +66,7 @@ class SlicePatternMatcher(PatternMatcher):
 
                     inputs = []
                     output_name = second_slice_node.outputs[0].name
+                    second_slice_name = output_name
                     inputs.extend(
                         (
                             next(iter(first_slice_node.inputs)),
@@ -92,20 +94,20 @@ class SlicePatternMatcher(PatternMatcher):
                     second_slice_node.outputs.clear()
 
                     if len(first_slice_node_users) == 1:
-                        match_case[first_slice_node.name] = {
+                        match_case[first_slice_name] = {
                             "op": "Slice",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": first_slice_node.name,
+                            "name": first_slice_name,
                             "attrs": first_slice_node.attrs,
                             "domain": None,
                         }
                     else:
-                        match_case[second_slice_node.name] = {
+                        match_case[second_slice_name] = {
                             "op": "Slice",
                             "inputs": inputs,
                             "outputs": outputs,
-                            "name": second_slice_node.name,
+                            "name": second_slice_name,
                             "attrs": second_slice_node.attrs,
                             "domain": None,
                         }

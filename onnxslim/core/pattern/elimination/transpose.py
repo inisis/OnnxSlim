@@ -36,6 +36,7 @@ class TransposePatternMatcher(PatternMatcher):
 
         inputs = [node_0.inputs[0]]
         outputs = list(node_1.outputs)
+        transpose_name = node_0.outputs[0].name
 
         node_0.inputs.clear()
         node_0.outputs.clear()
@@ -44,20 +45,20 @@ class TransposePatternMatcher(PatternMatcher):
 
         # If the combined perm is identity, just wire input to output directly
         if combined == list(range(len(combined))):
-            match_case[node_0.name] = {
+            match_case[transpose_name] = {
                 "op": "Identity",
                 "inputs": inputs,
                 "outputs": outputs,
-                "name": node_0.name,
+                "name": transpose_name,
                 "attrs": {},
                 "domain": None,
             }
         else:
-            match_case[node_0.name] = {
+            match_case[transpose_name] = {
                 "op": "Transpose",
                 "inputs": inputs,
                 "outputs": outputs,
-                "name": node_0.name,
+                "name": transpose_name,
                 "attrs": {"perm": combined},
                 "domain": None,
             }

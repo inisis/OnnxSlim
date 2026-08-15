@@ -6,6 +6,20 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+def can_broadcast_to(shape_from, shape_to):
+    """Return True if ``shape_from`` is unidirectional broadcastable to ``shape_to`` per the ONNX spec.
+
+    Per https://onnx.ai/onnx/operators/onnx__Gemm.html, Gemm's C input must be unidirectional
+    broadcastable to (M, N): its rank must not exceed the target's rank, and each trailing dimension
+    must be 1 or equal to the corresponding target dimension.
+    """
+    if shape_from is None or shape_to is None:
+        return False
+    if len(shape_from) > len(shape_to):
+        return False
+    return all(a == 1 or a == b for a, b in zip(reversed(shape_from), reversed(shape_to)))
+
+
 @register_fusion_pattern(priority=1)
 class MatMulAddPatternMatcher(PatternMatcher):
     def __init__(self, priority):
@@ -45,6 +59,12 @@ class MatMulAddPatternMatcher(PatternMatcher):
                 and len(input_variable.shape) > 2
                 and all([isinstance(value, int) for value in input_variable.shape])
             ):
+                gemm_output_shape = [
+                    int(np.prod(input_variable.shape[:-1])),
+                    matmul_bias_variable.values.shape[-1],
+                ]
+                if not can_broadcast_to(add_bias_variable.values.shape, gemm_output_shape):
+                    return match_case
                 pre_reshape_const = gs.Constant(
                     f"{matmul_name}_pre_reshape_in",
                     values=np.array([-1, matmul_bias_variable.values.shape[0]], dtype=np.int64),

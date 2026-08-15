@@ -284,6 +284,27 @@ class TestModelZoo:
             assert summary.op_type_counts["Concat"] == 3
             assert summary.op_type_counts["Add"] == 16
 
+    def test_gemm_5d_bias(self, request):
+        name = request.node.originalname[len("test_") :]
+        filename = f"{MODELZOO_PATH}/{name}/{name}.onnx"
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            slim_path = os.path.join(tempdir, f"{name}_slim.onnx")
+            slim(filename, slim_path)
+
+            input_data = np.random.rand(1, 16, 10, 14, 768).astype(np.float32)
+            sess_orig = ort.InferenceSession(filename)
+            input_name = sess_orig.get_inputs()[0].name
+            orig_out = sess_orig.run(None, {input_name: input_data})
+
+            sess_slim = ort.InferenceSession(slim_path)
+            slim_out = sess_slim.run(None, {input_name: input_data})
+            np.testing.assert_allclose(orig_out[0], slim_out[0], atol=1e-5)
+
+            summary = summarize_model(slim_path, tag=request.node.name)
+            assert summary.op_type_counts.get("MatMul", 0) == 1
+            assert summary.op_type_counts.get("Gemm", 0) == 0
+
 
 if __name__ == "__main__":
     import sys

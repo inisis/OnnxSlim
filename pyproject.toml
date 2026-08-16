@@ -28,7 +28,7 @@ issues = "https://github.com/inisis/OnnxSlim/issues"
 onnxslim = "onnxslim.cli:main"
 
 [build-system]
-requires = ["hatchling>=1.20.0,<2"]
+requires = ["hatchling>=1.20.0,<1.30.0"]
 build-backend = "hatchling.build"
 
 [tool.ruff]

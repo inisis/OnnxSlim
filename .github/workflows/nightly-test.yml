@@ -12,19 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: "3.12"
 
       - name: install dependency
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          pip install .
-          pip install pytest onnxruntime
+        run: uv sync --dev
 
       - name: benchmark test
-        run: |
-          python tests/test_benchmark.py
+        run: uv run python tests/test_benchmark.py
 
   timm-test:
     runs-on: self-hosted
@@ -33,19 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: "3.12"
 
       - name: install dependency
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          pip install .
-          pip install pytest pytest-xdist onnxruntime timm torchvision --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu
+        run: uv sync --dev --group model-tests
 
       - name: timm test
-        run: |
-          python tests/test_onnx_nets.py
+        run: uv run python tests/test_onnx_nets.py
 
   ultralytics-test:
     runs-on: self-hosted
@@ -54,19 +50,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: "3.12"
 
       - name: install dependency
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          pip install .
-          pip install pytest pytest-xdist onnxruntime -U ultralytics
+        run: uv sync --dev --group ultralytics
 
       - name: ultralytics test
-        run: |
-          pytest tests/test_ultralytics.py -v -n 1
+        run: uv run pytest tests/test_ultralytics.py -v -n 1
 
   optimum-test:
     runs-on: self-hosted
@@ -75,16 +69,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: "3.12"
 
       - name: install dependency
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          uv sync --dev
-          pip install einops parameterized transformers "optimum[onnxruntime]"
+        run: uv sync --dev --group optimum
 
       - name: optimum test
-        run: |
-          pytest tests/exporters/onnx/test_export_cli.py -v -n 4
+        run: uv run pytest tests/exporters/onnx/test_export_cli.py -v -n 4

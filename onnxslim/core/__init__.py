@@ -126,23 +126,42 @@ def input_modification(model: onnx.ModelProto, inputs: str) -> onnx.ModelProto:
 def shape_infer(model: onnx.ModelProto):
     """Infer tensor shapes in an ONNX model using symbolic and static shape inference techniques."""
     logger.debug("Start shape inference.")
+
+    # Save original value_info so we can restore it after inference.
+    # Symbolic shape inference may replace dim_param with dim_value in
+    # value_info entries.  ORT's CUDA provider uses these annotations for
+    # kernel/execution-plan selection, so concretising previously-symbolic
+    # dimensions can change numerical results.
+    saved_vi = {}
+    for vi in model.graph.value_info:
+        saved_vi[vi.name] = vi.SerializeToString()
+
     if FORCE_ONNXRUNTIME_SHAPE_INFERENCE:
         logger.debug("force onnxruntime shape infer.")
-        return SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
-    try:
-        logger.debug("try onnxruntime shape infer.")
         model = SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
-    except Exception as err:
-        logger.debug(f"onnxruntime shape infer failed, try onnx shape infer. {err}")
-        if model.ByteSize() >= checker.MAXIMUM_PROTOBUF:
-            tmp_dir = tempfile.TemporaryDirectory()
-            tmp_path = os.path.join(tmp_dir.name, "tmp.onnx")
-            tmp_infer_path = os.path.join(tmp_dir.name, "tmp_infer.onnx")
-            save(model, tmp_path)
-            onnx.shape_inference.infer_shapes_path(tmp_path, tmp_infer_path)
-            model = onnx.load(tmp_infer_path)
-        else:
-            model = onnx.shape_inference.infer_shapes(model)
+    else:
+        try:
+            logger.debug("try onnxruntime shape infer.")
+            model = SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
+        except Exception as err:
+            logger.debug(f"onnxruntime shape infer failed, try onnx shape infer. {err}")
+            if model.ByteSize() >= checker.MAXIMUM_PROTOBUF:
+                tmp_dir = tempfile.TemporaryDirectory()
+                tmp_path = os.path.join(tmp_dir.name, "tmp.onnx")
+                tmp_infer_path = os.path.join(tmp_dir.name, "tmp_infer.onnx")
+                save(model, tmp_path)
+                onnx.shape_inference.infer_shapes_path(tmp_path, tmp_infer_path)
+                model = onnx.load(tmp_infer_path)
+            else:
+                model = onnx.shape_inference.infer_shapes(model)
+
+    # Restore pre-inference value_info for entries that existed before.
+    # New entries added by shape inference (for previously un-annotated
+    # tensors) are kept as-is so the optimiser can still use them.
+    for vi in model.graph.value_info:
+        if vi.name in saved_vi:
+            vi.ParseFromString(saved_vi[vi.name])
+
     if DEBUG:
         onnx.save(model, "debug_shape_infer.onnx")
     logger.debug("Finish shape inference.")

@@ -115,8 +115,21 @@ def dead_node_elimination(graph, is_subgraph=False):
                 elif isinstance(input, Variable) and is_empty_along_axis(input, axis):
                     node.inputs.remove(input)
             if len(node.inputs) == 1:
-                node.erase()
-                logger.debug(f"removing {node.op} op: {node.name}")
+                input_is_graph_output = any(node.inputs[0] is output for output in graph.outputs)
+                output_is_graph_output = any(node.outputs[0] is output for output in graph.outputs)
+                if input_is_graph_output and not output_is_graph_output:
+                    input_var = node.inputs[0]
+                    output_var = node.outputs[0]
+                    for consumer in list(output_var.outputs):
+                        for idx, consumer_input in enumerate(consumer.inputs):
+                            if consumer_input is output_var:
+                                consumer.inputs[idx] = input_var
+                    node.inputs.clear()
+                    node.outputs.clear()
+                    logger.debug(f"removing {node.op} op: {node.name}")
+                elif not input_is_graph_output:
+                    node.erase()
+                    logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Sub":
             if isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable):
                 constant_variable = node.inputs[1]

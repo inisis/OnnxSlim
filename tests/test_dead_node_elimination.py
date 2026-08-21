@@ -321,7 +321,7 @@ class TestDeadNodeElimination:
         o_variable = gs.Variable(name="o_variable", dtype=np.float32, shape=[1, 2, 4, 3, 5])
         o_symbolic = gs.Variable(name="o_symbolic", dtype=np.float32, shape=[1, 2, 4, 3, 5])
         o_multi_input = gs.Variable(name="o_multi_input", dtype=np.float32, shape=[1, 2, 8, 3, 5])
-        o_symbolic_kept = gs.Variable(name="o_symbolic_kept", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_symbolic_kept = gs.Variable(name="o_symbolic_kept", dtype=np.float32, shape=[1, "N_plus_2", 4, 3, 5])
         o_guard = gs.Variable(name="o_guard", dtype=np.float32, shape=[1, 2, 0, 3, 5])
 
         class RecordingConcat(gs.Node):
@@ -349,26 +349,38 @@ class TestDeadNodeElimination:
             outputs=[o_constant, o_variable, o_symbolic, o_multi_input, o_symbolic_kept, o_guard],
         )
 
+        # Match the boundary metadata populated when a real ONNX model is
+        # imported by GraphSurgeon.
+        for input in graph.inputs:
+            input.is_input = True
+        for output in graph.outputs:
+            output.is_output = True
+
         dead_node_elimination(graph)
 
-        # Empty Constant / empty Variable / empty Variable with symbolic dims:
-        # the empty input is removed and the single-input Concat is erased.
+        # The first graph-output Concat is erased. Later Concats retain their
+        # output aliases because their shared input is now a graph output.
         assert not concat_constant.inputs and not concat_constant.outputs
-        assert not concat_variable.inputs and not concat_variable.outputs
-        assert not concat_symbolic.inputs and not concat_symbolic.outputs
+        assert concat_variable.inputs == [o_constant]
+        assert concat_variable.outputs == [o_variable]
+        assert concat_symbolic.inputs == [o_constant]
+        assert concat_symbolic.outputs == [o_symbolic]
+        assert relu.outputs == [o_constant]
         # Multi-input Concat: the empty input is removed and the node is kept
         # with the two non-empty inputs.
         assert empty_variable not in concat_multi_input.inputs
-        assert len(concat_multi_input.inputs) == 2
+        assert concat_multi_input.inputs == [o_constant, y]
         assert concat_multi_input in graph.nodes
         # Symbolic concat axis: emptiness is not provable, so the input is kept.
         assert symbolic_axis in concat_symbolic_kept.inputs
-        assert len(concat_symbolic_kept.inputs) == 2
+        assert concat_symbolic_kept.inputs == [o_constant, symbolic_axis]
         assert concat_symbolic_kept in graph.nodes
-        # Two empty inputs: the guard keeps exactly one input before erase,
-        # so a zero-input Concat never occurs.
+        # Two empty graph inputs: keep one input so a zero-input Concat is
+        # never created. Node.erase must retain the graph-input-to-output alias.
         assert concat_guard.input_counts_at_erase == [1]
-        assert not concat_guard.inputs and not concat_guard.outputs
+        assert concat_guard.inputs == [empty_variable]
+        assert concat_guard.outputs == [o_guard]
+        assert concat_guard in graph.nodes
         graph.cleanup().toposort()
         assert all(node.inputs for node in graph.nodes)
 

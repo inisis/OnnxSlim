@@ -113,6 +113,7 @@ def graph_fusion(graph: Graph, fusion_patterns: dict, is_subgraph=False):
 def find_matches(graph: Graph, fusion_patterns: dict):
     """Find matching patterns in the graph based on provided fusion patterns."""
     match_map = {}
+    graph_output_ids = {id(output) for output in graph.outputs}
 
     counter = Counter()
     for node in reversed(graph.nodes):
@@ -123,6 +124,11 @@ def find_matches(graph: Graph, fusion_patterns: dict):
                         continue
                     match = pattern_matcher.match(node)
                     if match:
+                        if pattern_matcher.has_intermediate_graph_output(graph_output_ids):
+                            logger.debug(
+                                f"skipping pattern {layer_type}: an intermediate tensor is a graph output"
+                            )
+                            continue
                         match_case = pattern_matcher.rewrite(opset=graph.opset)
                         logger.debug(f"matched pattern {layer_type}")
                         for _, match in match_case.items():

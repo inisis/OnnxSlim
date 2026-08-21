@@ -233,7 +233,7 @@ class TestModelZoo:
 
             summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
             assert summary.op_type_counts["Add"] == 25
-            assert summary.op_type_counts["Concat"] == 44
+            assert summary.op_type_counts["Concat"] == 43
 
     def test_tiny_vit_21m_512(self, request):
         name = request.node.originalname[len("test_") :]

@@ -106,13 +106,30 @@ def dead_node_elimination(graph, is_subgraph=False):
                 node.erase()
                 logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Concat":
+            axis = node.attrs.get("axis", 0)
+            for input in list(node.inputs):
+                if len(node.inputs) == 1:
+                    break
+                if isinstance(input, Constant) and input.values.size == 0:
+                    node.inputs.remove(input)
+                elif isinstance(input, Variable) and is_empty_along_axis(input, axis):
+                    node.inputs.remove(input)
             if len(node.inputs) == 1:
-                node.erase()
-                logger.debug(f"removing {node.op} op: {node.name}")
-            else:
-                for input in node.inputs:
-                    if isinstance(input, Constant) and input.values.size == 0:
-                        node.inputs.remove(input)
+                input_is_graph_output = any(node.inputs[0] is output for output in graph.outputs)
+                output_is_graph_output = any(node.outputs[0] is output for output in graph.outputs)
+                if input_is_graph_output and not output_is_graph_output:
+                    input_var = node.inputs[0]
+                    output_var = node.outputs[0]
+                    for consumer in list(output_var.outputs):
+                        for idx, consumer_input in enumerate(consumer.inputs):
+                            if consumer_input is output_var:
+                                consumer.inputs[idx] = input_var
+                    node.inputs.clear()
+                    node.outputs.clear()
+                    logger.debug(f"removing {node.op} op: {node.name}")
+                elif not input_is_graph_output:
+                    node.erase()
+                    logger.debug(f"removing {node.op} op: {node.name}")
         elif node.op == "Sub":
             if isinstance(node.inputs[1], Constant) and isinstance(node.inputs[0], Variable):
                 constant_variable = node.inputs[1]
@@ -168,6 +185,19 @@ def get_constant_variable(node, return_idx=False):
     for idx, input in enumerate(list(node.inputs)):
         if isinstance(input, Constant):
             return (idx, input) if return_idx else input
+
+
+def is_empty_along_axis(input, axis):
+    """Return True if the input has a known shape whose dimension along the concat axis is statically 0."""
+    input_shape = input.shape
+    if input_shape is None:
+        return False
+    if axis < 0:
+        axis += len(input_shape)
+    if not 0 <= axis < len(input_shape):
+        return False
+    dim = input_shape[axis]
+    return isinstance(dim, int) and dim == 0
 
 
 def is_noop_slice(node):

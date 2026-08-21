@@ -319,6 +319,8 @@ class TestDeadNodeElimination:
         symbolic_axis = gs.Variable(name="symbolic_axis", dtype=np.float32, shape=[1, "N", 4, 3, 5])
         o_constant = gs.Variable(name="o_constant", dtype=np.float32, shape=[1, 2, 4, 3, 5])
         o_variable = gs.Variable(name="o_variable", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_variable_abs = gs.Variable(name="o_variable_abs", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_variable_neg = gs.Variable(name="o_variable_neg", dtype=np.float32, shape=[1, 2, 4, 3, 5])
         o_symbolic = gs.Variable(name="o_symbolic", dtype=np.float32, shape=[1, 2, 4, 3, 5])
         o_multi_input = gs.Variable(name="o_multi_input", dtype=np.float32, shape=[1, 2, 8, 3, 5])
         o_symbolic_kept = gs.Variable(name="o_symbolic_kept", dtype=np.float32, shape=[1, "N_plus_2", 4, 3, 5])
@@ -342,11 +344,19 @@ class TestDeadNodeElimination:
         concat_guard = RecordingConcat(
             op="Concat", inputs=[empty_variable_2, empty_variable], outputs=[o_guard], attrs={"axis": 2}
         )
+        variable_abs = gs.Node(op="Abs", inputs=[o_variable], outputs=[o_variable_abs])
+        variable_neg = gs.Node(op="Neg", inputs=[o_variable], outputs=[o_variable_neg])
 
         graph = gs.Graph(
-            nodes=[relu, concat_constant, concat_variable, concat_symbolic, concat_multi_input, concat_symbolic_kept, concat_guard],
+            nodes=[
+                relu, concat_constant, concat_variable, concat_symbolic, concat_multi_input,
+                concat_symbolic_kept, concat_guard, variable_abs, variable_neg,
+            ],
             inputs=[graph_input, y, empty_variable, empty_variable_2, empty_symbolic, symbolic_axis],
-            outputs=[o_constant, o_variable, o_symbolic, o_multi_input, o_symbolic_kept, o_guard],
+            outputs=[
+                o_constant, o_variable_abs, o_variable_neg, o_symbolic,
+                o_multi_input, o_symbolic_kept, o_guard,
+            ],
         )
 
         # Match the boundary metadata populated when a real ONNX model is
@@ -358,11 +368,15 @@ class TestDeadNodeElimination:
 
         dead_node_elimination(graph)
 
-        # The first graph-output Concat is erased. Later Concats retain their
-        # output aliases because their shared input is now a graph output.
+        # The first graph-output Concat is erased. The Variable case becomes
+        # an internal single-input Concat whose consumers are reconnected to
+        # the graph output without dropping either branch.
         assert not concat_constant.inputs and not concat_constant.outputs
-        assert concat_variable.inputs == [o_constant]
-        assert concat_variable.outputs == [o_variable]
+        assert not concat_variable.inputs and not concat_variable.outputs
+        assert variable_abs.inputs == [o_constant]
+        assert variable_neg.inputs == [o_constant]
+        # A later graph-output Concat retains its output alias because its
+        # shared input is already a graph output.
         assert concat_symbolic.inputs == [o_constant]
         assert concat_symbolic.outputs == [o_symbolic]
         assert relu.outputs == [o_constant]

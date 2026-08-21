@@ -306,6 +306,72 @@ class TestDeadNodeElimination:
 
         self._assert_graph_valid(graph, "Concat")
 
+    def test_concat_empty_input_elimination(self):
+        """Test Concat empty-input elimination across multiple scenarios."""
+
+        graph_input = gs.Variable(name="input", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        x = gs.Variable(name="X", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        y = gs.Variable(name="Y", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        empty_constant = gs.Constant(name="empty_constant", values=np.empty((1, 2, 0, 3, 5), dtype=np.float32))
+        empty_variable = gs.Variable(name="empty_variable", dtype=np.float32, shape=[1, 2, 0, 3, 5])
+        empty_variable_2 = gs.Variable(name="empty_variable_2", dtype=np.float32, shape=[1, 2, 0, 3, 5])
+        empty_symbolic = gs.Variable(name="empty_symbolic", dtype=np.float32, shape=[1, "N", 0, 3, 5])
+        symbolic_axis = gs.Variable(name="symbolic_axis", dtype=np.float32, shape=[1, "N", 4, 3, 5])
+        o_constant = gs.Variable(name="o_constant", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_variable = gs.Variable(name="o_variable", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_symbolic = gs.Variable(name="o_symbolic", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_multi_input = gs.Variable(name="o_multi_input", dtype=np.float32, shape=[1, 2, 8, 3, 5])
+        o_symbolic_kept = gs.Variable(name="o_symbolic_kept", dtype=np.float32, shape=[1, 2, 4, 3, 5])
+        o_guard = gs.Variable(name="o_guard", dtype=np.float32, shape=[1, 2, 0, 3, 5])
+
+        class RecordingConcat(gs.Node):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.input_counts_at_erase = []
+
+            def erase(self, input_var_idx=0, output_var_idx=0):
+                self.input_counts_at_erase.append(len(self.inputs))
+                return super().erase(input_var_idx, output_var_idx)
+
+        relu = gs.Node(op="Relu", inputs=[graph_input], outputs=[x])
+        concat_constant = gs.Node(op="Concat", inputs=[x, empty_constant], outputs=[o_constant], attrs={"axis": 2})
+        concat_variable = gs.Node(op="Concat", inputs=[x, empty_variable], outputs=[o_variable], attrs={"axis": 2})
+        concat_symbolic = gs.Node(op="Concat", inputs=[x, empty_symbolic], outputs=[o_symbolic], attrs={"axis": 2})
+        concat_multi_input = gs.Node(op="Concat", inputs=[x, y, empty_variable], outputs=[o_multi_input], attrs={"axis": 2})
+        concat_symbolic_kept = gs.Node(op="Concat", inputs=[x, symbolic_axis], outputs=[o_symbolic_kept], attrs={"axis": 1})
+        concat_guard = RecordingConcat(
+            op="Concat", inputs=[empty_variable_2, empty_variable], outputs=[o_guard], attrs={"axis": 2}
+        )
+
+        graph = gs.Graph(
+            nodes=[relu, concat_constant, concat_variable, concat_symbolic, concat_multi_input, concat_symbolic_kept, concat_guard],
+            inputs=[graph_input, y, empty_variable, empty_variable_2, empty_symbolic, symbolic_axis],
+            outputs=[o_constant, o_variable, o_symbolic, o_multi_input, o_symbolic_kept, o_guard],
+        )
+
+        dead_node_elimination(graph)
+
+        # Empty Constant / empty Variable / empty Variable with symbolic dims:
+        # the empty input is removed and the single-input Concat is erased.
+        assert not concat_constant.inputs and not concat_constant.outputs
+        assert not concat_variable.inputs and not concat_variable.outputs
+        assert not concat_symbolic.inputs and not concat_symbolic.outputs
+        # Multi-input Concat: the empty input is removed and the node is kept
+        # with the two non-empty inputs.
+        assert empty_variable not in concat_multi_input.inputs
+        assert len(concat_multi_input.inputs) == 2
+        assert concat_multi_input in graph.nodes
+        # Symbolic concat axis: emptiness is not provable, so the input is kept.
+        assert symbolic_axis in concat_symbolic_kept.inputs
+        assert len(concat_symbolic_kept.inputs) == 2
+        assert concat_symbolic_kept in graph.nodes
+        # Two empty inputs: the guard keeps exactly one input before erase,
+        # so a zero-input Concat never occurs.
+        assert concat_guard.input_counts_at_erase == [1]
+        assert not concat_guard.inputs and not concat_guard.outputs
+        graph.cleanup().toposort()
+        assert all(node.inputs for node in graph.nodes)
+
     def test_single_output_split_elimination(self, request):
         """Test that Split nodes with a single output are eliminated."""
 

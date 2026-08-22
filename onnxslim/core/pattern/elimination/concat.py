@@ -42,9 +42,9 @@ class ConcatPatternMatcher(PatternMatcher):
             node_concat_1.inputs.clear()
             node_concat_1.outputs.clear()
 
-            if len(users_node_concat_0) == 0:
-                node_concat_0.inputs.clear()
-                node_concat_0.outputs.clear()
+            # Let graph cleanup detach the inner Concat when it is genuinely
+            # unused. This keeps output-sensitive removal in one place and
+            # avoids prematurely orphaning externally observable tensors.
 
             attrs = {"axis": node_concat_0_axis}
 

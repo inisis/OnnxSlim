@@ -60,6 +60,59 @@ class TestEliminationPatterns(unittest.TestCase):
 
         os.unlink(f.name)
 
+    def test_concat_pattern_preserves_intermediate_graph_output(self):
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 4, 4])
+        intermediate_tensor = helper.make_tensor_value_info("intermediate", TensorProto.FLOAT, [1, 3, 4, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 4, 4])
+
+        node1 = helper.make_node("Concat", ["input"], ["intermediate"], axis=1)
+        node2 = helper.make_node("Concat", ["intermediate"], ["output"], axis=1)
+        graph = helper.make_graph(
+            [node1, node2],
+            "concat-intermediate-output-test",
+            [input_tensor],
+            [intermediate_tensor, output_tensor],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+        model.ir_version = 7
+
+        optimized_model = onnxslim.slim(model, skip_optimizations=["dead_node_elimination"])
+
+        onnx.checker.check_model(optimized_model)
+        output_names = {output.name for output in optimized_model.graph.output}
+        produced_names = {output for node in optimized_model.graph.node for output in node.output}
+        self.assertEqual(output_names, {"intermediate", "output"})
+        self.assertTrue(output_names.issubset(produced_names))
+
+    def test_reshape_pattern_preserves_intermediate_graph_output(self):
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [2, 3])
+        intermediate_tensor = helper.make_tensor_value_info("intermediate", TensorProto.FLOAT, [3, 2])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [6])
+        shape1 = numpy_helper.from_array(np.array([3, 2], dtype=np.int64), name="shape1")
+        shape2 = numpy_helper.from_array(np.array([6], dtype=np.int64), name="shape2")
+
+        node1 = helper.make_node("Reshape", ["input", "shape1"], ["intermediate"])
+        node2 = helper.make_node("Reshape", ["intermediate", "shape2"], ["output"])
+        graph = helper.make_graph(
+            [node1, node2],
+            "reshape-intermediate-output-test",
+            [input_tensor],
+            [intermediate_tensor, output_tensor],
+            initializer=[shape1, shape2],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+        model.ir_version = 7
+
+        optimized_model = onnxslim.slim(model, skip_optimizations=["dead_node_elimination"])
+
+        onnx.checker.check_model(optimized_model)
+        output_names = {output.name for output in optimized_model.graph.output}
+        produced_names = {output for node in optimized_model.graph.node for output in node.output}
+        self.assertEqual(output_names, {"intermediate", "output"})
+        self.assertTrue(output_names.issubset(produced_names))
+
     def test_reshape_pattern(self):
         # Create a model with a reshape pattern that can be eliminated
         # Input -> Reshape -> Reshape -> Output

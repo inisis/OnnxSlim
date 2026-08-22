@@ -215,6 +215,25 @@ class PatternMatcher:
         """Check and validate parameters, returning True if valid."""
         return True
 
+    def has_intermediate_graph_output(self, graph_output_ids=None):
+        """Return whether a matched non-terminal node produces a model output.
+
+        Multi-node rewrites generally replace only the terminal node's outputs.
+        Rewriting a match whose intermediate tensor is also a graph output can
+        therefore detach that output from its producer.
+        """
+        match_point = self.get_match_point()
+        for descriptor in self.pattern.nodes:
+            if descriptor.op in {"input", "output"} or descriptor is match_point:
+                continue
+            matched_node = getattr(self, descriptor.name, None)
+            if matched_node is not None and any(
+                output.is_output or (graph_output_ids is not None and id(output) in graph_output_ids)
+                for output in matched_node.outputs
+            ):
+                return True
+        return False
+
 
 class PatternGenerator:
     def __init__(self, onnx_model):

@@ -29,7 +29,6 @@ tmp/
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-uv.lock
 
 # Installer logs
 pip-log.txt
@@ -80,6 +79,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
+.venv/
 venv/
 ENV/
 

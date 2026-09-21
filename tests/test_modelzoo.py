@@ -262,7 +262,7 @@ class TestModelZoo:
         with tempfile.TemporaryDirectory() as tempdir:
             slim(filename, os.path.join(tempdir, f"{name}_slim.onnx"))
             summary = summarize_model(os.path.join(tempdir, f"{name}_slim.onnx"), tag=request.node.name)
-            assert summary.op_type_counts["Transpose"] == 109
+            assert summary.op_type_counts["Transpose"] == 111
             assert summary.op_type_counts["Reshape"] == 170
 
     def test_no_nms_model(self, request):

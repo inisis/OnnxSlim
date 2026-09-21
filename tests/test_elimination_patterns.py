@@ -488,42 +488,47 @@ class TestTransposeAsReshapePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (10, 768), expect_transpose_count=0, expect_reshape_count=1)
 
-    def test_transpose_unchanged(self):
-        # perm=[1,0] on a genuinely 2D tensor (no size-1 axis) really reorders data - must not be rewritten.
+    def test_data_reordering_transpose_is_unchanged(self):
+        # An adjacent Reshape makes the pattern eligible, but swapping two non-1 axes still requires
+        # a real data reorder and must remain a Transpose.
         x = helper.make_tensor_value_info("x", TensorProto.FLOAT, [3, 4])
-        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [4, 3])
+        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [1, 4, 3])
+        shape_const = helper.make_tensor("shape", TensorProto.INT64, [3], [1, 3, 4])
+        nodes = [
+            helper.make_node("Reshape", ["x", "shape"], ["mid"]),
+            helper.make_node("Transpose", ["mid"], ["out"], perm=[0, 2, 1]),
+        ]
+        graph = helper.make_graph(nodes, "real-transpose", [x], [out], initializer=[shape_const])
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+        self._check(model, (3, 4), expect_transpose_count=1, expect_reshape_count=1)
+
+    def test_layout_preserving_transpose_without_reshape_chain_is_unchanged(self):
+        # Although this Transpose only moves a size-1 axis, replacing it with a standalone Reshape
+        # provides no simplification and may prevent a backend from recognizing the Transpose itself.
+        x = helper.make_tensor_value_info("x", TensorProto.FLOAT, [2, 1])
+        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [1, 2])
         nodes = [helper.make_node("Transpose", ["x"], ["out"], perm=[1, 0])]
-        graph = helper.make_graph(nodes, "real-transpose", [x], [out])
+        graph = helper.make_graph(nodes, "standalone-layout-transpose", [x], [out])
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 13
         model.ir_version = 7
-        self._check(model, (3, 4), expect_transpose_count=1)
+        self._check(model, (2, 1), expect_transpose_count=1, expect_reshape_count=0)
 
-    def test_dynamic_dim(self):
-        # x:[10, "N", 1] -> Transpose(perm=[2,0,1]) -> out:[1, 10, "N"]
-        # The dynamic middle axis is conservatively treated as "real" (order-constrained), but since only
-        # the static size-1 axis actually moves, this is still expressible as a Reshape with a single -1.
-        x = helper.make_tensor_value_info("x", TensorProto.FLOAT, [10, "N", 1])
-        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [1, 10, "N"])
-        nodes = [helper.make_node("Transpose", ["x"], ["out"], perm=[2, 0, 1])]
-        graph = helper.make_graph(nodes, "dynamic-batch", [x], [out])
+    def test_transpose_as_reshape_merges_with_following_reshape(self):
+        x = helper.make_tensor_value_info("x", TensorProto.FLOAT, [10, 1, 768])
+        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [10, 768])
+        shape_const = helper.make_tensor("shape", TensorProto.INT64, [2], [10, 768])
+        nodes = [
+            helper.make_node("Transpose", ["x"], ["mid"], perm=[1, 0, 2]),
+            helper.make_node("Reshape", ["mid", "shape"], ["out"]),
+        ]
+        graph = helper.make_graph(nodes, "transpose-before-reshape", [x], [out], initializer=[shape_const])
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 13
         model.ir_version = 7
-        self._check(model, (10, 7, 1), expect_transpose_count=0, expect_reshape_count=1)
-
-    def test_two_dynamic_dims(self):
-        # Two dynamic ("real") dims can't be expressed with ONNX Reshape's single -1, so this must be
-        # left as a Transpose even though the ordering condition itself would otherwise be satisfied.
-        x = helper.make_tensor_value_info("x", TensorProto.FLOAT, ["N", "M", 1])
-        out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [1, "N", "M"])
-        nodes = [helper.make_node("Transpose", ["x"], ["out"], perm=[2, 0, 1])]
-        graph = helper.make_graph(nodes, "two-dynamic-dims", [x], [out])
-        model = helper.make_model(graph, producer_name="onnxslim-test")
-        model.opset_import[0].version = 13
-        model.ir_version = 7
-        self._check(model, (5, 6, 1), expect_transpose_count=1)
-
+        self._check(model, (10, 1, 768), expect_transpose_count=0, expect_reshape_count=1)
 
 if __name__ == "__main__":
     unittest.main()

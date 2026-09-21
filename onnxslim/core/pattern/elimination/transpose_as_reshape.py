@@ -14,7 +14,8 @@ class TransposeAsReshapeMatcher(PatternMatcher):
     """Replaces a Transpose with an equivalent Reshape when its perm only reorders size-1 axes.
     Real(non-1) axes must keep their relative order, or it's a genuine data reorder and not safe to rewrite.
     A dim with unknown static value (e.g. a dynamic batch axis) is conservatively treated as non-1; at
-    most one such dim can still be expressed via ONNX Reshape's single `-1`.
+    most one such dim can still be expressed via ONNX Reshape's single `-1`. The rewrite is only applied
+    when the Transpose is adjacent to a Reshape; isolated Transposes are left to backends.
     """
 
     def __init__(self, priority):
@@ -33,7 +34,13 @@ class TransposeAsReshapeMatcher(PatternMatcher):
 
     def parameter_check(self):
         # EliminationTranspose may have already consumed this node earlier in the same pass.
-        return bool(self.transpose_0.inputs) and bool(self.transpose_0.outputs)
+        node = self.transpose_0
+        if not node.inputs or not node.outputs:
+            return False
+
+        has_previous_reshape = any(producer.op == "Reshape" for producer in node.inputs[0].inputs)
+        has_next_reshape = any(user.op == "Reshape" for user in node.users)
+        return has_previous_reshape or has_next_reshape
 
     def rewrite(self, opset=11):
         node = self.transpose_0

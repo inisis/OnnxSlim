@@ -17,6 +17,7 @@ _PATTERN_TEMPLATE = """
 # Scope and approach follow onnxruntime's transpose optimizer (onnx_transpose_optimization.cc):
 # Squeeze/Unsqueeze move one axis at a time (always safe), Reshape only *splits* post-transpose axes
 
+
 def _split_groups_by_origin(
     transposed_shape: List[int], requested_shape: List[int], perm0: List[int]
 ) -> Optional[List[Tuple[int, int]]]:
@@ -91,7 +92,10 @@ class _TransposeViewTransposeMatcherBase(PatternMatcher):
         if a_shape is None or any(not isinstance(d, int) or d <= 0 for d in a_shape):
             return {}
 
-        perm0 = list(t0.attrs["perm"])
+        if "perm" in t0.attrs:
+            perm0 = list(t0.attrs["perm"])
+        else:
+            perm0 = list(reversed(range(len(a_shape))))
         plan = self._compute_rewrite(v, a_shape, perm0)
         if plan is None:
             return {}
@@ -189,6 +193,8 @@ class UnsqueezeViewMatcher(_TransposeViewTransposeMatcherBase):
         k = len(raw_axes)
         new_rank = rank0 + k
         axes = sorted(int(a) + new_rank if a < 0 else int(a) for a in raw_axes)
+        if len(set(axes)) != k or any(a < 0 or a >= new_rank for a in axes):
+            return None
 
         is_added = [False] * new_rank
         for a in axes:
@@ -229,6 +235,11 @@ class SqueezeViewMatcher(_TransposeViewTransposeMatcherBase):
         else:
             # axes omitted: squeeze every statically-known size-1 (post-transpose) axis.
             axes = [i for i in range(rank0) if a_shape[perm0[i]] == 1]
+
+        if len(set(axes)) != len(axes) or any(a < 0 or a >= rank0 for a in axes):
+            return None
+        if any(a_shape[perm0[a]] != 1 for a in axes):
+            return None
 
         removed = {perm0[a] for a in axes}  # translate to A's own axis indices
 

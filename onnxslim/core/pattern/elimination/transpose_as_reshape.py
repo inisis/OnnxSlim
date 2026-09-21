@@ -41,7 +41,13 @@ class TransposeAsReshapeMatcher(PatternMatcher):
         shape = data.shape
         if shape is None:
             return {}
-        perm = list(node.attrs["perm"])
+        if any(isinstance(dim, int) and dim == 0 for dim in shape):
+            return {}
+
+        if "perm" in node.attrs:
+            perm = list(node.attrs["perm"])
+        else:
+            perm = list(reversed(range(len(shape))))
         axes = [(p, shape[p], _is_static(shape[p])) for p in perm]
         real_axes = [p for p, dim, is_static in axes if not (is_static and dim == 1)]
         if real_axes != sorted(real_axes):

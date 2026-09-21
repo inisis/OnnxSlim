@@ -17,13 +17,11 @@ _PATTERN_TEMPLATE = """
 # Scope and approach follow onnxruntime's transpose optimizer (onnx_transpose_optimization.cc):
 # Squeeze/Unsqueeze move one axis at a time (always safe), Reshape only *splits* post-transpose axes
 
-
 def _split_groups_by_origin(
     transposed_shape: List[int], requested_shape: List[int], perm0: List[int]
 ) -> Optional[List[Tuple[int, int]]]:
-    """Partition `requested_shape` into one contiguous run per entry of `transposed_shape` (products must
-    match), then reorder those runs into pre-transpose axis order (`result[perm0[j]]` = axis j's run).
-    Returns None if the products can't be matched.
+    """Splits `requested_shape` into one contiguous run per `transposed_shape` entry (products must
+    match), then reorders the runs into pre-transpose axis order. None if the products don't line up.
     """
     groups: List[Optional[Tuple[int, int]]] = [None] * len(perm0)
     cursor = 0
@@ -44,12 +42,28 @@ def _split_groups_by_origin(
     return groups if cursor == n else None
 
 
-class _TransposeViewTransposeMatcherBase(PatternMatcher):
-    """Shared matcher for `Transpose -> <ViewOp> -> Transpose`, moving the ViewOp before the first Transpose.
+def _reshape_as_perm(transposed_shape: List[int], requested_shape: List[int]) -> Optional[List[int]]:
+    """Returns `perm` with `requested_shape[i] == transposed_shape[perm[i]]`, when the reshape only
+    relocates size-1 axes - the same condition TransposeAsReshapeMatcher checks in reverse.
+    """
+    src_real = [i for i, d in enumerate(transposed_shape) if d != 1]
+    dst_real = [i for i, d in enumerate(requested_shape) if d != 1]
+    if [transposed_shape[i] for i in src_real] != [requested_shape[i] for i in dst_real]:
+        return None
+    src_ones = [i for i, d in enumerate(transposed_shape) if d == 1]
+    dst_ones = [i for i, d in enumerate(requested_shape) if d == 1]
+    perm = [0] * len(transposed_shape)
+    for s, d in zip(src_real, dst_real):
+        perm[d] = s
+    for s, d in zip(src_ones, dst_ones):
+        perm[d] = s
+    return perm
 
-    Subclasses only implement `_compute_rewrite`, computing the moved Transpose's new
-    perm/shape/inputs from `perm0`. The trailing Transpose's own perm is never read - it's required only
-    so EliminationTranspose has something to merge with next pass.
+
+class _TransposeViewTransposeMatcherBase(PatternMatcher):
+    """Shared matcher for `Transpose -> <ViewOp> -> Transpose`: moves the ViewOp before the first
+    Transpose. Subclasses only implement `_compute_rewrite` (moved perm/shape/inputs from `perm0`).
+    The trailing Transpose's perm is never read - it's just left for EliminationTranspose to merge next.
     """
 
     def __init__(self, priority, view_op_type):
@@ -73,8 +87,8 @@ class _TransposeViewTransposeMatcherBase(PatternMatcher):
 
         a = t0.inputs[0]
         a_shape = a.shape
-        
-        if not a_shape or any(not isinstance(d, int) or d <= 0 for d in a_shape):
+
+        if a_shape is None or any(not isinstance(d, int) or d <= 0 for d in a_shape):
             return {}
 
         perm0 = list(t0.attrs["perm"])
@@ -100,15 +114,16 @@ class _TransposeViewTransposeMatcherBase(PatternMatcher):
         t0.attrs["perm"] = new_perm
 
         b.shape = new_shape
-        b.dtype = a.dtype if a.dtype is not None else c.dtype
+        b.dtype = a.dtype
 
         return {}
 
 
-@register_fusion_pattern(priority=1)
+@register_fusion_pattern(priority=1, min_opset=5)
 class ReshapeViewMatcher(_TransposeViewTransposeMatcherBase):
-    """Only handles the case where Reshape *splits* every post-transpose axis into its own contiguous
-    run of output axes (output rank > post-transpose rank); ports onnxruntime's HandleReshapeSplit.
+    """Two cases: equal rank, where the Reshape only relocates size-1 axes (treated as a permutation and
+    composed with perm0); and rank-increasing, where it *splits* each post-transpose axis into a
+    contiguous run of output axes (ports onnxruntime's HandleReshapeSplit).
     """
 
     def __init__(self, priority):
@@ -122,16 +137,26 @@ class ReshapeViewMatcher(_TransposeViewTransposeMatcherBase):
             return None
 
         rank0 = len(perm0)
-        if len(requested_shape) <= rank0:
-            return None  # split-only; equal/smaller output rank is not handled
-
         transposed_shape = [a_shape[p] for p in perm0]
+
+        if len(requested_shape) == rank0:
+            reshape_perm = _reshape_as_perm(transposed_shape, requested_shape)
+            if reshape_perm is None:
+                return None
+            new_perm = [perm0[p] for p in reshape_perm]
+            shape_const = gs.Constant(
+                name=f"{view_node.outputs[0].name}_shape",
+                values=np.array(a_shape, dtype=np.int64),
+            )
+            return new_perm, list(a_shape), [shape_const]
+
+        if len(requested_shape) < rank0:
+            return None  # merging multiple post-transpose axes together is out of scope
+
         groups = _split_groups_by_origin(transposed_shape, requested_shape, perm0)
         if groups is None:
             return None
 
-        # groups is already in pre-transpose axis order; walking it builds the new Reshape's shape and
-        # records where each dim ends up, giving the moved Transpose's perm.
         new_shape = []
         new_perm = [0] * len(requested_shape)
         for start, end in groups:
@@ -164,8 +189,6 @@ class UnsqueezeViewMatcher(_TransposeViewTransposeMatcherBase):
         k = len(raw_axes)
         new_rank = rank0 + k
         axes = sorted(int(a) + new_rank if a < 0 else int(a) for a in raw_axes)
-        if len(set(axes)) != k or any(a < 0 or a >= new_rank for a in axes):
-            return None
 
         is_added = [False] * new_rank
         for a in axes:
@@ -206,11 +229,6 @@ class SqueezeViewMatcher(_TransposeViewTransposeMatcherBase):
         else:
             # axes omitted: squeeze every statically-known size-1 (post-transpose) axis.
             axes = [i for i in range(rank0) if a_shape[perm0[i]] == 1]
-
-        if len(set(axes)) != len(axes) or any(a < 0 or a >= rank0 for a in axes):
-            return None
-        if any(a_shape[perm0[a]] != 1 for a in axes):
-            return None  # only size-1 axes may be squeezed
 
         removed = {perm0[a] for a in axes}  # translate to A's own axis indices
 

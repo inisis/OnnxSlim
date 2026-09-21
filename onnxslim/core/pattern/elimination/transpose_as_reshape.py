@@ -9,7 +9,7 @@ def _is_static(dim) -> bool:
     return isinstance(dim, int) and dim > 0
 
 
-@register_fusion_pattern(priority=1)
+@register_fusion_pattern(priority=1, min_opset=5)
 class TransposeAsReshapeMatcher(PatternMatcher):
     """Replaces a Transpose with an equivalent Reshape when its perm only reorders size-1 axes.
     Real(non-1) axes must keep their relative order, or it's a genuine data reorder and not safe to rewrite.
@@ -39,24 +39,19 @@ class TransposeAsReshapeMatcher(PatternMatcher):
         node = self.transpose_0
         data = node.inputs[0]
         shape = data.shape
-        if not shape:
+        if shape is None:
             return {}
-        if any(isinstance(d, int) and d == 0 for d in shape):
-            # ONNX Reshape's shape encoding can't safely express a real empty axis here: a literal `0`
-            # means "copy from the input at this same position" (not "set to zero"), and combining it with
-            # `-1` for some other axis is undefined (division by zero) - so a 0-sized tensor is out of scope.
-            return {}
-
         perm = list(node.attrs["perm"])
-        real_axes = [p for p in perm if not (_is_static(shape[p]) and shape[p] == 1)]
+        axes = [(p, shape[p], _is_static(shape[p])) for p in perm]
+        real_axes = [p for p, dim, is_static in axes if not (is_static and dim == 1)]
         if real_axes != sorted(real_axes):
             return {}
 
-        dynamic_count = sum(1 for p in perm if not _is_static(shape[p]))
+        dynamic_count = sum(1 for _, _, is_static in axes if not is_static)
         if dynamic_count > 1:
             return {}  # ONNX Reshape allows at most one inferred (-1) dimension
 
-        new_shape = [shape[p] if _is_static(shape[p]) else -1 for p in perm]
+        new_shape = [dim if is_static else -1 for _, dim, is_static in axes]
         shape_const = gs.Constant(
             name=f"{node.outputs[0].name}_shape",
             values=np.array(new_shape, dtype=np.int64),

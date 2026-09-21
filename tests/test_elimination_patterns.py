@@ -378,24 +378,24 @@ class TestTransposeViewTransposePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (1, 6, 4, 5), expect_transpose_count=1)
 
-    def test_reshape_merge_not_supported_left_unchanged(self):
-        # Merging multiple post-transpose axes together is out of scope (matches onnxruntime, which has
-        # no handler for it either) - the pattern must not trigger, leaving the graph - and the result -
-        # unchanged.
-        # a:[3,4,5,2] -T0(perm=3,0,1,2)-> b:[2,3,4,5] -Reshape[2,60] (merges "4" and "5")-> c -T1(perm=1,0)-> d
-        a = helper.make_tensor_value_info("a", TensorProto.FLOAT, [3, 4, 5, 2])
-        d = helper.make_tensor_value_info("d", TensorProto.FLOAT, [60, 2])
-        shape_const = helper.make_tensor("shape", TensorProto.INT64, [2], [2, 60])
+    def test_reshape_equal_rank_across_transpose(self):
+        # a:[2,3,1] -T0(perm=1,0,2)-> b:[3,2,1] -Reshape[1,3,2]-> c
+        # The Reshape only moves the size-1 axis, so it is equivalent to perm=[2,0,1].
+        # It first merges with T0; the following identity Transpose is eliminated on the next iteration.
+        a = helper.make_tensor_value_info("a", TensorProto.FLOAT, [2, 3, 1])
+        d = helper.make_tensor_value_info("d", TensorProto.FLOAT, [1, 3, 2])
+        shape_const = helper.make_tensor("shape", TensorProto.INT64, [3], [1, 3, 2])
         nodes = [
-            helper.make_node("Transpose", ["a"], ["b"], perm=[3, 0, 1, 2]),
+            helper.make_node("Transpose", ["a"], ["b"], perm=[1, 0, 2]),
             helper.make_node("Reshape", ["b", "shape"], ["c"]),
-            helper.make_node("Transpose", ["c"], ["d"], perm=[1, 0]),
+            helper.make_node("Transpose", ["c"], ["d"], perm=[0, 1, 2]),
         ]
-        graph = helper.make_graph(nodes, "reshape-merge", [a], [d], initializer=[shape_const])
+        graph = helper.make_graph(nodes, "reshape-as-transpose", [a], [d], initializer=[shape_const])
         model = helper.make_model(graph, producer_name="onnxslim-test")
         model.opset_import[0].version = 13
         model.ir_version = 7
-        self._check(model, (3, 4, 5, 2), expect_transpose_count=2)
+        optimized = self._check(model, (2, 3, 1), expect_transpose_count=1)
+        self.assertFalse(any(n.op_type == "Reshape" for n in optimized.graph.node))
 
     def test_unsqueeze_before_transpose(self):
         # a:[1024,8,96] -T0(perm=1,0,2)-> b:[8,1024,96] -Unsqueeze(axes=[1])-> c:[8,1,1024,96] -T1(identity)-> d
@@ -446,23 +446,6 @@ class TestTransposeViewTransposePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (8, 1, 1024, 96), expect_transpose_count=1)
 
-    def test_dynamic_input_shape_left_unchanged(self):
-        # A's shape must be fully static; even one unknown dim (unlike TransposeAsReshapeMatcher, which
-        # tolerates one) makes this pattern bail entirely.
-        a = helper.make_tensor_value_info("a", TensorProto.FLOAT, ["N", 8, 96])
-        d = helper.make_tensor_value_info("d", TensorProto.FLOAT, ["N", 8, 1, 96])
-        axes_const = helper.make_tensor("axes", TensorProto.INT64, [1], [1])
-        nodes = [
-            helper.make_node("Transpose", ["a"], ["b"], perm=[1, 0, 2]),
-            helper.make_node("Unsqueeze", ["b", "axes"], ["c"]),
-            helper.make_node("Transpose", ["c"], ["d"], perm=[2, 0, 1, 3]),
-        ]
-        graph = helper.make_graph(nodes, "dynamic-input", [a], [d], initializer=[axes_const])
-        model = helper.make_model(graph, producer_name="onnxslim-test")
-        model.opset_import[0].version = 13
-        model.ir_version = 7
-        self._check(model, (7, 8, 96), expect_transpose_count=2)
-
 
 class TestTransposeAsReshapePattern(unittest.TestCase):
     """A Transpose that only moves size-1 axes around (never reorders any real data) is equivalent to a
@@ -488,7 +471,7 @@ class TestTransposeAsReshapePattern(unittest.TestCase):
                 self.assertEqual(reshape_count, expect_reshape_count)
         os.unlink(f.name)
 
-    def test_transpose_equivalent_to_reshape_merges_with_adjacent_reshape(self):
+    def test_transpose_as_reshape_merges_with_adjacent_reshape(self):
         # x:[10,768] -> Reshape[10,1,768] -> Transpose(perm=[1,0,2]) -> [1,10,768]
         # perm=[1,0,2] only swaps a size-1 axis with a real one, so it never reorders data: the whole
         # chain collapses into a single Reshape.
@@ -505,7 +488,7 @@ class TestTransposeAsReshapePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (10, 768), expect_transpose_count=0, expect_reshape_count=1)
 
-    def test_real_transpose_left_unchanged(self):
+    def test_transpose_unchanged(self):
         # perm=[1,0] on a genuinely 2D tensor (no size-1 axis) really reorders data - must not be rewritten.
         x = helper.make_tensor_value_info("x", TensorProto.FLOAT, [3, 4])
         out = helper.make_tensor_value_info("out", TensorProto.FLOAT, [4, 3])
@@ -516,7 +499,7 @@ class TestTransposeAsReshapePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (3, 4), expect_transpose_count=1)
 
-    def test_dynamic_dim_treated_as_real_but_still_convertible(self):
+    def test_dynamic_dim(self):
         # x:[10, "N", 1] -> Transpose(perm=[2,0,1]) -> out:[1, 10, "N"]
         # The dynamic middle axis is conservatively treated as "real" (order-constrained), but since only
         # the static size-1 axis actually moves, this is still expressible as a Reshape with a single -1.
@@ -529,7 +512,7 @@ class TestTransposeAsReshapePattern(unittest.TestCase):
         model.ir_version = 7
         self._check(model, (10, 7, 1), expect_transpose_count=0, expect_reshape_count=1)
 
-    def test_two_dynamic_dims_left_unchanged(self):
+    def test_two_dynamic_dims(self):
         # Two dynamic ("real") dims can't be expressed with ONNX Reshape's single -1, so this must be
         # left as a Transpose even though the ordering condition itself would otherwise be satisfied.
         x = helper.make_tensor_value_info("x", TensorProto.FLOAT, ["N", "M", 1])

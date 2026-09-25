@@ -6,6 +6,7 @@ import pytest
 import torch
 import torch.nn as nn
 
+import onnxslim
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.optimization.dead_node_elimination import (
     check_shape,
@@ -397,6 +398,39 @@ class TestDeadNodeElimination:
         assert concat_guard in graph.nodes
         graph.cleanup().toposort()
         assert all(node.inputs for node in graph.nodes)
+
+    def test_single_concat_graph_output_preserved(self):
+        """A single-input Concat whose input is also a graph output must not be erased.
+
+        Erasing it rewires the producer of that inner graph output, orphaning it and
+        producing an invalid model. The default ``slim`` pipeline runs
+        dead_node_elimination, so it must keep both graph outputs attached.
+        """
+        from onnx import helper, TensorProto
+
+        graph_input = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 4, 4])
+        intermediate = helper.make_tensor_value_info("intermediate", TensorProto.FLOAT, [1, 3, 4, 4])
+        output = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 3, 4, 4])
+
+        node1 = helper.make_node("Concat", ["input"], ["intermediate"], axis=1)
+        node2 = helper.make_node("Concat", ["intermediate"], ["output"], axis=1)
+        graph = helper.make_graph(
+            [node1, node2],
+            "concat-intermediate-output",
+            [graph_input],
+            [intermediate, output],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 11
+        model.ir_version = 7
+
+        optimized_model = onnxslim.slim(model)
+
+        onnx.checker.check_model(optimized_model)
+        output_names = {o.name for o in optimized_model.graph.output}
+        produced_names = {o for node in optimized_model.graph.node for o in node.output}
+        assert output_names == {"intermediate", "output"}
+        assert output_names.issubset(produced_names)
 
     def test_single_output_split_elimination(self, request):
         """Test that Split nodes with a single output are eliminated."""

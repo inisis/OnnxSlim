@@ -3,6 +3,17 @@ from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
 
 
+def _get_perm(node):
+    if "perm" in node.attrs:
+        return list(node.attrs["perm"])
+
+    input_shape = node.inputs[0].shape
+    if input_shape is None:
+        return None
+
+    return list(reversed(range(len(input_shape))))
+
+
 @register_fusion_pattern(priority=1)
 class TransposePatternMatcher(PatternMatcher):
     def __init__(self, priority):
@@ -28,8 +39,10 @@ class TransposePatternMatcher(PatternMatcher):
         if len(node_0.users) != 1:
             return match_case
 
-        perm_0 = list(node_0.attrs["perm"])
-        perm_1 = list(node_1.attrs["perm"])
+        perm_0 = _get_perm(node_0)
+        perm_1 = _get_perm(node_1)
+        if perm_0 is None or perm_1 is None:
+            return match_case
 
         # Compose: combined[i] = perm_0[perm_1[i]]
         combined = [perm_0[p] for p in perm_1]

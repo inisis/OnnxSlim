@@ -241,13 +241,17 @@ class Node:
 
     def erase(self, input_var_idx=0, output_var_idx=0):
         if isinstance(self.inputs[input_var_idx], Variable):
-            if self.inputs[input_var_idx].is_input and any(out.is_output for out in self.outputs):
+            input_var = self.inputs[input_var_idx]
+            # A graph output (is_output) is observable just like a graph input, so a no-op
+            # node must never be collapsed in a way that detaches it. When both the input
+            # and an output are observable (graph input/output), the node is left in place.
+            if any(out.is_output for out in self.outputs) and (input_var.is_input or input_var.is_output):
                 return
-            if self.inputs[input_var_idx].is_input:
+            if input_var.is_input or input_var.is_output:
                 for output in self.outputs:
-                    output.replace_all_uses_with(self.inputs[input_var_idx])
+                    output.replace_all_uses_with(input_var)
             else:
-                self.inputs[input_var_idx].replace_all_uses_with(self.outputs[output_var_idx])
+                input_var.replace_all_uses_with(self.outputs[output_var_idx])
             self.inputs.clear()
             self.outputs.clear()
         elif isinstance(self.inputs[input_var_idx], Constant):

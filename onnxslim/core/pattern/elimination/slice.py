@@ -67,23 +67,31 @@ class SlicePatternMatcher(PatternMatcher):
                     inputs = []
                     output_name = second_slice_node.outputs[0].name
                     second_slice_name = output_name
+                    # Name the merged constants after the slice that keys the match
+                    # case: the first slice when it has a single user, otherwise the
+                    # second slice. Using the first slice's name for single-user merges
+                    # keeps the constant names unique across optimization passes. A
+                    # chain of 3+ Slices is merged over multiple passes, and each pass
+                    # would otherwise reuse the terminal output name and produce a
+                    # colliding constant name whose stale value shadows the new one.
+                    name_base = first_slice_name if len(first_slice_node_users) == 1 else second_slice_name
                     inputs.extend(
                         (
                             next(iter(first_slice_node.inputs)),
                             gs.Constant(
-                                output_name + "_starts",
+                                name_base + "_starts",
                                 values=np.array(new_starts, dtype=np.int64),
                             ),
                             gs.Constant(
-                                output_name + "_ends",
+                                name_base + "_ends",
                                 values=np.array(new_ends, dtype=np.int64),
                             ),
                             gs.Constant(
-                                output_name + "_axes",
+                                name_base + "_axes",
                                 values=np.array(new_axes, dtype=np.int64),
                             ),
                             gs.Constant(
-                                output_name + "_steps",
+                                name_base + "_steps",
                                 values=np.array(new_steps, dtype=np.int64),
                             ),
                         )

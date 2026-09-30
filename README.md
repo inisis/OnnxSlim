@@ -184,6 +184,18 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
       <a href="https://github.com/amd/Quark" target="_blank">amd/Quark</a>
     </td>
     <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/24322022?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/TexasInstruments/edgeai-tidl-tools" target="_blank">TexasInstruments/edgeai-tidl-tools</a>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/25452818?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/Infineon/deepcraft-model-zoo-for-aurix" target="_blank">Infineon/deepcraft-model-zoo-for-aurix</a>
+    </td>
+    <td style="vertical-align:middle;">
+      <img src="https://avatars.githubusercontent.com/u/107212512?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/meta-pytorch/executorch-examples" target="_blank">meta-pytorch/executorch-examples</a>
     </td>
   </tr>
 </table>

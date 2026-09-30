@@ -20,6 +20,12 @@ dependencies = [
     "ml_dtypes",
 ]
 
+[project.optional-dependencies]
+shape-inference = [
+    "onnx-ir",
+    "onnx-shape-inference",
+]
+
 [project.urls]
 homepage = "https://github.com/inisis/OnnxSlim"
 issues = "https://github.com/inisis/OnnxSlim/issues"

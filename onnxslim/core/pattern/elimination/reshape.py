@@ -38,6 +38,13 @@ class ReshapePatternMatcher(PatternMatcher):
         if len(first_reshape_node_users) == 1:
             second_reshape_node = node
 
+            if (
+                isinstance(second_reshape_node.inputs[1], gs.Constant)
+                and second_reshape_node.attrs.get("allowzero", 0) == 0
+                and np.any(second_reshape_node.inputs[1].values == 0)
+            ):
+                return match_case
+
             def check_constant_mergeable(reshape_node):
                 """Check if a reshape node's shape input, containing zero dimensions, can be merged with its input
                 node's shape.
@@ -69,7 +76,7 @@ class ReshapePatternMatcher(PatternMatcher):
                     "inputs": inputs,
                     "outputs": outputs,
                     "name": reshape_name,
-                    "attrs": first_reshape_node.attrs,
+                    "attrs": second_reshape_node.attrs,
                     "domain": None,
                 }
 

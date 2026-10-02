@@ -113,6 +113,11 @@ class SliceHandler(ShapeHandler):
                     new_sympy_shape[i] = ctx.new_symbolic_dim_from_output(node, 0, i)
         else:
             for i, s, e, t in zip(axes, starts, ends, steps):
+                if all(is_literal(value) for value in (new_sympy_shape[i], s, e, t)):
+                    start, stop, step = slice(int(s), int(e), int(t)).indices(int(new_sympy_shape[i]))
+                    new_sympy_shape[i] = len(range(start, stop, step))
+                    continue
+
                 if is_literal(e):
                     e = handle_negative_index(e, new_sympy_shape[i])
                 if is_literal(e):
@@ -149,7 +154,8 @@ class SliceHandler(ShapeHandler):
                 if is_literal(new_sympy_shape[i]) and is_literal(s):
                     s = max(0, min(s, new_sympy_shape[i]))
 
-                new_sympy_shape[i] = sympy.simplify((e - s + t + (-1 if t > 0 else 1)) // t)
+                new_dim = sympy.simplify((e - s + t + (-1 if t > 0 else 1)) // t)
+                new_sympy_shape[i] = max(0, new_dim) if is_literal(new_dim) else sympy.Max(0, new_dim)
 
             ctx.update_computed_dims(new_sympy_shape)
 

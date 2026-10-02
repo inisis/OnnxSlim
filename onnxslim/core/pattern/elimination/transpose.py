@@ -51,8 +51,6 @@ class TransposePatternMatcher(PatternMatcher):
         outputs = list(node_1.outputs)
         transpose_name = node_0.outputs[0].name
 
-        node_0.inputs.clear()
-        node_0.outputs.clear()
         node_1.inputs.clear()
         node_1.outputs.clear()
 

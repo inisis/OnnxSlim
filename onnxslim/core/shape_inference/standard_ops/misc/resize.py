@@ -9,7 +9,7 @@ from onnx import helper
 
 from ...base import ShapeHandler
 from ...registry import register_shape_handler
-from ...utils import get_attribute, get_opset, get_shape_from_sympy_shape
+from ...utils import get_opset, get_shape_from_sympy_shape
 
 
 class ResizeHandler(ShapeHandler):
@@ -35,29 +35,17 @@ class ResizeHandler(ShapeHandler):
                     )
                 )
         else:
-            roi = ctx.try_get_value(node, 1)
             scales = ctx.try_get_value(node, 2)
             sizes = ctx.try_get_value(node, 3)
             if sizes is not None:
                 new_sympy_shape = [sympy.simplify(round(s)) for s in sizes]
                 ctx.update_computed_dims(new_sympy_shape)
             elif scales is not None:
-                rank = len(scales)
-                if get_attribute(node, "coordinate_transformation_mode") == "tf_crop_and_resize":
-                    assert len(roi) == 2 * rank
-                    roi_start = list(roi)[:rank]
-                    roi_end = list(roi)[rank:]
-                else:
-                    roi_start = [0] * rank
-                    roi_end = [1] * rank
                 if isinstance(scales, np.ndarray):
                     scales = scales.tolist()
                 else:
                     scales = list(scales)
-                new_sympy_shape = [
-                    sympy.floor(d * (end - start) * scale + sympy.Rational(1, 2))
-                    for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
-                ]
+                new_sympy_shape = [sympy.floor(d * scale) for d, scale in zip(input_sympy_shape, scales)]
                 ctx.update_computed_dims(new_sympy_shape)
             else:
                 new_sympy_shape = ctx.new_symbolic_shape(ctx.get_shape_rank(node, 0), node)

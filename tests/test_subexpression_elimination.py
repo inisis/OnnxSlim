@@ -111,6 +111,10 @@ class TestSubexpressionElimination:
         node5.inputs = [input1, input3]  # Different second input
         assert not can_be_replaced(node1, node5)
 
+        node6 = gs.Node(op="Add", name="add5", domain="case.local", inputs=[input1, input2])
+        node6.attrs = {"axis": 1}
+        assert not can_be_replaced(node1, node6)
+
     def test_duplicate_node_with_graph_output_keeps_output_node(self):
         """Duplicate nodes should keep the graph-output producer to avoid dangling consumers."""
         input1 = gs.Variable(name="input1", dtype=np.float32, shape=(1, 1, 1, 1))

@@ -41,7 +41,14 @@ class _UnsqueezePatternMatcherBase(PatternMatcher):
         if axes_n0 is None or axes_n1 is None:
             return match_case
 
-        axes_n0 = [a + sum(1 for b in axes_n1 if b <= a) for a in axes_n0]
+        # Each insertion can move an earlier axis past a later insertion.
+        def shifted_axis(axis):
+            for inserted_axis in sorted(axes_n1):
+                if inserted_axis <= axis:
+                    axis += 1
+            return axis
+
+        axes_n0 = [shifted_axis(axis) for axis in axes_n0]
         merged_axes = axes_n0 + axes_n1
 
         index = n1.inputs.index(n0.outputs[0])

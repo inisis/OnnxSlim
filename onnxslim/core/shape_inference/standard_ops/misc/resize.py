@@ -9,7 +9,7 @@ from onnx import helper
 
 from ...base import ShapeHandler
 from ...registry import register_shape_handler
-from ...utils import get_opset, get_shape_from_sympy_shape
+from ...utils import get_opset, get_shape_from_sympy_shape, is_literal
 
 
 class ResizeHandler(ShapeHandler):
@@ -45,7 +45,14 @@ class ResizeHandler(ShapeHandler):
                     scales = scales.tolist()
                 else:
                     scales = list(scales)
-                new_sympy_shape = [sympy.floor(d * scale) for d, scale in zip(input_sympy_shape, scales)]
+                new_sympy_shape = []
+                for d, scale in zip(input_sympy_shape, scales):
+                    if is_literal(d):
+                        # ONNX computes resize dims in float32: floor(float(input_dim) * float(scale)).
+                        # Replicating float32 arithmetic avoids high-precision drift (e.g. 27 * 0.5185185f == 14.0f).
+                        new_sympy_shape.append(int(np.floor(np.float32(int(d)) * np.float32(scale))))
+                    else:
+                        new_sympy_shape.append(sympy.floor(d * scale))
                 ctx.update_computed_dims(new_sympy_shape)
             else:
                 new_sympy_shape = ctx.new_symbolic_shape(ctx.get_shape_rank(node, 0), node)

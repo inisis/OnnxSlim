@@ -334,6 +334,89 @@ class TestEliminationPatterns(unittest.TestCase):
             self.assertEqual(unsqueeze_count, 1)
         os.unlink(f.name)
 
+    def test_consecutive_unsqueeze_multi_axis_opset13(self):
+        # Regression test: the second Unsqueeze inserts multiple axes. The axis-shift must
+        # account for every insertion, otherwise the merged Unsqueeze emits duplicate axes
+        # and the model fails to load ("Axis ... is referred to more than once").
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [3, 4])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 1, 1, 3, 4])
+        axes1 = numpy_helper.from_array(np.array([0], dtype=np.int64), name="axes1")
+        axes2 = numpy_helper.from_array(np.array([0, 1], dtype=np.int64), name="axes2")
+
+        node1 = helper.make_node("Unsqueeze", ["input", "axes1"], ["intermediate"])
+        node2 = helper.make_node("Unsqueeze", ["intermediate", "axes2"], ["output"])
+
+        graph = helper.make_graph(
+            [node1, node2],
+            "consecutive-unsqueeze-multi-axis-opset13",
+            [input_tensor],
+            [output_tensor],
+            initializer=[axes1, axes2],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+
+        input_data = np.random.randn(3, 4).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.checker.check_model(optimized_model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
+            unsqueeze_count = sum(1 for n in optimized_model.graph.node if n.op_type == "Unsqueeze")
+            self.assertEqual(unsqueeze_count, 1)
+        os.unlink(f.name)
+
+    def test_slice_negative_axis_overlap_not_merged(self):
+        # Regression test: consecutive Slice ops whose axes overlap after negative-axis
+        # normalization (axis 2 vs axis -1). They must NOT be merged, since the merged
+        # Slice would reference the same dimension twice and fail to load.
+        input_tensor = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 4, 5])
+        output_tensor = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, 4, 1])
+        starts1 = numpy_helper.from_array(np.array([0], dtype=np.int64), name="starts1")
+        ends1 = numpy_helper.from_array(np.array([3], dtype=np.int64), name="ends1")
+        axes1 = numpy_helper.from_array(np.array([2], dtype=np.int64), name="axes1")
+        steps1 = numpy_helper.from_array(np.array([1], dtype=np.int64), name="steps1")
+        starts2 = numpy_helper.from_array(np.array([1], dtype=np.int64), name="starts2")
+        ends2 = numpy_helper.from_array(np.array([2], dtype=np.int64), name="ends2")
+        axes2 = numpy_helper.from_array(np.array([-1], dtype=np.int64), name="axes2")
+        steps2 = numpy_helper.from_array(np.array([1], dtype=np.int64), name="steps2")
+
+        node1 = helper.make_node("Slice", ["input", "starts1", "ends1", "axes1", "steps1"], ["intermediate"])
+        node2 = helper.make_node("Slice", ["intermediate", "starts2", "ends2", "axes2", "steps2"], ["output"])
+
+        graph = helper.make_graph(
+            [node1, node2],
+            "slice-negative-axis-overlap",
+            [input_tensor],
+            [output_tensor],
+            initializer=[starts1, ends1, axes1, steps1, starts2, ends2, axes2, steps2],
+        )
+        model = helper.make_model(graph, producer_name="onnxslim-test")
+        model.opset_import[0].version = 13
+        model.ir_version = 7
+
+        input_data = np.random.randn(1, 4, 5).astype(np.float32)
+        with tempfile.NamedTemporaryFile(suffix=".onnx", delete=False) as f:
+            onnx.save(model, f.name)
+            original_output = run_onnx(f.name, {"input": input_data})
+
+            optimized_model = onnxslim.slim(model)
+            onnx.checker.check_model(optimized_model)
+            onnx.save(optimized_model, f.name)
+            optimized_output = run_onnx(f.name, {"input": input_data})
+
+            np.testing.assert_allclose(original_output["output"], optimized_output["output"], rtol=1e-5)
+            # Overlapping slices must not be merged into a single invalid Slice.
+            slice_count = sum(1 for n in optimized_model.graph.node if n.op_type == "Slice")
+            self.assertEqual(slice_count, 2)
+        os.unlink(f.name)
+
 
 class TestTransposeViewTransposePattern(unittest.TestCase):
     """Transpose -> ViewOp -> Transpose: the ViewOp is pulled before the first Transpose so the two

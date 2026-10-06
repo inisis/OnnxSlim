@@ -47,6 +47,14 @@ class SlicePatternMatcher(PatternMatcher):
                     rank = len(input_shape)
                     first_slice_node_axes = [axis + rank if axis < 0 else axis for axis in first_slice_node_axes]
 
+                input_shape = first_slice_node_inputs[0].shape
+                rank = len(input_shape) if input_shape is not None else None
+
+                def normalized_axes(axes):
+                    if rank is None:
+                        return None if any(axis < 0 for axis in axes) else axes
+                    return [axis + rank if axis < 0 else axis for axis in axes]
+
                 # Check all users upfront before modifying the graph.
                 # If any user has overlapping axes, skip the optimization entirely
                 # to avoid corrupting the graph (fixes GitHub issue #277).

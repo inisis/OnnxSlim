@@ -6,10 +6,12 @@ Fixture revision: 42efcdefddc847e12ebd3c0e441ae71b6da39912.
 Unlike reproduce.py (which asserts that a bug occurs), these tests require a
 valid optimized graph and exact output preservation. Models use readable ONNX
 text; integer-looking float attributes are spelled with a decimal point for
-compatibility with older ONNX parsers.
+compatibility with older ONNX parsers. Graph names and omitted inputs are
+normalized to the legacy text syntax when loading.
 """
 
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -24,6 +26,15 @@ if not FIXTURE_PATH.is_file():
     pytest.skip(f"Issue reproducer dataset is unavailable: {FIXTURE_PATH}", allow_module_level=True)
 
 CASES = json.loads(FIXTURE_PATH.read_text())
+
+
+def load_model(text):
+    # ONNX <= 1.17 cannot parse quoted graph names or quoted empty inputs.
+    # These fixtures only need identifiers for graph names and bare omitted
+    # inputs (X, , scales); neither spelling changes graph semantics.
+    text = re.sub(r'^"[^"]+"\s*\(', "reproducer (", text, flags=re.MULTILINE)
+    text = text.replace(', "",', ', ,')
+    return onnx.parser.parse_model(text)
 
 
 def check_model(model):
@@ -45,7 +56,7 @@ def run_model(model, feeds):
 @pytest.mark.parametrize("disable_pass", [False, True], ids=["optimized", "pass-disabled"])
 def test_issue_reproducer(case_name, disable_pass):
     case = CASES[case_name]
-    model = onnx.parser.parse_model(case["model"])
+    model = load_model(case["model"])
     feeds = {
         name: np.asarray(item["values"], dtype=item["dtype"]).reshape(item["shape"])
         for name, item in case["inputs"].items()

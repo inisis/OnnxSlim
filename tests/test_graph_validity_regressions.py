@@ -3,10 +3,14 @@ import unittest
 
 import numpy as np
 import onnx
+import sympy
 from onnx import TensorProto, helper, numpy_helper
 from utils import run_onnx
 
 import onnxslim
+import onnxslim.third_party.onnx_graphsurgeon as gs
+from onnxslim.core.pattern.elimination.slice import SlicePatternMatcher
+from onnxslim.core.shape_inference.standard_ops.misc.resize import _resize_dim
 
 
 def make_model(name, nodes, inputs, outputs, initializers, opset=13):
@@ -75,6 +79,45 @@ class TestGraphValidityRegressions(unittest.TestCase):
         )
         optimized = self.assert_slim_preserves(model, {"X": np.arange(16, dtype=np.float32).reshape(4, 4)})
         self.assertEqual(sum(node.op_type == "Slice" for node in optimized.graph.node), 2)
+
+    def test_consecutive_slice_with_unknown_rank_rejects_negative_axes(self):
+        for first_axis, second_axis in ((-1, 0), (0, -1)):
+            input_tensor = gs.Variable("X", dtype=np.float32, shape=None)
+            intermediate = gs.Variable("S", dtype=np.float32)
+            output = gs.Variable("Y", dtype=np.float32)
+            step = gs.Constant("step", np.array([1], dtype=np.int64))
+            gs.Node(
+                "Slice",
+                inputs=[
+                    input_tensor,
+                    gs.Constant("begin0", np.array([0], dtype=np.int64)),
+                    gs.Constant("end0", np.array([2], dtype=np.int64)),
+                    gs.Constant("axis0", np.array([first_axis], dtype=np.int64)),
+                    step,
+                ],
+                outputs=[intermediate],
+            )
+            second = gs.Node(
+                "Slice",
+                inputs=[
+                    intermediate,
+                    gs.Constant("begin1", np.array([0], dtype=np.int64)),
+                    gs.Constant("end1", np.array([1], dtype=np.int64)),
+                    gs.Constant("axis1", np.array([second_axis], dtype=np.int64)),
+                    step,
+                ],
+                outputs=[output],
+            )
+            matcher = SlicePatternMatcher(1)
+            self.assertTrue(matcher.match(second))
+            self.assertEqual(matcher.rewrite(), {})
+
+    def test_resize_dim_symbolic_fallbacks(self):
+        dim = sympy.Symbol("dim", integer=True, positive=True)
+        scale = sympy.Symbol("scale", positive=True)
+        self.assertEqual(_resize_dim(2, scale), sympy.floor(2 * scale))
+        self.assertEqual(_resize_dim(dim, 0.5), sympy.floor(dim * sympy.Float(np.float32(0.5))))
+        self.assertEqual(_resize_dim(dim, scale), sympy.floor(dim * scale))
 
     def test_slice_shape_inference_handles_empty_and_reverse_ranges(self):
         empty = make_model(

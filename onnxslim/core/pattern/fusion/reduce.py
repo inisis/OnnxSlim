@@ -1,3 +1,5 @@
+import numpy as np
+
 import onnxslim.third_party.onnx_graphsurgeon as gs
 from onnxslim.core.pattern import Pattern, PatternMatcher
 from onnxslim.core.pattern.registry import register_fusion_pattern
@@ -53,7 +55,7 @@ class ReducePatternMatcher(PatternMatcher):
         reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
         unsqueeze_node_axes = unsqueeze_node.attrs.get("axes", None)
 
-        if reduce_node_axes == unsqueeze_node_axes and reduce_node_keepdims == 0:
+        if np.array_equal(reduce_node_axes, unsqueeze_node_axes) and reduce_node_keepdims == 0:
             return _build_match_case(reduce_node, unsqueeze_node)
         return match_case
 
@@ -92,6 +94,6 @@ class ReducePatternMatcherV13(PatternMatcher):
         unsqueeze_node_axes = unsqueeze_axes_input.values
         reduce_node_keepdims = reduce_node.attrs.get("keepdims", 1)
 
-        if reduce_node_axes == unsqueeze_node_axes and reduce_node_keepdims == 0:
+        if np.array_equal(reduce_node_axes, unsqueeze_node_axes) and reduce_node_keepdims == 0:
             return _build_match_case(reduce_node, unsqueeze_node)
         return match_case

@@ -72,7 +72,9 @@ def sequences_equal(seq1, seq2):
 
 def can_be_replaced(node, other_node):
     """Check if two nodes can be replaced based on their operations, attributes, and inputs."""
-    attrs_match = node.op == other_node.op and node.attrs == other_node.attrs
+    attrs_match = (
+        node.op == other_node.op and node.domain == other_node.domain and node.attrs == other_node.attrs
+    )
     node_input = [input for input in node.inputs if not input.is_empty()]
     other_node_input = [input for input in other_node.inputs if not input.is_empty()]
     inputs_match = sequences_equal(node_input, other_node_input)

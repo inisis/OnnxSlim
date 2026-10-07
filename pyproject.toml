@@ -86,6 +86,8 @@ testpaths = [
     "tests/test_nvidia.py",
     "tests/test_shape_folding.py",
     "tests/test_coverage.py",
+    "tests/test_graph_validity_regressions.py",
+    "tests/test_issue_reproducers.py",
     "tests/test_amd.py",
 ]
 addopts = "-n auto" # enables pytest-xdist parallel workers

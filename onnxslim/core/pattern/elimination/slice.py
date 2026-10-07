@@ -40,14 +40,12 @@ class SlicePatternMatcher(PatternMatcher):
                 first_slice_node_ends = first_slice_node_inputs[2].values.tolist()
                 first_slice_node_axes = first_slice_node_inputs[3].values.tolist()
                 first_slice_node_steps = first_slice_node_inputs[4].values.tolist()
-
                 input_shape = first_slice_node_inputs[0].shape
-                rank = len(input_shape) if input_shape is not None else None
-
-                def normalized_axes(axes):
-                    if rank is None:
-                        return None if any(axis < 0 for axis in axes) else axes
-                    return [axis + rank if axis < 0 else axis for axis in axes]
+                if input_shape is None and any(axis < 0 for axis in first_slice_node_axes):
+                    return match_case
+                if input_shape is not None:
+                    rank = len(input_shape)
+                    first_slice_node_axes = [axis + rank if axis < 0 else axis for axis in first_slice_node_axes]
 
                 # Check all users upfront before modifying the graph.
                 # If any user has overlapping axes, skip the optimization entirely
@@ -55,8 +53,12 @@ class SlicePatternMatcher(PatternMatcher):
                 for user_node in first_slice_node_users:
                     second_slice_node_inputs = list(user_node.inputs)
                     second_slice_node_axes = second_slice_node_inputs[3].values.tolist()
-                    new_axes = normalized_axes(first_slice_node_axes + second_slice_node_axes)
-                    if new_axes is None or len(new_axes) != len(set(new_axes)):
+                    if input_shape is None and any(axis < 0 for axis in second_slice_node_axes):
+                        return match_case
+                    if input_shape is not None:
+                        second_slice_node_axes = [axis + rank if axis < 0 else axis for axis in second_slice_node_axes]
+                    new_axes = first_slice_node_axes + second_slice_node_axes
+                    if len(new_axes) != len(set(new_axes)):
                         return match_case
 
                 for user_node in first_slice_node_users:
@@ -66,6 +68,8 @@ class SlicePatternMatcher(PatternMatcher):
                     second_slice_node_ends = second_slice_node_inputs[2].values.tolist()
                     second_slice_node_axes = second_slice_node_inputs[3].values.tolist()
                     second_slice_node_steps = second_slice_node_inputs[4].values.tolist()
+                    if input_shape is not None:
+                        second_slice_node_axes = [axis + rank if axis < 0 else axis for axis in second_slice_node_axes]
 
                     new_starts = first_slice_node_starts + second_slice_node_starts
                     new_ends = first_slice_node_ends + second_slice_node_ends

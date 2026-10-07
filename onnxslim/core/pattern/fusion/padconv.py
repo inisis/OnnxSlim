@@ -26,7 +26,7 @@ class PadConvMatcher(PatternMatcher):
         """Validates if the padding parameter for a convolutional node is a constant."""
         pad_node = self.pad_0
 
-        return isinstance(pad_node.inputs[1], gs.Constant)
+        return len(pad_node.inputs) > 1 and isinstance(pad_node.inputs[1], gs.Constant)
 
     def rewrite(self, opset=11):
         """Rewrites the padding parameter for a convolutional node to use a constant if the current parameter is not a
@@ -36,6 +36,9 @@ class PadConvMatcher(PatternMatcher):
         conv_node = self.conv_0
         pad_node = self.pad_0
         pad_node_users = pad_node.users
+
+        if len(pad_node.inputs) < 2:
+            return match_case
 
         pad_inputs = len(pad_node.inputs)
         auto_pad = conv_node.attrs.get("auto_pad", "NOTSET")
@@ -52,6 +55,8 @@ class PadConvMatcher(PatternMatcher):
             ):
                 conv_weight_dim = len(conv_node.inputs[1].shape)
                 pad_value = pad_node.inputs[1].values.tolist()
+                if any(pad < 0 for pad in pad_value):
+                    return match_case
                 if all(pad == 0 for pad in (pad_value[:2] + pad_value[conv_weight_dim : conv_weight_dim + 2])):
                     input_variable = self.pad_0.inputs[0]
                     pad_variable = pad_node.outputs[0]  # pad output variable

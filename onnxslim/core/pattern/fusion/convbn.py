@@ -30,7 +30,13 @@ class ConvBatchNormMatcher(PatternMatcher):
         conv_transpose_node = self.conv_0
         conv_transpose_node_users = conv_transpose_node.users
         node = self.bn_0
-        if len(conv_transpose_node_users) == 1 and isinstance(conv_transpose_node.inputs[1], gs.Constant):
+        if (
+            len(conv_transpose_node_users) == 1
+            and all(isinstance(value, gs.Constant) for value in conv_transpose_node.inputs[1:])
+            and all(isinstance(value, gs.Constant) for value in node.inputs[1:])
+            and node.attrs.get("training_mode", 0) == 0
+            and len(node.outputs) == 1
+        ):
             conv_transpose_weight = conv_transpose_node.inputs[1].values
             bn_node = node
             bn_scale = bn_node.inputs[1].values
@@ -48,7 +54,14 @@ class ConvBatchNormMatcher(PatternMatcher):
             oc_axis = 0 if conv_transpose_node.op == "Conv" else 1 # output_channel_axis
             shape = [1] * len(conv_transpose_weight.shape)
             shape[oc_axis] = -1
-            conv_w = conv_transpose_weight * bn_var_rsqrt.reshape(shape)
+            if conv_transpose_node.op == "ConvTranspose" and conv_transpose_node.attrs.get("group", 1) != 1:
+                group = conv_transpose_node.attrs["group"]
+                weight_shape = conv_transpose_weight.shape
+                grouped_weight = conv_transpose_weight.reshape(group, weight_shape[0] // group, *weight_shape[1:])
+                scale_shape = [group, 1, weight_shape[1]] + [1] * (len(weight_shape) - 2)
+                conv_w = (grouped_weight * bn_var_rsqrt.reshape(scale_shape)).reshape(weight_shape)
+            else:
+                conv_w = conv_transpose_weight * bn_var_rsqrt.reshape(shape)
             conv_b = (conv_transpose_bias - bn_running_mean) * bn_var_rsqrt + bn_bias
 
             inputs = []

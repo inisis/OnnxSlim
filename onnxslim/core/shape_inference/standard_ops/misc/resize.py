@@ -9,31 +9,7 @@ from onnx import helper
 
 from ...base import ShapeHandler
 from ...registry import register_shape_handler
-from ...utils import get_opset, get_shape_from_sympy_shape, is_literal
-
-
-def _resize_dim(dim, scale):
-    """Return ``floor(dim * scale)`` matching onnx's double-precision shape inference.
-
-    onnx computes Resize output dims as ``floor(double(input_dim) * double(scale))``
-    (see ``onnx/defs/tensor/utils.cc``); a float32 scale is widened to double before
-    the multiply. Replicating onnxruntime's float32 promotion would round the other
-    way for non-representable scales (e.g. ``27 * 0.5185185f == 14.0f`` in float32
-    but ``floor(27 * 0.5185185...) == 13`` in double) and disagree with the onnx
-    checker that validates a slimmed graph. Symbolic dimensions or scales fall back
-    to exact sympy arithmetic.
-    """
-    if is_literal(dim):
-        try:
-            return int(np.floor(float(int(dim)) * float(scale)))
-        except (TypeError, ValueError):
-            # `scale` is symbolic (e.g. computed from a dynamic Shape/Gather chain).
-            return sympy.floor(dim * scale)
-    try:
-        scale = np.float32(scale)
-    except (TypeError, ValueError):
-        return sympy.floor(dim * scale)
-    return sympy.floor(dim * sympy.Float(scale))
+from ...utils import get_attribute, get_opset, get_shape_from_sympy_shape
 
 
 class ResizeHandler(ShapeHandler):
@@ -49,7 +25,7 @@ class ResizeHandler(ShapeHandler):
         if get_opset(ctx.out_mp_) <= 10:
             scales = ctx.try_get_value(node, 1)
             if scales is not None:
-                new_sympy_shape = [_resize_dim(d, s) for d, s in zip(input_sympy_shape, scales)]
+                new_sympy_shape = [sympy.simplify(sympy.floor(d * s)) for d, s in zip(input_sympy_shape, scales)]
                 ctx.update_computed_dims(new_sympy_shape)
                 vi.CopyFrom(
                     helper.make_tensor_value_info(
@@ -59,17 +35,29 @@ class ResizeHandler(ShapeHandler):
                     )
                 )
         else:
+            roi = ctx.try_get_value(node, 1)
             scales = ctx.try_get_value(node, 2)
             sizes = ctx.try_get_value(node, 3)
             if sizes is not None:
                 new_sympy_shape = [sympy.simplify(round(s)) for s in sizes]
                 ctx.update_computed_dims(new_sympy_shape)
             elif scales is not None:
+                rank = len(scales)
+                if get_attribute(node, "coordinate_transformation_mode") == "tf_crop_and_resize":
+                    assert len(roi) == 2 * rank
+                    roi_start = list(roi)[:rank]
+                    roi_end = list(roi)[rank:]
+                else:
+                    roi_start = [0] * rank
+                    roi_end = [1] * rank
                 if isinstance(scales, np.ndarray):
                     scales = scales.tolist()
                 else:
                     scales = list(scales)
-                new_sympy_shape = [_resize_dim(d, scale) for d, scale in zip(input_sympy_shape, scales)]
+                new_sympy_shape = [
+                    sympy.floor(d * (end - start) * scale + sympy.Rational(1, 2))
+                    for d, start, end, scale in zip(input_sympy_shape, roi_start, roi_end, scales)
+                ]
                 ctx.update_computed_dims(new_sympy_shape)
             else:
                 new_sympy_shape = ctx.new_symbolic_shape(ctx.get_shape_rank(node, 0), node)

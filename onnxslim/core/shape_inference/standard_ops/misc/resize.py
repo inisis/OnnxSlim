@@ -12,6 +12,27 @@ from ...registry import register_shape_handler
 from ...utils import get_opset, get_shape_from_sympy_shape, is_literal
 
 
+def _resize_dim(dim, scale):
+    """Return ``floor(dim * scale)`` replicating onnxruntime's float32 arithmetic.
+
+    onnxruntime computes ``floor(float(dim) * float(scale))`` with float32 promotion,
+    so double-precision arithmetic drifts for non-representable scales (e.g.
+    ``27 * 0.5185185f == 14.0f`` but ``floor(27 * 0.5185185...) == 13``). Symbolic
+    dimensions or scales fall back to exact sympy arithmetic.
+    """
+    if is_literal(dim):
+        try:
+            return int(np.floor(np.float32(int(dim)) * np.float32(scale)))
+        except (TypeError, ValueError):
+            # `scale` is symbolic (e.g. computed from a dynamic Shape/Gather chain).
+            return sympy.floor(dim * scale)
+    try:
+        scale = np.float32(scale)
+    except (TypeError, ValueError):
+        return sympy.floor(dim * scale)
+    return sympy.floor(dim * sympy.Float(scale))
+
+
 class ResizeHandler(ShapeHandler):
     """Handler for Resize operator."""
 
@@ -25,7 +46,7 @@ class ResizeHandler(ShapeHandler):
         if get_opset(ctx.out_mp_) <= 10:
             scales = ctx.try_get_value(node, 1)
             if scales is not None:
-                new_sympy_shape = [sympy.simplify(sympy.floor(d * s)) for d, s in zip(input_sympy_shape, scales)]
+                new_sympy_shape = [_resize_dim(d, s) for d, s in zip(input_sympy_shape, scales)]
                 ctx.update_computed_dims(new_sympy_shape)
                 vi.CopyFrom(
                     helper.make_tensor_value_info(
@@ -45,14 +66,7 @@ class ResizeHandler(ShapeHandler):
                     scales = scales.tolist()
                 else:
                     scales = list(scales)
-                new_sympy_shape = []
-                for d, scale in zip(input_sympy_shape, scales):
-                    if is_literal(d):
-                        # ONNX computes resize dims in float32: floor(float(input_dim) * float(scale)).
-                        # Replicating float32 arithmetic avoids high-precision drift (e.g. 27 * 0.5185185f == 14.0f).
-                        new_sympy_shape.append(int(np.floor(np.float32(int(d)) * np.float32(scale))))
-                    else:
-                        new_sympy_shape.append(sympy.floor(d * scale))
+                new_sympy_shape = [_resize_dim(d, scale) for d, scale in zip(input_sympy_shape, scales)]
                 ctx.update_computed_dims(new_sympy_shape)
             else:
                 new_sympy_shape = ctx.new_symbolic_shape(ctx.get_shape_rank(node, 0), node)

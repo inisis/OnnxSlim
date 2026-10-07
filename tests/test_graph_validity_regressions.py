@@ -119,6 +119,17 @@ class TestGraphValidityRegressions(unittest.TestCase):
         )
         self.assert_slim_preserves(model, {"X": np.arange(6, dtype=np.float32).reshape(2, 3)})
 
+    def test_resize_scale_shape_uses_float32_arithmetic(self):
+        # 27 * 0.5185185f == 14.0f in float32, but double-precision floors to 13.
+        model = make_model(
+            "resize-float32",
+            [helper.make_node("Resize", ["X", "", "scales"], ["Y"], mode="nearest")],
+            [("X", [1, 27])],
+            [("Y", TensorProto.FLOAT, [1, 14])],
+            {"scales": np.array([1.0, 0.5185185], dtype=np.float32)},
+        )
+        self.assert_slim_preserves(model, {"X": np.arange(27, dtype=np.float32).reshape(1, 27)})
+
     def test_overlapping_transpose_matches_preserve_shared_output(self):
         model = make_model(
             "overlapping-transposes",

@@ -19,7 +19,11 @@ import pytest
 
 import onnxslim
 
-CASES = json.loads((Path(__file__).parent / "data" / "onnxslim_issue_reproducers.json").read_text())
+FIXTURE_PATH = Path("/data/modelzoo/issue_reproducers/onnxslim_issue_reproducers.json")
+if not FIXTURE_PATH.is_file():
+    pytest.skip(f"Issue reproducer dataset is unavailable: {FIXTURE_PATH}", allow_module_level=True)
+
+CASES = json.loads(FIXTURE_PATH.read_text())
 
 
 def check_model(model):

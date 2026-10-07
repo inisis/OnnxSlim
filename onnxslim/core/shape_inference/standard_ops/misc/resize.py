@@ -13,16 +13,19 @@ from ...utils import get_opset, get_shape_from_sympy_shape, is_literal
 
 
 def _resize_dim(dim, scale):
-    """Return ``floor(dim * scale)`` replicating onnxruntime's float32 arithmetic.
+    """Return ``floor(dim * scale)`` matching onnx's double-precision shape inference.
 
-    onnxruntime computes ``floor(float(dim) * float(scale))`` with float32 promotion,
-    so double-precision arithmetic drifts for non-representable scales (e.g.
-    ``27 * 0.5185185f == 14.0f`` but ``floor(27 * 0.5185185...) == 13``). Symbolic
-    dimensions or scales fall back to exact sympy arithmetic.
+    onnx computes Resize output dims as ``floor(double(input_dim) * double(scale))``
+    (see ``onnx/defs/tensor/utils.cc``); a float32 scale is widened to double before
+    the multiply. Replicating onnxruntime's float32 promotion would round the other
+    way for non-representable scales (e.g. ``27 * 0.5185185f == 14.0f`` in float32
+    but ``floor(27 * 0.5185185...) == 13`` in double) and disagree with the onnx
+    checker that validates a slimmed graph. Symbolic dimensions or scales fall back
+    to exact sympy arithmetic.
     """
     if is_literal(dim):
         try:
-            return int(np.floor(np.float32(int(dim)) * np.float32(scale)))
+            return int(np.floor(float(int(dim)) * float(scale)))
         except (TypeError, ValueError):
             # `scale` is symbolic (e.g. computed from a dynamic Shape/Gather chain).
             return sympy.floor(dim * scale)

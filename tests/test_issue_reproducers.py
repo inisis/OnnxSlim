@@ -4,7 +4,7 @@ The fixture contains all 20 OnnxSlim cases and their one-condition controls from
 https://github.com/Yuhx141/graph-optimizer-issue-reproducers/tree/main/onnxslim.
 Fixture revision: 42efcdefddc847e12ebd3c0e441ae71b6da39912.
 Unlike reproduce.py (which asserts that a bug occurs), these tests require a
-valid optimized graph and exact output preservation. Models use readable ONNX
+valid optimized graph and equivalent outputs. Models use readable ONNX
 text; integer-looking float attributes are spelled with a decimal point for
 compatibility with older ONNX parsers. Graph names and omitted inputs are
 normalized to the legacy text syntax when loading.
@@ -68,4 +68,11 @@ def test_issue_reproducer(case_name, disable_pass):
     actual = run_model(optimized, feeds)
     assert actual.keys() == expected.keys()
     for name in expected:
-        np.testing.assert_array_equal(actual[name], expected[name])
+        assert actual[name].shape == expected[name].shape
+        assert actual[name].dtype == expected[name].dtype
+        if np.issubdtype(expected[name].dtype, np.inexact):
+            # Fusing Conv/BatchNormalization changes floating-point operation
+            # order; older ORT kernels can differ by a few float32 ULPs.
+            np.testing.assert_allclose(actual[name], expected[name], rtol=1e-6, atol=1e-6)
+        else:
+            np.testing.assert_array_equal(actual[name], expected[name])

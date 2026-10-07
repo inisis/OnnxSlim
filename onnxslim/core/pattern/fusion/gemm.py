@@ -53,6 +53,14 @@ class MatMulAddPatternMatcher(PatternMatcher):
             matmul_node.inputs[0] if isinstance(matmul_node.inputs[1], gs.Constant) else matmul_node.inputs[1]
         )
         users = matmul_node.users
+        # Gemm preserves the order A @ B; a constant left operand cannot
+        # be moved to the right. Its bias must not expand the MatMul result.
+        if not isinstance(matmul_node.inputs[1], gs.Constant):
+            return match_case
+        if input_variable.shape and len(input_variable.shape) == 2 and add_bias_variable is not None:
+            target_shape = [input_variable.shape[0], matmul_bias_variable.shape[-1]]
+            if not can_broadcast_to(add_bias_variable.shape, target_shape):
+                return match_case
         if len(users) == 1 and matmul_bias_variable and add_bias_variable and len(matmul_bias_variable.shape) == 2:
             if (
                 input_variable.shape
@@ -127,7 +135,10 @@ class MatMulAddPatternMatcher(PatternMatcher):
                     }
                 )
 
-                values = [*list(input_variable.shape[:-1]), matmul_bias_variable.values.shape[-1]]
+                values = [
+                    *list(input_variable.shape[:-1]),
+                    matmul_bias_variable.values.shape[-1],
+                ]
                 post_reshape_const = gs.Constant(
                     f"{matmul_name}_post_reshape_in",
                     values=np.array(values, dtype=np.int64),
@@ -311,15 +322,22 @@ class GemmAddPatternMatcher(PatternMatcher):
             and gemm_node.outputs[0].shape
         ):
 
-            def can_broadcast_to(shape_from, shape_to):
-                """Return True if shape_from can broadcast to shape_to per NumPy rules."""
-                if shape_from is None or shape_to is None:
-                    return False
-                try:
-                    np.empty(shape_to, dtype=np.float32) + np.empty(shape_from, dtype=np.float32)
-                    return True
-                except ValueError:
-                    return False
+            # Moving Add through Reshape is safe for a scalar, or when
+            # both layouts retain the same trailing channel dimension.
+            gemm_shape = gemm_node.outputs[0].shape
+            reshape_shape = reshape_node.outputs[0].shape
+            add_shape = add_bias_variable.shape
+            if (
+                len(gemm_node.users) != 1
+                or gemm_node.attrs.get("beta", 1.0) != 1.0
+                or not can_broadcast_to(add_shape, gemm_shape)
+                or not can_broadcast_to(add_shape, reshape_shape)
+                or (
+                    add_bias_variable.values.size != 1
+                    and (len(add_shape) > 1 or not reshape_shape or reshape_shape[-1] != gemm_shape[-1])
+                )
+            ):
+                return match_case
 
             gemm_bias_constant = gemm_node.inputs[2] if len(gemm_node.inputs) == 3 else None
             if gemm_bias_constant:
@@ -338,7 +356,7 @@ class GemmAddPatternMatcher(PatternMatcher):
                     return match_case
             else:
                 if can_broadcast_to(add_bias_variable.values.shape, gemm_node.outputs[0].shape):
-                    gemm_node.inputs[2] = add_bias_variable
+                    gemm_node.inputs.append(add_bias_variable)
                 else:
                     return match_case
 

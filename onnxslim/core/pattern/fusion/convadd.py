@@ -29,12 +29,23 @@ class ConvAddMatcher(PatternMatcher):
         conv_node_users = conv_node.users
         node = self.add_0
         oc_axis = 0 if conv_node.op == "Conv" else 1 # output_channel_axis
+        add_constant = node.inputs[1]
+        if isinstance(add_constant, gs.Constant) and isinstance(conv_weight, gs.Constant):
+            # Right-aligned broadcasting must select channels, not spatial axes.
+            rank = len(conv_weight.shape)
+            channels = conv_weight.shape[oc_axis]
+            if conv_node.op == "ConvTranspose":
+                channels *= conv_node.attrs.get("group", 1)
+            bias_shape = [1] * (rank - len(add_constant.shape)) + list(add_constant.shape)
+            if len(bias_shape) != rank or bias_shape != [1, channels] + [1] * (rank - 2):
+                return match_case
         if (
             len(conv_node_users) == 1
+            and all(isinstance(value, gs.Constant) for value in conv_node.inputs[1:])
             and isinstance(node.inputs[1], gs.Constant)
             and isinstance(conv_weight, gs.Constant)
             and node.inputs[1].values.squeeze().ndim == 1
-            and node.inputs[1].values.squeeze().shape[0] == conv_weight.shape[oc_axis]
+            and node.inputs[1].values.squeeze().shape[0] == channels
         ):
             add_node = node
             if len(conv_node.inputs) == 2:

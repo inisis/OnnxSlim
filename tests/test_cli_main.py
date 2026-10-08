@@ -7,6 +7,7 @@ import onnx
 import pytest
 
 from onnxslim.cli._main import main, slim
+from onnxslim.core import shape_infer
 from onnxslim.utils import is_onnxruntime_available
 
 # Skip tests if onnxruntime is not available
@@ -166,11 +167,14 @@ class TestCliMain:
             assert len(output_model.graph.node) > 0
             assert output_model.graph.node[0].op_type == "Add"
 
-    def test_slim_with_opset_below_seven(self):
-        """Test that unsupported shape inference leaves legacy models usable."""
+    def test_shape_infer_falls_back_below_opset_seven(self):
+        """Test ONNX shape inference fallback for legacy models."""
         model = onnx.helper.make_model(
             onnx.helper.make_graph(
-                [onnx.helper.make_node("Relu", ["input"], ["output"])],
+                [
+                    onnx.helper.make_node("Relu", ["input"], ["hidden"]),
+                    onnx.helper.make_node("Relu", ["hidden"], ["output"]),
+                ],
                 "legacy_opset",
                 [onnx.helper.make_tensor_value_info("input", onnx.TensorProto.FLOAT, [1, 3])],
                 [onnx.helper.make_tensor_value_info("output", onnx.TensorProto.FLOAT, [1, 3])],
@@ -179,8 +183,11 @@ class TestCliMain:
         )
         model.ir_version = 3
 
+        inferred = shape_infer(model)
         slimmed = slim(model)
 
+        hidden = next(value for value in inferred.graph.value_info if value.name == "hidden")
+        assert [dim.dim_value for dim in hidden.type.tensor_type.shape.dim] == [1, 3]
         onnx.checker.check_model(slimmed)
         assert slimmed.opset_import[0].version == 6
 

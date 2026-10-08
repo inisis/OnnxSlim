@@ -191,6 +191,11 @@ class TestCliMain:
         onnx.checker.check_model(slimmed)
         assert slimmed.opset_import[0].version == 6
 
+    def test_shape_infer_without_default_opset_is_unchanged(self):
+        model = onnx.ModelProto()
+
+        assert shape_infer(model) is model
+
 
 class TestCliMainEntryPoint:
     def test_main_basic(self):

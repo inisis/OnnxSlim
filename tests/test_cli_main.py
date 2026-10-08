@@ -166,6 +166,24 @@ class TestCliMain:
             assert len(output_model.graph.node) > 0
             assert output_model.graph.node[0].op_type == "Add"
 
+    def test_slim_with_opset_below_seven(self):
+        """Test that unsupported shape inference leaves legacy models usable."""
+        model = onnx.helper.make_model(
+            onnx.helper.make_graph(
+                [onnx.helper.make_node("Relu", ["input"], ["output"])],
+                "legacy_opset",
+                [onnx.helper.make_tensor_value_info("input", onnx.TensorProto.FLOAT, [1, 3])],
+                [onnx.helper.make_tensor_value_info("output", onnx.TensorProto.FLOAT, [1, 3])],
+            ),
+            opset_imports=[onnx.helper.make_opsetid("", 6)],
+        )
+        model.ir_version = 3
+
+        slimmed = slim(model)
+
+        onnx.checker.check_model(slimmed)
+        assert slimmed.opset_import[0].version == 6
+
 
 class TestCliMainEntryPoint:
     def test_main_basic(self):

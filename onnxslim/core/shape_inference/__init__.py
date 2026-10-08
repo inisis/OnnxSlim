@@ -456,7 +456,7 @@ class ShapeInferencer:
         onnx_opset = get_opset(in_mp)
         if (not onnx_opset) or onnx_opset < 7:
             logger.warning("Only support models of onnx opset 7 and above.")
-            return None
+            return in_mp
 
         inferencer = ShapeInferencer(int_max, auto_merge, guess_output_rank, verbose)
 

@@ -14,7 +14,7 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     "onnx",
-    "sympy>=1.13.1",
+    "sympy>=1.13.3",
     "packaging",
     "colorama",
     "ml_dtypes",

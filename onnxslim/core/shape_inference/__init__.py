@@ -454,9 +454,12 @@ class ShapeInferencer:
             Exception: If shape inference is incomplete.
         """
         onnx_opset = get_opset(in_mp)
-        if (not onnx_opset) or onnx_opset < 7:
-            logger.warning("Only support models of onnx opset 7 and above.")
+        if not onnx_opset:
+            logger.warning("Model has no default ONNX opset; skipping shape inference.")
             return in_mp
+        if onnx_opset < 7:
+            logger.warning("Falling back to ONNX shape inference for models below opset 7.")
+            return onnx.shape_inference.infer_shapes(in_mp)
 
         inferencer = ShapeInferencer(int_max, auto_merge, guess_output_rank, verbose)
 

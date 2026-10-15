@@ -83,6 +83,7 @@ testpaths = [
     "tests/test_cli_main.py",
     "tests/test_utils.py",
     "tests/test_symbolic_shape_inference.py",
+    "tests/test_symbolic_shape_handlers.py",
     "tests/test_nvidia.py",
     "tests/test_shape_folding.py",
     "tests/test_coverage.py",

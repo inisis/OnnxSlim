@@ -18,3 +18,5 @@ from . import expand
 from . import pad
 from . import shape
 from . import size
+from . import flatten
+from . import space_depth

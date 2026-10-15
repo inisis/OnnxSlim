@@ -4,6 +4,7 @@
 """Neural network operator shape handlers."""
 
 from . import conv
+from . import conv_transpose
 from . import nhwc_conv
 from . import average_pool
 from . import max_pool

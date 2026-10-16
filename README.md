@@ -170,6 +170,13 @@ For more usage, see onnxslim -h or refer to our [examples](./examples)
   </tr>
   <tr>
     <td style="vertical-align:middle;">
+      <img src="https://github.com/unslothai.png" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
+      <a href="https://github.com/unslothai/unsloth" target="_blank">unslothai/unsloth</a>
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="vertical-align:middle;">
       <img src="https://avatars.githubusercontent.com/u/147458884?s=48&v=4" width="22" height="22" style="vertical-align:middle; margin-right:8px;"/>
       <a href="https://github.com/nndeploy/nndeploy" target="_blank">nndeploy/nndeploy</a>
     </td>

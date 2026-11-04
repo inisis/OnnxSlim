@@ -22,6 +22,7 @@ logger = logging.getLogger("onnxslim")
 DEBUG = bool(os.getenv("ONNXSLIM_DEBUG"))
 AUTO_MERGE = True if os.getenv("ONNXSLIM_AUTO_MERGE") is None else bool(int(os.getenv("ONNXSLIM_AUTO_MERGE")))
 FORCE_ONNXRUNTIME_SHAPE_INFERENCE = bool(os.getenv("ONNXSLIM_FORCE_ONNXRUNTIME_SHAPE_INFERENCE"))
+FORCE_ONNXSCRIPT_SHAPE_INFERENCE = bool(os.getenv("ONNXSLIM_FORCE_ONNXSCRIPT_SHAPE_INFERENCE"))
 
 
 def input_shape_modification(model: onnx.ModelProto, input_shapes: str) -> onnx.ModelProto:
@@ -129,6 +130,14 @@ def shape_infer(model: onnx.ModelProto):
     if FORCE_ONNXRUNTIME_SHAPE_INFERENCE:
         logger.debug("force onnxruntime shape infer.")
         return SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
+    if 1:
+        import onnx_ir as ir
+        from onnx_shape_inference import infer_symbolic_shapes
+
+        logger.debug("force onnx-shape-inference.")
+        model_ir = ir.from_proto(model)
+        model_ir = infer_symbolic_shapes(model_ir)
+        return ir.to_proto(model_ir)
     try:
         logger.debug("try onnxruntime shape infer.")
         model = SymbolicShapeInference.infer_shapes(model, auto_merge=AUTO_MERGE)
